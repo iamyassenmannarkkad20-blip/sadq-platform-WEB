@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelancing Marketplace — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .header { position: sticky; top: 0; z-index: 100; height: 64px; background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .header__nav { margin-left: auto; display: flex; gap: 4px; }
+    .header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.8125rem; padding: 6px 10px; border-radius: var(--sadq-radius-sm); }
+    .header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .hero { background: linear-gradient(135deg, var(--sadq-primary), var(--sadq-primary-light)); border-radius: var(--sadq-radius); padding: 24px; margin-bottom: 20px; color: #fff; }
+    .hero__title { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .hero__sub { font-size: 0.875rem; opacity: 0.85; margin-bottom: 16px; }
+    .hero__search { width: 100%; padding: 12px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.9375rem; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .tab { padding: 8px 14px; border: 1px solid var(--sadq-border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.8125rem; font-weight: 500; white-space: nowrap; transition: var(--sadq-transition); }
+    .tab--active { background: var(--sadq-primary); color: #fff; border-color: var(--sadq-primary); }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .service-card { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); overflow: hidden; box-shadow: var(--sadq-shadow); transition: var(--sadq-transition); text-decoration: none; color: var(--text, #F8FAFC); }
+    .service-card:hover { box-shadow: var(--sadq-shadow-hover); transform: translateY(-2px); }
+    .service-card__thumb { width: 100%; height: 120px; object-fit: cover; background: var(--sadq-border); }
+    .service-card__body { padding: 14px; }
+    .service-card__title { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .service-card__meta { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .service-card__price { font-size: 1rem; font-weight: 700; color: var(--sadq-primary); margin-top: 6px; }
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--translation { background: #e3f2fd; color: #1565c0; }
+    .badge--category { background: #f0f7f0; color: var(--sadq-primary); }
+    .empty-state { text-align: center; padding: 60px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state__text { font-size: 1rem; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+    .load-more { text-align: center; padding: 20px; }
+    .btn { padding: 10px 20px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; background: var(--sadq-primary); color: #fff; }
+    .btn:hover { background: var(--sadq-primary-light); }
+    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 360px) { .results-grid { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+      <a href="/register.html">Register</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <div class="hero__title">Freelancing Marketplace</div>
+      <div class="hero__sub">Translation, Design, Development, Writing & more</div>
+      <input type="text" class="hero__search" id="search-input" placeholder="Search services...">
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab tab--active" data-cat="all">All Services</div>
+      <div class="tab" data-cat="translation">🌐 Translation</div>
+      <div class="tab" data-cat="design">🎨 Design</div>
+      <div class="tab" data-cat="development">💻 Development</div>
+      <div class="tab" data-cat="writing">✍️ Writing</div>
+      <div class="tab" data-cat="video">🎬 Video</div>
+    </div>
+
+    <div id="loading">
+      <div class="results-grid">
+        <div class="skeleton" style="height:220px;"></div>
+        <div class="skeleton" style="height:220px;"></div>
+        <div class="skeleton" style="height:220px;"></div>
+      </div>
+    </div>
+
+    <div id="results" class="results-grid hidden"></div>
+
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">🛠️</div>
+      <div class="empty-state__text">No services available yet.</div>
+    </div>
+
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+
+    let activeCat = 'all';
+    let searchTerm = '';
+    let searchTimeout = null;
+    let page = 0;
+    const pageSize = 12;
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchTerm = e.target.value.trim();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { page = 0; loadServices(); }, 400);
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+        tab.classList.add('tab--active');
+        activeCat = tab.dataset.cat;
+        page = 0;
+        loadServices();
+      });
+    });
+
+    document.getElementById('load-more-btn').addEventListener('click', () => { page++; loadServices(true); });
+
+    function showLoading() { document.getElementById('loading').classList.remove('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.add('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showEmpty() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.remove('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showResults() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.remove('hidden'); document.getElementById('empty').classList.add('hidden'); }
+
+    async function loadServices(append = false) {
+      if (!append) showLoading();
+
+      try {
+        // Fetch regular services
+        let servicesQuery = supabase.from('services')
+          .select('id, title, price, status, provider_id')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (searchTerm) servicesQuery = servicesQuery.ilike('title', `%${searchTerm}%`);
+
+        // Fetch translation services
+        let translationQuery = supabase.from('translation_services')
+          .select('id, title, price, source_language, target_language, status, freelancer_id')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (searchTerm) translationQuery = translationQuery.ilike('title', `%${searchTerm}%`);
+
+        const [servicesRes, translationRes] = await Promise.all([servicesQuery, translationQuery]);
+
+        let items = [];
+
+        if (servicesRes.data) {
+          servicesRes.data.forEach(s => {
+            const matchesCat = activeCat === 'all' || activeCat !== 'translation';
+            if (matchesCat) items.push({ ...s, type: 'service', link: `/service-details.html?id=${s.id}` });
+          });
+        }
+
+        if (translationRes.data && (activeCat === 'all' || activeCat === 'translation')) {
+          translationRes.data.forEach(t => {
+            items.push({
+              ...t, type: 'translation',
+              title: t.title,
+              price: t.price,
+              link: `/service-details.html?id=${t.id}&type=translation`,
+              langPair: `${t.source_language || ''} → ${t.target_language || ''}`,
+            });
+          });
+        }
+
+        if (!append && items.length === 0) { showEmpty(); return; }
+
+        const grid = document.getElementById('results');
+        const html = items.map(s => `
+          <a href="${s.link}" class="service-card fade-in">
+            <div class="service-card__thumb" style="display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--sadq-text-muted);">
+              ${s.type === 'translation' ? '🌐' : '🛠️'}
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__title">${s.title}</div>
+              <div class="service-card__meta">
+                ${s.type === 'translation' ? `<span class="badge badge--translation">Translation</span> ${s.langPair || ''}` : '<span class="badge badge--category">Service</span>'}
+              </div>
+              <div class="service-card__price">${s.price ? '₹' + s.price : 'Free'}</div>
+            </div>
+          </a>
+        `).join('');
+
+        if (append) grid.insertAdjacentHTML('beforeend', html);
+        else grid.innerHTML = html;
+
+        showResults();
+        document.getElementById('load-more-wrap').classList.toggle('hidden', items.length < pageSize);
+
+      } catch (error) {
+        console.error('[Freelancing] Load error:', error.message);
+        showEmpty();
+      }
+    }
+
+    loadServices();
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

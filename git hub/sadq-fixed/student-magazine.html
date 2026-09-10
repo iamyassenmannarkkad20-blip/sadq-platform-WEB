@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Magazine — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:900px;margin:0 auto;padding:16px}
+    .hero{background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));border-radius:var(--sadq-radius);padding:32px 24px;margin-bottom:24px;color:#fff;text-align:center;position:relative;overflow:hidden}
+    .hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--sadq-accent)}
+    .hero__icon{font-size:3rem;margin-bottom:8px}
+    .hero__title{font-size:1.75rem;font-weight:800;margin-bottom:6px}
+    .hero__sub{font-size:.875rem;opacity:.85;max-width:500px;margin:0 auto}
+    .search-bar{margin-bottom:16px}
+    .search-input{width:100%;padding:12px 16px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius);font-size:.9375rem}
+    .search-input:focus{outline:none;border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .issues-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+    .issue-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);transition:var(--sadq-transition)}
+    .issue-card:hover{box-shadow:var(--sadq-shadow-hover);transform:translateY(-4px)}
+    .issue-card__cover{width:100%;height:280px;object-fit:cover;display:block}
+    .issue-card__cover-placeholder{width:100%;height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.6);background:linear-gradient(135deg,var(--sadq-primary-light),var(--sadq-primary))}
+    .issue-card__cover-placeholder span{font-size:3rem;margin-bottom:8px}
+    .issue-card__cover-placeholder small{font-size:.875rem}
+    .issue-card__body{padding:14px}
+    .issue-card__title{font-size:.9375rem;font-weight:600;margin-bottom:4px}
+    .issue-card__contributors{font-size:.75rem;color:var(--sadq-text-muted);margin-bottom:6px}
+    .issue-card__meta{font-size:.75rem;color:var(--sadq-text-muted);display:flex;gap:8px;flex-wrap:wrap}
+    .issue-card__actions{margin-top:10px;display:flex;gap:8px}
+    .issue-btn{flex:1;padding:6px;border:1px solid var(--sadq-primary);border-radius:6px;text-align:center;font-size:.75rem;font-weight:500;color:var(--sadq-primary);text-decoration:none;transition:var(--sadq-transition)}
+    .issue-btn:hover{background:var(--sadq-primary);color:#fff}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .create-btn{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--sadq-primary);color:#fff;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,50,.3);z-index:50;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:var(--sadq-transition)}
+    .create-btn:hover{background:var(--sadq-primary-light);transform:scale(1.05)}
+    @media(max-width:600px){.issues-grid{grid-template-columns:1fr 1fr}.issue-card__cover,.issue-card__cover-placeholder{height:200px}}
+    @media(max-width:360px){.issues-grid{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="hero">
+      <div class="hero__icon">📚</div>
+      <h1 class="hero__title">Student Magazine</h1>
+      <p class="hero__sub">A platform for student voices — creative writing, reflections, poetry, and more, contributed by our community.</p>
+    </div>
+    <div class="search-bar">
+      <input type="text" class="search-input" id="search-input" placeholder="Search student magazines...">
+    </div>
+    <div id="loading">
+      <div class="issues-grid">
+        <div class="skeleton" style="height:320px"></div>
+        <div class="skeleton" style="height:320px"></div>
+        <div class="skeleton" style="height:320px"></div>
+      </div>
+    </div>
+    <div id="results" class="issues-grid hidden"></div>
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">📚</div>
+      <p>No student magazines published yet.</p>
+    </div>
+  </div>
+  <a href="/create-post.html" class="create-btn" title="Contribute">+</a>
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    let searchTerm='',searchTimeout=null;
+
+    document.getElementById('search-input').addEventListener('input',(e)=>{
+      searchTerm=e.target.value.trim();clearTimeout(searchTimeout);
+      searchTimeout=setTimeout(()=>loadIssues(),400);
+    });
+
+    function showLoading(){document.getElementById('loading').classList.remove('hidden');document.getElementById('results').classList.add('hidden');document.getElementById('empty').classList.add('hidden');}
+    function showEmpty(){document.getElementById('loading').classList.add('hidden');document.getElementById('results').classList.add('hidden');document.getElementById('empty').classList.remove('hidden');}
+    function showResults(){document.getElementById('loading').classList.add('hidden');document.getElementById('empty').classList.add('hidden');document.getElementById('results').classList.remove('hidden');}
+
+    async function loadIssues(){
+      showLoading();
+      try{
+        let query=supabase.from('student_magazines')
+          .select('*')
+          .eq('status','published')
+          .order('created_at',{ascending:false})
+          .limit(24);
+
+        if(searchTerm)query=query.ilike('title',`%${searchTerm}%`);
+        const{data,error}=await query;
+        if(error)throw error;
+        if(!data||data.length===0){showEmpty();return;}
+
+        document.getElementById('results').innerHTML=data.map(m=>`
+          <div class="issue-card fade-in">
+            ${(m.cover_image_url || m.cover_url || m.image_url)
+              ?`<img class="issue-card__cover" src="${m.cover_image_url || m.cover_url || m.image_url}" alt="${m.title}" loading="lazy">`
+              :`<div class="issue-card__cover-placeholder"><span>📚</span><small>Student Magazine</small></div>`}
+            <div class="issue-card__body">
+              <div class="issue-card__title">${m.title}</div>
+              ${m.description?`<div class="issue-card__contributors" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${m.description}</div>`:''}
+              <div class="issue-card__meta">
+                <span>${new Date(m.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</span>
+              </div>
+              <div class="issue-card__actions">
+                <a href="/post-details.html?slug=${m.slug||m.id}" class="issue-btn">📖 Read</a>
+                ${m.file_url?`<a href="${m.file_url}" download class="issue-btn">⬇ Download</a>`:''}
+              </div>
+            </div>
+          </div>
+        `).join('');
+        showResults();
+      }catch(err){
+        console.error('[StudentMagazine] Error:',err.message);
+        showEmpty();
+      }
+    }
+    loadIssues();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Achievements — SADQ</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .sadq-header { position: sticky; top: 0; z-index: 100; height: 64px; background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .sadq-header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sadq-header__nav { margin-left: auto; display: flex; gap: 8px; }
+    .sadq-header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: var(--sadq-radius-sm); }
+    .sadq-header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .section__title { font-size: 1.125rem; font-weight: 600; }
+    .section__hint { font-size: 0.75rem; color: var(--sadq-text-muted); margin-bottom: 12px; }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+
+    .ach-list { display: flex; flex-direction: column; gap: 12px; }
+    .ach-item { display: flex; gap: 12px; padding: 16px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); transition: var(--sadq-transition); }
+    .ach-item:hover { box-shadow: var(--sadq-shadow-hover); }
+    .ach-item__icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.25rem; }
+    .ach-item__icon--official { background: #fff8e1; }
+    .ach-item__icon--personal { background: #e3f2fd; }
+    .ach-item__body { flex: 1; }
+    .ach-item__title { font-weight: 500; font-size: 0.9375rem; }
+    .ach-item__org { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+    .ach-item__date { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .ach-item__desc { font-size: 0.8125rem; color: var(--sadq-text-muted); margin-top: 4px; }
+    .ach-item__actions { display: flex; gap: 4px; flex-direction: column; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; margin-left: 6px; }
+    .badge--official { background: #e8f5e9; color: var(--sadq-success); }
+    .badge--personal { background: #e3f2fd; color: #1565c0; }
+
+    .official-section { background: #fffde7; border: 1px solid #fff9c4; border-radius: var(--sadq-radius); padding: 16px; margin-bottom: 16px; }
+    .official-section__title { font-size: 0.875rem; font-weight: 600; color: #f57f17; margin-bottom: 8px; }
+    .official-section__hint { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state__text { font-size: 0.9375rem; margin-bottom: 16px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay--active { display: flex; }
+    .modal { background: #fff; border-radius: var(--sadq-radius); padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--sadq-text-muted); line-height: 1; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-family: inherit; transition: var(--sadq-transition); }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(26,86,50,0.1); }
+    .form-textarea { min-height: 70px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .upload-zone { border: 2px dashed var(--sadq-border); border-radius: var(--sadq-radius-sm); padding: 16px; text-align: center; cursor: pointer; transition: var(--sadq-transition); }
+    .upload-zone:hover { border-color: var(--sadq-primary); background: #f0f7f0; }
+    .upload-zone__text { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+
+    .progress-bar { height: 4px; background: var(--sadq-border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .progress-bar__fill { height: 100%; background: var(--sadq-primary); transition: width 0.3s ease; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .vis-option { padding: 8px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); cursor: pointer; text-align: center; font-size: 0.8125rem; }
+    .vis-option--selected { border-color: var(--sadq-primary); background: #f0f7f0; }
+    .vis-toggle { display: flex; gap: 8px; }
+
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <header class="sadq-header">
+    <a href="/dashboard.html" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/student-profile.html">← Profile</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Official SADQ Achievements -->
+    <div class="official-section" id="official-section">
+      <div class="official-section__title">🏅 Official SADQ Achievements</div>
+      <div class="official-section__hint">Awarded by SADQ administrators. These cannot be modified by students.</div>
+      <div id="official-list" style="margin-top: 12px;">
+        <div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 60px;"></div>
+      </div>
+    </div>
+
+    <!-- Personal Achievements -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">My Achievements</h2>
+        <button class="btn btn--primary" id="add-btn">+ Add Achievement</button>
+      </div>
+      <div class="section__hint">Personal achievements you've earned. Official SADQ achievements are managed separately above.</div>
+
+      <div id="loading-state">
+        <div class="skeleton" style="height: 80px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 80px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 80px;"></div>
+      </div>
+
+      <div id="ach-list" class="ach-list hidden"></div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state__icon">🏆</div>
+        <p class="empty-state__text">No personal achievements added yet.</p>
+        <button class="btn btn--primary" onclick="document.getElementById('add-btn').click()">Add Achievement</button>
+      </div>
+
+      <div id="error-state" class="empty-state hidden">
+        <div class="empty-state__icon">⚠️</div>
+        <p class="empty-state__text">Unable to load achievements. Please try again.</p>
+        <button class="btn btn--primary" id="retry-btn">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="ach-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal()">×</button>
+      <h2 class="modal__title" id="modal-title">Add Achievement</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="ach-title">Title *</label>
+        <input type="text" id="ach-title" class="form-input" placeholder="e.g. First Prize in Arabic Calligraphy" maxlength="200">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ach-desc">Description</label>
+        <textarea id="ach-desc" class="form-textarea" placeholder="Describe this achievement..." maxlength="1000"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="ach-org">Organization</label>
+          <input type="text" id="ach-org" class="form-input" placeholder="e.g. Darul Quran College" maxlength="200">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ach-date">Date</label>
+          <input type="date" id="ach-date" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ach-category">Category</label>
+        <select id="ach-category" class="form-select">
+          <option value="Academic">Academic</option>
+          <option value="Sports">Sports</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Technical">Technical</option>
+          <option value="Leadership">Leadership</option>
+          <option value="Community">Community Service</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Achievement Image (optional)</label>
+        <div class="upload-zone" id="upload-zone">
+          <p class="upload-zone__text" id="upload-text">Click to select an image</p>
+          <p class="upload-zone__text" style="margin-top: 4px; font-size: 0.6875rem;">JPG, PNG, WEBP · Max 10MB</p>
+          <input type="file" id="ach-file" class="hidden" accept="image/jpeg,image/png,image/webp">
+        </div>
+        <div class="progress-bar hidden" id="upload-progress">
+          <div class="progress-bar__fill" id="upload-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Visibility</label>
+        <div class="vis-toggle" id="vis-toggle">
+          <div class="vis-option vis-option--selected" data-value="public">🌐 Public</div>
+          <div class="vis-option" data-value="members_only">🔒 Members</div>
+          <div class="vis-option" data-value="private">🚫 Private</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn--primary" id="save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h2 class="modal__title">Delete Achievement</h2>
+      <p style="margin-bottom: 20px; color: var(--sadq-text-muted);">Are you sure you want to delete this achievement? This cannot be undone.</p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn--ghost" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn--danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth } from '/js/supabase-client.js';
+    import { MediaService } from '/js/media-service.js';
+
+    let currentUser = null;
+    let editingId = null;
+    let deletingId = null;
+    let selectedFile = null;
+    let selectedVisibility = 'public';
+    let existingImageUrl = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    function showLoading() {
+      document.getElementById('loading-state').classList.remove('hidden');
+      document.getElementById('ach-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showError() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('ach-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+    }
+    function showEmpty() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('ach-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showList() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('ach-list').classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function updateVisToggle() {
+      document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+        el.classList.toggle('vis-option--selected', el.dataset.value === selectedVisibility);
+      });
+    }
+
+    // ── Load Official SADQ Achievements ──────────────────────────────
+    async function loadOfficialAchievements() {
+      try {
+        const { data, error } = await supabase
+          .from('student_achievements')
+          .select('*')
+          .eq('student_id', currentUser.id)
+          .eq('is_official', true)
+          .order('achievement_date', { ascending: false, nullsFirst: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('official-list');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<p style="font-size: 0.8125rem; color: var(--sadq-text-muted); padding: 12px 0;">No official SADQ achievements yet.</p>';
+          return;
+        }
+
+        container.innerHTML = data.map(ach => `
+          <div class="ach-item fade-in" style="background: #fffde7; border-color: #fff9c4;">
+            <div class="ach-item__icon ach-item__icon--official">🏅</div>
+            <div class="ach-item__body">
+              <div class="ach-item__title">${ach.title} <span class="badge badge--official">Official</span></div>
+              ${ach.organization ? `<div class="ach-item__org">${ach.organization}</div>` : ''}
+              ${ach.achievement_date ? `<div class="ach-item__date">${new Date(ach.achievement_date).toLocaleDateString('en-IN')}</div>` : ''}
+              ${ach.description ? `<div class="ach-item__desc">${ach.description}</div>` : ''}
+              ${ach.official_points ? `<div class="ach-item__desc"><strong>Points: ${ach.official_points}</strong></div>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('[Official Achievements] Load error:', error.message);
+        document.getElementById('official-list').innerHTML = '<p style="font-size: 0.8125rem; color: var(--sadq-text-muted);">Unable to load official achievements.</p>';
+      }
+    }
+
+    // ── Load Personal Achievements ──────────────────────────────────
+    async function loadPersonalAchievements() {
+      showLoading();
+      try {
+        const { data, error } = await supabase
+          .from('student_achievements')
+          .select('*')
+          .eq('student_id', currentUser.id)
+          .eq('is_official', false)
+          .order('achievement_date', { ascending: false, nullsFirst: false });
+
+        if (error) throw error;
+        if (!data || data.length === 0) { showEmpty(); return; }
+
+        const container = document.getElementById('ach-list');
+        container.innerHTML = data.map(ach => `
+          <div class="ach-item fade-in">
+            <div class="ach-item__icon ach-item__icon--personal">⭐</div>
+            <div class="ach-item__body">
+              <div class="ach-item__title">${ach.title} <span class="badge badge--personal">Personal</span></div>
+              ${ach.organization ? `<div class="ach-item__org">${ach.organization}</div>` : ''}
+              ${ach.achievement_date ? `<div class="ach-item__date">${new Date(ach.achievement_date).toLocaleDateString('en-IN')}</div>` : ''}
+              ${ach.description ? `<div class="ach-item__desc">${ach.description}</div>` : ''}
+            </div>
+            <div class="ach-item__actions">
+              <button class="btn btn--small btn--ghost" onclick="editAch('${ach.id}')">Edit</button>
+              <button class="btn btn--small btn--ghost" style="color:var(--sadq-danger);" onclick="confirmDelete('${ach.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        showList();
+      } catch (error) {
+        console.error('[Achievements] Load error:', error.message);
+        showError();
+      }
+    }
+
+    // ── Modal ────────────────────────────────────────────────────────
+    window.closeModal = function() {
+      document.getElementById('ach-modal').classList.remove('modal-overlay--active');
+      editingId = null; selectedFile = null; existingImageUrl = null;
+      document.getElementById('ach-title').value = '';
+      document.getElementById('ach-desc').value = '';
+      document.getElementById('ach-org').value = '';
+      document.getElementById('ach-date').value = '';
+      document.getElementById('ach-category').value = 'Academic';
+      document.getElementById('upload-text').textContent = 'Click to select an image';
+      document.getElementById('upload-progress').classList.add('hidden');
+      selectedVisibility = 'public';
+      updateVisToggle();
+    };
+
+    window.closeDeleteModal = function() {
+      document.getElementById('delete-modal').classList.remove('modal-overlay--active');
+      deletingId = null;
+    };
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      closeModal();
+      document.getElementById('modal-title').textContent = 'Add Achievement';
+      document.getElementById('ach-modal').classList.add('modal-overlay--active');
+      setTimeout(() => document.getElementById('ach-title').focus(), 100);
+    });
+
+    window.editAch = async function(id) {
+      const { data, error } = await supabase
+        .from('student_achievements')
+        .select('*')
+        .eq('id', id)
+        .eq('student_id', currentUser.id)
+        .eq('is_official', false)
+        .single();
+
+      if (error || !data) { showToast('Unable to load achievement.', 'error'); return; }
+
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Achievement';
+      document.getElementById('ach-title').value = data.title || '';
+      document.getElementById('ach-desc').value = data.description || '';
+      document.getElementById('ach-org').value = data.organization || '';
+      document.getElementById('ach-date').value = data.achievement_date || '';
+      document.getElementById('ach-category').value = data.category || 'Other';
+      existingImageUrl = data.image_url;
+      if (data.image_url) {
+        document.getElementById('upload-text').textContent = 'Image uploaded ✓ (click to replace)';
+      }
+      selectedVisibility = data.visibility || 'public';
+      updateVisToggle();
+      closeModal();
+      document.getElementById('ach-modal').classList.add('modal-overlay--active');
+    };
+
+    // Visibility toggle
+    document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+      el.addEventListener('click', () => { selectedVisibility = el.dataset.value; updateVisToggle(); });
+    });
+
+    // Upload zone
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('ach-file');
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const { valid, error } = MediaService.validateImage(file);
+        if (!valid) { showToast(error, 'error'); return; }
+        selectedFile = file;
+        document.getElementById('upload-text').textContent = file.name;
+      }
+    });
+
+    // Save
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const title = document.getElementById('ach-title').value.trim();
+      const desc = document.getElementById('ach-desc').value.trim();
+      const org = document.getElementById('ach-org').value.trim();
+      const date = document.getElementById('ach-date').value;
+      const category = document.getElementById('ach-category').value;
+
+      if (!title) { showToast('Title is required.', 'error'); return; }
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+        let imageUrl = existingImageUrl;
+
+        if (selectedFile) {
+          const progressBar = document.getElementById('upload-progress');
+          const progressFill = document.getElementById('upload-progress-fill');
+          progressBar.classList.remove('hidden');
+
+          const result = await MediaService.uploadAchievementImage(selectedFile, (pct) => {
+            progressFill.style.width = pct + '%';
+          });
+          imageUrl = result.url;
+          progressBar.classList.add('hidden');
+        }
+
+        const record = {
+          student_id: currentUser.id,
+          title, description: desc || null,
+          organization: org || null,
+          achievement_date: date || null,
+          category,
+          image_url: imageUrl,
+          is_official: false,
+          visibility: selectedVisibility,
+        };
+
+        if (editingId) {
+          const { error } = await supabase.from('student_achievements').update(record).eq('id', editingId).eq('student_id', currentUser.id);
+          if (error) throw error;
+          showToast('Achievement updated!');
+        } else {
+          const { error } = await supabase.from('student_achievements').insert(record);
+          if (error) throw error;
+          showToast('Achievement added!');
+        }
+
+        closeModal();
+        await loadPersonalAchievements();
+      } catch (error) {
+        console.error('[Achievements] Save error:', error.message);
+        showToast(error.message || 'Unable to save.', 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save';
+      }
+    });
+
+    // Delete
+    window.confirmDelete = function(id) {
+      deletingId = id;
+      document.getElementById('delete-modal').classList.add('modal-overlay--active');
+    };
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+      if (!deletingId) return;
+      try {
+        const { error } = await supabase.from('student_achievements').delete()
+          .eq('id', deletingId).eq('student_id', currentUser.id).eq('is_official', false);
+        if (error) throw error;
+        showToast('Achievement deleted.');
+        closeDeleteModal();
+        await loadPersonalAchievements();
+      } catch (error) {
+        showToast('Unable to delete.', 'error');
+      }
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', loadPersonalAchievements);
+
+    async function init() {
+      try {
+        const { user } = await requireAuth();
+        currentUser = user;
+        await Promise.all([loadOfficialAchievements(), loadPersonalAchievements()]);
+      } catch (error) { console.error('[Achievements] Init error:', error); }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

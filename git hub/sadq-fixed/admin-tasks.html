@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Task Center — SADQ Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/animations.css">
+<style>
+.task-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{padding:8px 16px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:var(--radius-sm);font-size:0.8125rem;cursor:pointer;transition:var(--t);font-family:inherit}
+.filter-btn.active{background:var(--gradient-cta);color:#fff;border-color:transparent}
+.filter-btn:hover{border-color:var(--blue)}
+.task-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:var(--t)}
+.task-card:hover{border-color:var(--border-l);box-shadow:var(--shadow-md)}
+.task-card__header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:12px}
+.task-card__title{font-size:1rem;font-weight:600;color:var(--text)}
+.task-card__meta{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+.task-card__progress{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin-top:12px;overflow:hidden}
+.task-card__progress-bar{height:100%;background:var(--gradient-cta);border-radius:3px;transition:width 0.5s}
+.priority-badge{font-size:0.625rem;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase}
+.priority-low{background:rgba(16,185,129,0.12);color:var(--emerald)}
+.priority-medium{background:rgba(59,130,246,0.12);color:#60A5FA}
+.priority-high{background:rgba(245,158,11,0.12);color:var(--warning)}
+.priority-urgent{background:rgba(239,68,68,0.12);color:#F87171}
+.status-badge{font-size:0.625rem;padding:2px 8px;border-radius:10px;font-weight:500}
+/* Sidebar */
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sadq-sidebar-w); height: 100vh; background: var(--sadq-primary); overflow-y: auto; overflow-x: hidden; z-index: 100; transition: transform 0.3s ease; }
+    .sidebar__header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sidebar__sub { font-size: 0.6875rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .sidebar__nav { padding: 8px 0; }
+    .sidebar__link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.875rem; transition: var(--sadq-transition); border-left: 3px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar__link--active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--sadq-accent); }
+    .sidebar__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar__section { padding: 12px 16px 4px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Main */
+    .main { margin-left: var(--sadq-sidebar-w); padding: 16px; min-height: 100vh; }
+    .main__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .main__title { font-size: 1.5rem; font-weight: 700; }
+    .main__sub { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 16px; box-shadow: var(--sadq-shadow); transition: var(--sadq-transition); }
+    .stat-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .stat-card__icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .stat-card__value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+    .stat-card__label { font-size: 0.75rem; color: var(--sadq-text-muted); margin-top: 4px; }
+    .stat-card--accent { border-left: 3px solid var(--sadq-accent); }
+    .stat-card--success { border-left: 3px solid var(--sadq-success); }
+    .stat-card--warning { border-left: 3px solid var(--sadq-warning); }
+    .stat-card--danger { border-left: 3px solid var(--sadq-danger); }
+    .stat-card--info { border-left: 3px solid var(--sadq-info); }
+
+    /* Section */
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section__title { font-size: 1rem; font-weight: 600; }
+    .section__link { font-size: 0.8125rem; color: var(--sadq-primary); text-decoration: none; font-weight: 500; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); text-decoration: none; color: var(--text, #F8FAFC); transition: var(--sadq-transition); }
+    .item-row:hover { box-shadow: var(--sadq-shadow-hover); }
+    .item-row__icon { font-size: 1.125rem; flex-shrink: 0; }
+    .item-row__body { flex: 1; min-width: 0; }
+    .item-row__title { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-row__meta { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--green { background: rgba(16,185,129,0.12); color: var(--sadq-success); }
+    .badge--orange { background: rgba(245,158,11,0.12); color: #F59E0B; }
+    .badge--red { background: rgba(239,68,68,0.12); color: #F87171; }
+    .badge--blue { background: rgba(59,130,246,0.12); color: #60A5FA; }
+
+    .empty-mini { text-align: center; padding: 24px 16px; color: var(--sadq-text-muted); }
+    .empty-mini__text { font-size: 0.8125rem; }
+
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 110; background: var(--sadq-primary); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+    
+</style>
+</head>
+<body>
+<button class="menu-toggle" id="menu-toggle">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__header">
+    <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+    <div class="sidebar__sub">Control Center</div>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="sidebar__section">Overview</div>
+    <a href="/admin-dashboard.html" class="sidebar__link"><span class="sidebar__icon">📊</span> Dashboard</a>
+    <div class="sidebar__section">People</div>
+    <a href="/admin-students.html" class="sidebar__link"><span class="sidebar__icon">🎓</span> Students</a>
+    <a href="/admin-teachers.html" class="sidebar__link"><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+    <div class="sidebar__section">Tasks & Learning</div>
+    <a href="/admin-tasks.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">📋</span> Task Center</a>
+    <a href="/quran-tracker.html" class="sidebar__link"><span class="sidebar__icon">📖</span> Quran Progress</a>
+    <div class="sidebar__section">Organisation</div>
+    <a href="/admin-subwings.html" class="sidebar__link"><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+    <a href="/admin-events.html" class="sidebar__link"><span class="sidebar__icon">📅</span> Events</a>
+    <a href="/admin-winners.html" class="sidebar__link"><span class="sidebar__icon">🏆</span> Winners</a>
+    <div class="sidebar__section">Content</div>
+    <a href="/admin-content.html" class="sidebar__link"><span class="sidebar__icon">📰</span> Magazine</a>
+    <div class="sidebar__section">Recognition</div>
+    <a href="/admin-certificates.html" class="sidebar__link"><span class="sidebar__icon">📜</span> Certificates</a>
+    <a href="/admin-achievements.html" class="sidebar__link"><span class="sidebar__icon">🏅</span> Achievements</a>
+    <div class="sidebar__section">Marketplace</div>
+    <a href="/admin-freelancing.html" class="sidebar__link"><span class="sidebar__icon">🛠️</span> Freelancing</a>
+    <div class="sidebar__section">Finance</div>
+    <a href="/admin-payments.html" class="sidebar__link"><span class="sidebar__icon">💳</span> Payments</a>
+    <div class="sidebar__section">Platform</div>
+    <a href="/admin-settings.html" class="sidebar__link"><span class="sidebar__icon">⚙️</span> Settings</a>
+    <a href="/admin-website.html" class="sidebar__link"><span class="sidebar__icon">🌐</span> Website Editor</a>
+    <div class="sidebar__section">Back</div>
+    <a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+    <a href="#" class="sidebar__link" id="logout-btn"><span class="sidebar__icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+
+<div class="main">
+  <div class="main__header">
+    <div>
+      <h1 class="main__title">Task Center</h1>
+      <div class="main__sub" id="admin-name">Loading...</div>
+    </div>
+    <button class="btn btn--primary" onclick="openModal('createTaskModal')">+ Create Task</button>
+  </div>
+
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card stat-card--accent"><div class="stat-card__icon">📋</div><div class="stat-card__value" id="stat-total">—</div><div class="stat-card__label">Total Tasks</div></div>
+    <div class="stat-card stat-card--info"><div class="stat-card__icon">🔄</div><div class="stat-card__value" id="stat-active">—</div><div class="stat-card__label">Active</div></div>
+    <div class="stat-card stat-card--success"><div class="stat-card__icon">✅</div><div class="stat-card__value" id="stat-completed">—</div><div class="stat-card__label">Completed</div></div>
+    <div class="stat-card stat-card--warning"><div class="stat-card__icon">⏳</div><div class="stat-card__value" id="stat-pending">—</div><div class="stat-card__label">Pending Review</div></div>
+    <div class="stat-card stat-card--danger"><div class="stat-card__icon">⚠️</div><div class="stat-card__value" id="stat-overdue">—</div><div class="stat-card__label">Overdue</div></div>
+  </div>
+
+  <div class="task-filters">
+    <button class="filter-btn active" onclick="filterTasks('all',this)">All</button>
+    <button class="filter-btn" onclick="filterTasks('draft',this)">Draft</button>
+    <button class="filter-btn" onclick="filterTasks('published',this)">Published</button>
+    <button class="filter-btn" onclick="filterTasks('assigned',this)">Assigned</button>
+    <button class="filter-btn" onclick="filterTasks('in_progress',this)">In Progress</button>
+    <button class="filter-btn" onclick="filterTasks('submitted',this)">Pending Review</button>
+    <button class="filter-btn" onclick="filterTasks('completed',this)">Completed</button>
+    <button class="filter-btn" onclick="filterTasks('overdue',this)">Overdue</button>
+  </div>
+
+  <div class="section">
+    <div class="section__header">
+      <h2 class="section__title">All Tasks</h2>
+    </div>
+    <div id="task-list">
+      <div class="skeleton" style="height:80px;margin-bottom:12px;border-radius:14px"></div>
+      <div class="skeleton" style="height:80px;margin-bottom:12px;border-radius:14px"></div>
+      <div class="skeleton" style="height:80px;border-radius:14px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="createTaskModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Create Task</h2>
+      <button class="modal__close" onclick="closeModal('createTaskModal')">&times;</button>
+    </div>
+    <form id="createTaskForm" onsubmit="return createTask(event)">
+      <div class="form-group"><label class="form-label">Task Title</label><input class="form-input" name="title" placeholder="Enter task title" required></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" placeholder="Task description"></textarea></div>
+      <div class="form-group"><label class="form-label">Category</label><input class="form-input" name="category" placeholder="e.g. assignment, project, quran" value="general"></div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select class="form-select" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Points</label><input class="form-input" type="number" name="points" value="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="date" name="start_date"></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" type="date" name="due_date"></div>
+      <div class="form-group"><label class="form-label">Checklist Items (one per line)</label><textarea class="form-textarea" name="checklist" placeholder="Planning&#10;Research&#10;Draft&#10;Final&#10;Submission"></textarea></div>
+      <div class="form-group" style="display:flex;gap:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-muted)"><input type="checkbox" name="require_evidence"> Require Evidence</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-muted)"><input type="checkbox" name="require_teacher_approval" checked> Require Approval</label>
+      </div>
+      <button type="submit" class="btn btn--primary" style="width:100%" id="createTaskBtn">Create Task</button>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import{supabase,requireAuth,getCurrentUser} from '/js/supabase-client.js'
+
+const{user,profile}=await requireAuth()
+if(!profile||!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';throw new Error('Unauthorized')}
+
+document.getElementById('admin-name').textContent='Welcome, '+(profile.full_name||'Admin')
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+async function loadStats(){
+  const[{count:total},{count:active},{count:completed},{count:pending},{count:overdue}]=await Promise.all([
+    supabase.from('tasks').select('*',{count:'exact',head:true}),
+    supabase.from('tasks').select('*',{count:'exact',head:true}).in('status',['published','assigned','in_progress','submitted']),
+    supabase.from('tasks').select('*',{count:'exact',head:true}).in('status',['completed','approved']),
+    supabase.from('tasks').select('*',{count:'exact',head:true}).eq('status','submitted'),
+    supabase.from('tasks').select('*',{count:'exact',head:true}).eq('status','overdue')
+  ])
+  document.getElementById('stat-total').textContent=total||0
+  document.getElementById('stat-active').textContent=active||0
+  document.getElementById('stat-completed').textContent=completed||0
+  document.getElementById('stat-pending').textContent=pending||0
+  document.getElementById('stat-overdue').textContent=overdue||0
+}
+
+let currentFilter='all'
+async function loadTasks(){
+  const list=document.getElementById('task-list')
+  let query=supabase.from('tasks').select('*').order('created_at',{ascending:false}).limit(50)
+  if(currentFilter!=='all')query=query.eq('status',currentFilter)
+  const{data,error}=await query
+  if(error){list.innerHTML='<div class="empty-mini"><div class="empty-mini__text">Error loading tasks.</div></div>';return}
+  if(!data||!data.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-state__icon">📋</div><div class="empty-state__text">No tasks found</div><div class="empty-state__sub">Create a task to get started</div></div>'
+    return
+  }
+  list.innerHTML=data.map(t=>{
+    const priorityClass=t.priority?`priority-${t.priority}`:'priority-medium'
+    return `<div class="task-card fade-in">
+      <div class="task-card__header">
+        <div style="flex:1;min-width:0">
+          <div class="task-card__title">${esc(t.title)}</div>
+          <div class="task-card__meta">${esc(t.category||'general')} · Created ${new Date(t.created_at).toLocaleDateString()}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <span class="priority-badge ${priorityClass}">${esc(t.priority||'medium')}</span>
+          <span class="status-badge badge--blue">${esc(t.status)}</span>
+        </div>
+      </div>
+      ${t.due_date?`<div class="task-card__meta">📅 Due: ${new Date(t.due_date).toLocaleDateString()}</div>`:''}
+      ${t.completion_percentage?`<div class="task-card__progress"><div class="task-card__progress-bar" style="width:${t.completion_percentage}%"></div></div>`:''}
+    </div>`
+  }).join('')
+}
+
+window.filterTasks=function(filter,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  currentFilter=filter
+  loadTasks()
+}
+
+window.createTask=async function(e){
+  e.preventDefault()
+  const btn=document.getElementById('createTaskBtn')
+  const form=e.target
+  const fd=new FormData(form)
+  btn.disabled=true;btn.textContent='Creating...'
+  
+  const checklist=fd.get('checklist').trim().split('\n').filter(l=>l.trim())
+  
+  const{data,error}=await supabase.from('tasks').insert({
+    title:fd.get('title'),
+    description:fd.get('description'),
+    category:fd.get('category'),
+    priority:fd.get('priority'),
+    points:parseInt(fd.get('points'))||0,
+    start_date:fd.get('start_date')||null,
+    due_date:fd.get('due_date')||null,
+    require_evidence:fd.get('require_evidence')==='on',
+    require_teacher_approval:fd.get('require_teacher_approval')==='on',
+    status:'published',
+    created_by:user.id,
+    creator_role:profile.role
+  }).select('id').single()
+  
+  if(error){
+    showToast('Error: '+error.message,'error')
+    btn.disabled=false;btn.textContent='Create Task'
+    return
+  }
+  
+  if(checklist.length&&data){
+    const items=checklist.map((label,i)=>({task_id:data.id,label,sort_order:i}))
+    await supabase.from('task_items').insert(items)
+  }
+  
+  showToast('Task created successfully!','success')
+  closeModal('createTaskModal')
+  form.reset()
+  btn.disabled=false;btn.textContent='Create Task'
+  loadStats()
+  loadTasks()
+}
+
+loadStats()
+loadTasks()
+</script>
+<script src="/js/sadq-common.js"></script>
+<script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+  <script src="/js/smooth-scroll.js"></script>
+</body>
+</html>

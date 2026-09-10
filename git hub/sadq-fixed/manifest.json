@@ -1,0 +1,30 @@
+{
+  "name": "SADQ \u2014 Students Association of Darul Quran",
+  "short_name": "SADQ",
+  "description": "Student organization platform for Darul Quran Islamic Academy",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/assets/icons/sadq-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/sadq-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "lang": "en",
+  "scope": "/"
+}

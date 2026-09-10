@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Settings — SADQ Admin</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sadq-sidebar-w); height: 100vh; background: var(--sadq-primary); overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
+    .sidebar__header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sidebar__sub { font-size: 0.6875rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .sidebar__link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.875rem; transition: var(--sadq-transition); border-left: 3px solid transparent; }
+    .sidebar__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar__link--active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: #c9a227; }
+    .sidebar__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar__section { padding: 12px 16px 4px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+
+    .main { margin-left: var(--sadq-sidebar-w); padding: 16px; min-height: 100vh; }
+    .main__title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; }
+
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 24px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .section__hint { font-size: 0.75rem; color: var(--sadq-text-muted); margin-bottom: 16px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-family: inherit; transition: var(--sadq-transition); }
+    .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(26,86,50,0.1); }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-hint { font-size: 0.75rem; color: var(--sadq-text-muted); margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .toggle { display: flex; align-items: center; gap: 10px; }
+    .toggle__switch { position: relative; width: 44px; height: 24px; background: var(--sadq-border); border-radius: 12px; cursor: pointer; transition: var(--sadq-transition); }
+    .toggle__switch--on { background: var(--sadq-primary); }
+    .toggle__knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: var(--sadq-transition); }
+    .toggle__switch--on .toggle__knob { left: 22px; }
+    .toggle__label { font-size: 0.875rem; font-weight: 500; }
+
+    .btn { padding: 10px 20px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .info-card { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: var(--sadq-radius-sm); padding: 16px; margin-bottom: 16px; }
+    .info-card__title { font-size: 0.875rem; font-weight: 600; color: var(--sadq-primary); margin-bottom: 4px; }
+    .info-card__text { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .hidden { display: none !important; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 110; background: var(--sadq-primary); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar--open { transform: translateX(0); } .main { margin-left: 0; } .menu-toggle { display: block; } .form-row { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <button class="menu-toggle" id="menu-toggle">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+      <div class="sidebar__sub">Control Center</div>
+    </div>
+        <nav class="sidebar__nav">
+      <div class="sidebar__section">Overview</div>
+      <a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+
+      <div class="sidebar__section">People</div>
+      <a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+      <a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+
+      <div class="sidebar__section">Organisation</div>
+      <a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+      <a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+      <a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+
+      <div class="sidebar__section">Content</div>
+      <a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+      <a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+      <a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+      <a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+      <a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+
+      <div class="sidebar__section">Recognition</div>
+      <a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+      <a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+
+      <div class="sidebar__section">Marketplace</div>
+      <a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+      <a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+      <a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+
+      <div class="sidebar__section">Finance</div>
+      <a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+      <a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+      <a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+
+      <div class="sidebar__section">Platform</div>
+      <a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+      <a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+      <a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+      <a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+      <a href="/admin-settings.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">⚙️</span> Settings</a>
+      <a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+      <a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+
+      <div class="sidebar__section">Back</div>
+      <a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+      <a href="#" class="sidebar__link" id="logout-btn"><span class="sidebar__icon">🚪</span> Logout</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <h1 class="main__title">Platform Settings</h1>
+
+    <div id="loading-state">
+      <div class="skeleton" style="height:120px;margin-bottom:16px;"></div>
+      <div class="skeleton" style="height:120px;margin-bottom:16px;"></div>
+      <div class="skeleton" style="height:120px;"></div>
+    </div>
+
+    <div id="settings-content" class="hidden">
+
+      <!-- UPI Settings -->
+      <div class="section">
+        <h2 class="section__title">📱 UPI Payment Settings</h2>
+        <div class="section__hint">Manual UPI payment configuration. UPI information is stored in the database — never hardcoded in frontend.</div>
+
+        <div class="form-group">
+          <div class="toggle">
+            <div class="toggle__switch" id="upi-enabled-toggle">
+              <div class="toggle__knob"></div>
+            </div>
+            <span class="toggle__label">Enable UPI Payments</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="upi-id">UPI ID</label>
+            <input type="text" id="upi-id" class="form-input" placeholder="sadq@upi" >
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="upi-name">Display Name</label>
+            <input type="text" id="upi-name" class="form-input" placeholder="SADQ Association" >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="upi-instructions">Manual Payment Instructions</label>
+          <textarea id="upi-instructions" class="form-textarea" placeholder="Instructions for students to follow when paying via UPI..."></textarea>
+          <div class="form-hint">Shown to students when they choose manual UPI payment.</div>
+        </div>
+      </div>
+
+      <!-- Commission Settings -->
+      <div class="section">
+        <h2 class="section__title">💰 Commission Settings</h2>
+        <div class="info-card">
+          <div class="info-card__title">Important</div>
+          <div class="info-card__text">Changing the commission rate only affects future orders. Existing orders retain their original commission_rate_at_purchase.</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="commission-rate">Commission Rate (%)</label>
+            <input type="number" id="commission-rate" class="form-input" min="0" max="100" step="1" placeholder="20">
+            <div class="form-hint">Default: 20%. SADQ's share of each freelance order.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="min-order">Minimum Order Amount (₹)</label>
+            <input type="number" id="min-order" class="form-input" min="0" step="10" placeholder="100">
+            <div class="form-hint">Default: ₹100. No order below this amount.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Info -->
+      <div class="section">
+        <h2 class="section__title">📋 Platform Information</h2>
+
+        <div class="form-group">
+          <label class="form-label" for="platform-name">Platform Name</label>
+          <input type="text" id="platform-name" class="form-input" placeholder="Students Association of Darul Quran" >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="platform-description">Description</label>
+          <textarea id="platform-description" class="form-textarea" placeholder="Official SADQ digital platform..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="contact-email">Contact Email</label>
+            <input type="email" id="contact-email" class="form-input" placeholder="contact@sadq.org" >
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="support-url">Support URL</label>
+            <input type="url" id="support-url" class="form-input" placeholder="https://..." >
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 32px;">
+        <button class="btn btn--primary" id="save-btn">Save All Settings</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth, signOut } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let upiEnabled = false;
+    let settingsCache = {};
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    async function init() {
+      try {
+        const { user, profile } = await requireAuth();
+        if (profile && !['admin', 'super_admin'].includes(profile.role)) {
+          window.location.href = '/dashboard.html'; return;
+        }
+        currentUser = user;
+        document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(); });
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('sidebar--open');
+        });
+
+        document.getElementById('upi-enabled-toggle').addEventListener('click', () => {
+          upiEnabled = !upiEnabled;
+          const toggle = document.getElementById('upi-enabled-toggle');
+          toggle.classList.toggle('toggle__switch--on', upiEnabled);
+        });
+
+        document.getElementById('save-btn').addEventListener('click', saveSettings);
+
+        await loadSettings();
+      } catch (error) { console.error('[Admin Settings] Init error:', error); }
+    }
+
+    async function loadSettings() {
+      try {
+        const { data, error } = await supabase
+          .from('platform_settings')
+          .select('key, value');
+
+        if (error) throw error;
+
+        settingsCache = {};
+        if (data) {
+          data.forEach(row => { settingsCache[row.key] = row.value; });
+        }
+
+        // Populate form fields
+        upiEnabled = settingsCache['upi_enabled'] === 'true';
+        document.getElementById('upi-enabled-toggle').classList.toggle('toggle__switch--on', upiEnabled);
+        document.getElementById('upi-id').value = settingsCache['upi_id'] || '';
+        document.getElementById('upi-name').value = settingsCache['upi_display_name'] || '';
+        document.getElementById('upi-instructions').value = settingsCache['manual_payment_instructions'] || '';
+        document.getElementById('commission-rate').value = settingsCache['commission_rate'] || '20';
+        document.getElementById('min-order').value = settingsCache['minimum_order_amount'] || '100';
+        document.getElementById('platform-name').value = settingsCache['platform_name'] || '';
+        document.getElementById('platform-description').value = settingsCache['platform_description'] || '';
+        document.getElementById('contact-email').value = settingsCache['contact_email'] || '';
+        document.getElementById('support-url').value = settingsCache['support_url'] || '';
+
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('settings-content').classList.remove('hidden');
+
+      } catch (error) {
+        console.error('[Admin Settings] Load error:', error.message);
+        // Show form anyway with defaults
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('settings-content').classList.remove('hidden');
+      }
+    }
+
+    async function saveSettings() {
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      const settings = {
+        'upi_enabled': upiEnabled ? 'true' : 'false',
+        'upi_id': document.getElementById('upi-id').value.trim(),
+        'upi_display_name': document.getElementById('upi-name').value.trim(),
+        'manual_payment_instructions': document.getElementById('upi-instructions').value.trim(),
+        'commission_rate': document.getElementById('commission-rate').value || '20',
+        'minimum_order_amount': document.getElementById('min-order').value || '100',
+        'platform_name': document.getElementById('platform-name').value.trim(),
+        'platform_description': document.getElementById('platform-description').value.trim(),
+        'contact_email': document.getElementById('contact-email').value.trim(),
+        'support_url': document.getElementById('support-url').value.trim(),
+      };
+
+      try {
+        // Upsert each setting
+        for (const [key, value] of Object.entries(settings)) {
+          const { error } = await supabase
+            .from('platform_settings')
+            .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+          if (error) {
+            console.error('[Admin Settings] Save error for key:', key, error.message);
+          }
+        }
+
+        showToast('Settings saved successfully!');
+      } catch (error) {
+        console.error('[Admin Settings] Save error:', error.message);
+        showToast('Unable to save settings. RLS may be blocking.', 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save All Settings';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

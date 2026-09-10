@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freelancing — SADQ Admin</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/animations.css" />
+  <style>
+    :root{
+      --navy:#0F172A;
+      --navy-2:#050816;
+      --card:#10152A;
+      --blue:#2563EB;
+      --emerald:#10B981;
+      --gold:#F9A825;
+      --border:rgba(255,255,255,0.08);
+      --text:#E2E8F0;
+      --muted:#94A3B8;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;background:var(--navy-2);color:var(--text);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      min-height:100vh;
+    }
+    .main{margin-left:260px;padding:28px 32px;transition:margin .25s}
+    @media(max-width:1024px){.main{margin-left:0;padding:20px 16px}}
+    .page-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+    .page-head h1{font-size:24px;font-weight:700;margin:0}
+    .page-head p{margin:4px 0 0;color:var(--muted);font-size:14px}
+    .menu-btn{display:none;background:var(--card);border:1px solid var(--border);color:var(--text);
+      padding:8px 12px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1}
+    @media(max-width:1024px){.menu-btn{display:inline-block}}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
+    .sidebar-overlay.open{display:block}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--navy);
+      border-right:1px solid var(--border);overflow-y:auto;z-index:50;transition:transform .25s}
+    @media(max-width:1024px){.sidebar{transform:translateX(-100%)}}
+    @media(max-width:1024px){.sidebar.open{transform:translateX(0)}}
+    .sidebar__header{padding:22px 20px;border-bottom:1px solid var(--border)}
+    .sidebar__logo{color:#fff;font-weight:800;font-size:18px;text-decoration:none;letter-spacing:.5px}
+    .sidebar__sub{color:var(--gold);font-size:12px;margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+    .sidebar__nav{padding:14px 10px}
+    .nav-group{margin-bottom:6px}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);
+      padding:8px 12px 4px;font-weight:600}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;
+      color:var(--muted);text-decoration:none;font-size:14px;transition:.15s}
+    .nav-link:hover{background:rgba(255,255,255,.05);color:#fff}
+    .nav-link.active{background:var(--blue);color:#fff;font-weight:600}
+    .nav-link .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+
+    /* Tabs */
+    .tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:22px;flex-wrap:wrap}
+    .tab{background:none;border:none;color:var(--muted);padding:10px 16px;cursor:pointer;
+      font-size:14px;border-bottom:2px solid transparent;font-weight:500;transition:.15s}
+    .tab:hover{color:#fff}
+    .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+    .tab .badge{display:inline-block;margin-left:6px;background:var(--card);color:var(--muted);
+      font-size:11px;padding:1px 7px;border-radius:10px}
+    .tab.active .badge{background:var(--blue);color:#fff}
+
+    .tab-panel{display:none}
+    .tab-panel.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    /* Cards grid (services) */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+      display:flex;flex-direction:column;gap:10px;transition:.15s}
+    .card:hover{border-color:rgba(37,99,235,.5)}
+    .card .t{font-weight:600;font-size:15px;color:#fff}
+    .card .meta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+    .card .price{color:var(--emerald);font-weight:700}
+    .pill{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;
+      font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+    .pill.pending{background:rgba(249,168,37,.15);color:var(--gold)}
+    .pill.approved,.pill.active{background:rgba(16,185,129,.15);color:var(--emerald)}
+    .pill.rejected,.pill.failed{background:rgba(239,68,68,.15);color:#EF4444}
+    .pill.completed{background:rgba(16,185,129,.15);color:var(--emerald)}
+    .pill.in_progress{background:rgba(37,99,235,.15);color:var(--blue)}
+    .pill.cancelled{background:rgba(148,163,184,.15);color:var(--muted)}
+    .row-actions{display:flex;gap:8px;margin-top:auto}
+    .btn{border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+    .btn-success{background:var(--emerald);color:#04231a}
+    .btn-success:hover:not(:disabled){filter:brightness(1.1)}
+    .btn-danger{background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.3)}
+    .btn-danger:hover:not(:disabled){background:#EF4444;color:#fff}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+    .btn-ghost:hover{color:#fff;border-color:var(--muted)}
+    .select{background:var(--navy);color:var(--text);border:1px solid var(--border);
+      border-radius:8px;padding:7px 10px;font-size:13px}
+
+    /* Table */
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .table-scroll{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+    thead th{text-align:left;padding:13px 16px;color:var(--muted);font-weight:600;
+      font-size:12px;text-transform:uppercase;letter-spacing:.5px;
+      border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);white-space:nowrap}
+    tbody td{padding:13px 16px;border-bottom:1px solid var(--border);white-space:nowrap}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover{background:rgba(255,255,255,.02)}
+
+    /* Stat / commission */
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:20px;display:flex;flex-direction:column;gap:6px;margin-bottom:20px;max-width:320px}
+    .stat-card .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+    .stat-card .val{font-size:28px;font-weight:800;color:var(--gold)}
+
+    /* States */
+    .skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .skel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;height:150px}
+    .skel-line{height:12px;border-radius:6px;margin-bottom:8px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200% 100%;animation:shimmer 1.4s infinite}
+    .skel-line.short{width:50%}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .state{text-align:center;padding:60px 20px;color:var(--muted)}
+    .state .icon{font-size:40px;margin-bottom:12px;opacity:.5}
+    .state h3{margin:0 0 6px;color:#fff;font-weight:600}
+    .state p{margin:0 0 16px;font-size:14px}
+    .empty-mark{font-size:48px;opacity:.25;margin-bottom:8px}
+
+    /* Toast */
+    .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:10px}
+    .toast{background:var(--navy);border:1px solid var(--border);border-left:4px solid var(--blue);
+      color:#fff;padding:13px 18px;border-radius:10px;font-size:14px;min-width:240px;max-width:360px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);animation:slideIn .25s ease}
+    .toast.success{border-left-color:var(--emerald)}
+    .toast.error{border-left-color:#EF4444}
+    .toast.warn{border-left-color:var(--gold)}
+    @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+
+    /* Modal (confirm) */
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1500;
+      align-items:center;justify-content:center;padding:20px}
+    .modal-backdrop.open{display:flex}
+    .modal{background:var(--navy);border:1px solid var(--border);border-radius:14px;
+      padding:24px;max-width:400px;width:100%;animation:fadeIn .2s ease}
+    .modal h3{margin:0 0 8px;color:#fff;font-size:17px}
+    .modal p{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.5}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+      <div class="sidebar__sub">Control Center</div>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-group">
+        <div class="nav-label">Overview</div>
+        <a href="/admin-dashboard.html" class="nav-link"><span class="dot"></span>Dashboard</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">People</div>
+        <a href="/admin-students.html" class="nav-link"><span class="dot"></span>Students</a>
+        <a href="/admin-teachers.html" class="nav-link"><span class="dot"></span>Teachers</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Organisation</div>
+        <a href="/admin-subwings.html" class="nav-link"><span class="dot"></span>Sub-Wings</a>
+        <a href="/admin-events.html" class="nav-link"><span class="dot"></span>Events</a>
+        <a href="/admin-winners.html" class="nav-link"><span class="dot"></span>Winners</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Content</div>
+        <a href="/admin-magazine.html" class="nav-link"><span class="dot"></span>Magazine</a>
+        <a href="/admin-chinthakal.html" class="nav-link"><span class="dot"></span>Chinthakal</a>
+        <a href="/admin-videos.html" class="nav-link"><span class="dot"></span>Videos</a>
+        <a href="/admin-notes.html" class="nav-link"><span class="dot"></span>Notes</a>
+        <a href="/admin-library.html" class="nav-link"><span class="dot"></span>Library</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Recognition</div>
+        <a href="/admin-certificates.html" class="nav-link"><span class="dot"></span>Certificates</a>
+        <a href="/admin-achievements.html" class="nav-link"><span class="dot"></span>Achievements</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Marketplace</div>
+        <a href="/admin-freelancing.html" class="nav-link active"><span class="dot"></span>Freelancing</a>
+        <a href="/admin-translation.html" class="nav-link"><span class="dot"></span>Translation</a>
+        <a href="/admin-orders.html" class="nav-link"><span class="dot"></span>Orders</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Finance</div>
+        <a href="/admin-payments.html" class="nav-link"><span class="dot"></span>Payments</a>
+        <a href="/admin-upi-verification.html" class="nav-link"><span class="dot"></span>UPI Verification</a>
+        <a href="/admin-withdrawals.html" class="nav-link"><span class="dot"></span>Withdrawals</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Platform</div>
+        <a href="/admin-projects.html" class="nav-link"><span class="dot"></span>Projects</a>
+        <a href="/admin-jobs.html" class="nav-link"><span class="dot"></span>Jobs</a>
+        <a href="/admin-marketplace.html" class="nav-link"><span class="dot"></span>Marketplace</a>
+        <a href="/admin-reports.html" class="nav-link"><span class="dot"></span>Reports</a>
+        <a href="/admin-settings.html" class="nav-link"><span class="dot"></span>Settings</a>
+        <a href="/admin-website-editor.html" class="nav-link"><span class="dot"></span>Website Editor</a>
+        <a href="/admin-audit-logs.html" class="nav-link"><span class="dot"></span>Audit Logs</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Back</div>
+        <a href="/dashboard.html" class="nav-link"><span class="dot"></span>Student View</a>
+        <a href="/logout.html" class="nav-link"><span class="dot"></span>Logout</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-btn" onclick="openSidebar()">☰</button>
+        <div>
+          <h1>Freelancing Marketplace</h1>
+          <p>Review services, manage orders, track commissions and withdrawals.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="services" onclick="switchTab('services')">Services</button>
+      <button class="tab" data-tab="orders" onclick="switchTab('orders')">Orders</button>
+      <button class="tab" data-tab="commissions" onclick="switchTab('commissions')">Commissions</button>
+      <button class="tab" data-tab="withdrawals" onclick="switchTab('withdrawals')">Withdrawals</button>
+    </div>
+
+    <!-- Services -->
+    <section class="tab-panel active" id="panel-services">
+      <div id="services-body"></div>
+    </section>
+
+    <!-- Orders -->
+    <section class="tab-panel" id="panel-orders">
+      <div id="orders-body"></div>
+    </section>
+
+    <!-- Commissions -->
+    <section class="tab-panel" id="panel-commissions">
+      <div id="commissions-body"></div>
+    </section>
+
+    <!-- Withdrawals -->
+    <section class="tab-panel" id="panel-withdrawals">
+      <div id="withdrawals-body"></div>
+    </section>
+  </main>
+
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- Confirm modal -->
+  <div class="modal-backdrop" id="confirmBackdrop" onclick="if(event.target===this)closeConfirm()">
+    <div class="modal">
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p id="confirmMessage">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="confirmCancel" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-danger" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/sadq-common.js"></script>
+  <script type="module">
+    import { requireAuth, supabase } from '/js/supabase-client.js';
+
+    /* ---------- helpers ---------- */
+    const esc = (s) => {
+      if (s === null || s === undefined) return '';
+      return String(s)
+        .replace(/&/g, '\x26amp;')
+        .replace(/</g, '\x26lt;')
+        .replace(/>/g, '\x26gt;')
+        .replace(/"/g, '\x26quot;')
+        .replace(/'/g, '\x26#39;');
+    };
+    const fmtMoney = (n) => '₹' + (Number(n)||0).toLocaleString('en-IN', {maximumFractionDigits:2});
+    const fmtDate = (d) => {
+      if(!d) return '—';
+      try{ return new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+      catch(e){ return esc(d); }
+    };
+    const statusClass = (s) => String(s||'').toLowerCase().replace(/\s+/g,'_');
+
+    function showToast(message, type='success'){
+      const wrap = document.getElementById('toastWrap');
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.textContent = message;
+      wrap.appendChild(el);
+      setTimeout(()=>{
+        el.style.transition='opacity .3s, transform .3s';
+        el.style.opacity='0'; el.style.transform='translateX(30px)';
+        setTimeout(()=>el.remove(),300);
+      }, 3200);
+    }
+
+    function sadqConfirm({title='Are you sure?', message='This action cannot be undone.', confirmText='Confirm', danger=true}){
+      return new Promise((resolve)=>{
+        const bd = document.getElementById('confirmBackdrop');
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        const ok = document.getElementById('confirmOk');
+        ok.textContent = confirmText;
+        ok.className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+        bd.classList.add('open');
+        const onOk = ()=>{ cleanup(); resolve(true); };
+        const onCancel = ()=>{ cleanup(); resolve(false); };
+        const onEsc = (e)=>{ if(e.key==='Escape'){ cleanup(); resolve(false); } };
+        const cleanup = ()=>{
+          bd.classList.remove('open');
+          ok.removeEventListener('click', onOk);
+          document.getElementById('confirmCancel').removeEventListener('click', onCancel);
+          document.removeEventListener('keydown', onEsc);
+        };
+        ok.addEventListener('click', onOk);
+        document.getElementById('confirmCancel').addEventListener('click', onCancel);
+        document.addEventListener('keydown', onEsc);
+      });
+    }
+
+    /* ---------- sidebar ---------- */
+    function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
+    function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+    window.openSidebar = openSidebar;
+    window.closeSidebar = closeSidebar;
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeSidebar(); });
+
+    /* ---------- state skeletons / empty / error ---------- */
+    function skeletonCards(n=6){
+      let html = '<div class="skeleton-grid">';
+      for(let i=0;i<n;i++){
+        html += `<div class="skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line short"></div></div>`;
+      }
+      return html + '</div>';
+    }
+    function skeletonRows(n=5){
+      let rows='';
+      for(let i=0;i<n;i++){
+        rows += `<tr><td><div class="skel-line short"></div></td><td><div class="skel-line"></div></td><td><div class="skel-line short"></div></td><td><div class="skel-line short"></div></td><td><div class="skel-line short"></div></td><td><div class="skel-line"></div></td></tr>`;
+      }
+      return `<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>—</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+    function emptyState(label){
+      return `<div class="state"><div class="empty-mark">📭</div><h3>No ${label} yet</h3><p>${esc(label)} will appear here once they exist.</p></div>`;
+    }
+    function errorState(msg, retryFn){
+      return `<div class="state"><div class="icon">⚠️</div><h3>Something went wrong</h3><p>${esc(msg||'Failed to load data')}</p><button class="btn btn-primary" onclick="${retryFn}">Try again</button></div>`;
+    }
+
+    /* ---------- TABS ---------- */
+    const TAB_LOADERS = { services: loadServices, orders: loadOrders, commissions: loadCommissions, withdrawals: loadWithdrawals };
+    window.switchTab = function(name){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('panel-'+name).classList.add('active');
+      TAB_LOADERS[name]();
+    };
+
+    /* ---------- SERVICES ---------- */
+    window.loadServices = async function(){
+      const body = document.getElementById('services-body');
+      body.innerHTML = skeletonCards(6);
+      try{
+        const { data, error } = await supabase.from('services')
+          .select('id,title,seller_name,price,status,created_at')
+          .order('created_at',{ascending:false});
+        if(error) throw error;
+        if(!data || data.length===0){ body.innerHTML = emptyState('services'); return; }
+        body.innerHTML = '<div class="grid">' + data.map(s=>{
+          const pending = String(s.status||'').toLowerCase()==='pending';
+          return `<div class="card">
+            <div class="t">${esc(s.title||'Untitled service')}</div>
+            <div class="meta"><span>by ${esc(s.seller_name||'Unknown')}</span><span class="price">${fmtMoney(s.price)}</span></div>
+            <div><span class="pill ${statusClass(s.status)}">${esc(s.status||'—')}</span></div>
+            <div class="meta"><span>${fmtDate(s.created_at)}</span></div>
+            ${pending ? `<div class="row-actions">
+              <button class="btn btn-success" onclick="approveService('${esc(s.id)}')">Approve</button>
+              <button class="btn btn-danger" onclick="rejectService('${esc(s.id)}')">Reject</button>
+            </div>` : ''}
+          </div>`;
+        }).join('') + '</div>';
+      }catch(err){
+        body.innerHTML = errorState(err.message||'Failed to load services','loadServices()');
+      }
+    };
+
+    window.approveService = async function(id){
+      const ok = await sadqConfirm({title:'Approve service?', message:'This service will become visible in the marketplace.', confirmText:'Approve', danger:false});
+      if(!ok) return;
+      try{
+        const { error } = await supabase.from('services').update({status:'approved', updated_at:new Date().toISOString()}).eq('id',id);
+        if(error) throw error;
+        showToast('Service approved');
+        loadServices();
+      }catch(err){ showToast(err.message||'Failed to approve','error'); }
+    };
+
+    window.rejectService = async function(id){
+      const ok = await sadqConfirm({title:'Reject service?', message:'This service will be rejected and hidden from the marketplace.', confirmText:'Reject'});
+      if(!ok) return;
+      try{
+        const { error } = await supabase.from('services').update({status:'rejected', updated_at:new Date().toISOString()}).eq('id',id);
+        if(error) throw error;
+        showToast('Service rejected','warn');
+        loadServices();
+      }catch(err){ showToast(err.message||'Failed to reject','error'); }
+    };
+
+    /* ---------- ORDERS ---------- */
+    window.loadOrders = async function(){
+      const body = document.getElementById('orders-body');
+      body.innerHTML = skeletonRows(5);
+      try{
+        const { data, error } = await supabase.from('freelance_orders')
+          .select('id,service_title,buyer_name,seller_name,amount,status,created_at')
+          .order('created_at',{ascending:false});
+        if(error) throw error;
+        if(!data || data.length===0){ body.innerHTML = emptyState('orders'); return; }
+        body.innerHTML = `<div class="table-wrap"><div class="table-scroll"><table>
+          <thead><tr><th>ID</th><th>Service</th><th>Buyer</th><th>Seller</th><th>Amount</th><th>Status</th><th>Created</th><th>Update</th></tr></thead>
+          <tbody>${data.map(o=>`<tr>
+            <td title="${esc(o.id)}">${esc(String(o.id).slice(0,8))}</td>
+            <td>${esc(o.service_title||'—')}</td>
+            <td>${esc(o.buyer_name||'—')}</td>
+            <td>${esc(o.seller_name||'—')}</td>
+            <td style="color:var(--emerald);font-weight:600">${fmtMoney(o.amount)}</td>
+            <td><span class="pill ${statusClass(o.status)}">${esc(o.status||'—')}</span></td>
+            <td>${fmtDate(o.created_at)}</td>
+            <td>
+              <select class="select" onchange="updateOrderStatus('${esc(o.id)}', this.value)">
+                <option value="">Change…</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </td>
+          </tr>`).join('')}</tbody></table></div></div>`;
+      }catch(err){
+        body.innerHTML = errorState(err.message||'Failed to load orders','loadOrders()');
+      }
+    };
+
+    window.updateOrderStatus = async function(id, status){
+      if(!status){ return; }
+      const confirmMap = { completed:'mark as completed', cancelled:'cancel' };
+      if(confirmMap[status]){
+        const ok = await sadqConfirm({title:`${confirmMap[status].charAt(0).toUpperCase()+confirmMap[status].slice(1)} order?`,
+          message:'This will update the order status.', confirmText:'Update', danger: status==='cancelled'});
+        if(!ok){ loadOrders(); return; }
+      }
+      try{
+        const { error } = await supabase.from('freelance_orders').update({status, updated_at:new Date().toISOString()}).eq('id',id);
+        if(error) throw error;
+        showToast('Order status updated');
+        loadOrders();
+      }catch(err){ showToast(err.message||'Failed to update','error'); loadOrders(); }
+    };
+
+    /* ---------- COMMISSIONS ---------- */
+    window.loadCommissions = async function(){
+      const body = document.getElementById('commissions-body');
+      body.innerHTML = skeletonRows(4);
+      try{
+        const { data, error } = await supabase.from('freelance_commissions')
+          .select('id,order_id,amount,status')
+          .order('id',{ascending:false});
+        if(error) throw error;
+        if(!data || data.length===0){
+          body.innerHTML = `<div class="stat-card"><div class="label">Total Commission</div><div class="val">₹0</div></div>` + emptyState('commissions');
+          return;
+        }
+        const total = data.reduce((a,c)=>a+(Number(c.amount)||0),0);
+        body.innerHTML = `<div class="stat-card"><div class="label">Total Commission</div><div class="val">${fmtMoney(total)}</div></div>
+          <div class="table-wrap"><div class="table-scroll"><table>
+            <thead><tr><th>ID</th><th>Order ID</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>${data.map(c=>`<tr>
+              <td title="${esc(c.id)}">${esc(String(c.id).slice(0,8))}</td>
+              <td title="${esc(c.order_id)}">${esc(String(c.order_id||'—').slice(0,8))}</td>
+              <td style="color:var(--gold);font-weight:600">${fmtMoney(c.amount)}</td>
+              <td><span class="pill ${statusClass(c.status)}">${esc(c.status||'—')}</span></td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+      }catch(err){
+        body.innerHTML = errorState(err.message||'Failed to load commissions','loadCommissions()');
+      }
+    };
+
+    /* ---------- WITHDRAWALS ---------- */
+    window.loadWithdrawals = async function(){
+      const body = document.getElementById('withdrawals-body');
+      body.innerHTML = skeletonRows(4);
+      try{
+        const { data, error } = await supabase.from('withdrawals')
+          .select('id,user_name,amount,status,created_at')
+          .order('created_at',{ascending:false});
+        if(error) throw error;
+        if(!data || data.length===0){ body.innerHTML = emptyState('withdrawals'); return; }
+        body.innerHTML = `<div class="table-wrap"><div class="table-scroll"><table>
+          <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(w=>{
+            const pending = String(w.status||'').toLowerCase()==='pending';
+            return `<tr>
+              <td title="${esc(w.id)}">${esc(String(w.id).slice(0,8))}</td>
+              <td>${esc(w.user_name||'—')}</td>
+              <td style="color:var(--emerald);font-weight:600">${fmtMoney(w.amount)}</td>
+              <td><span class="pill ${statusClass(w.status)}">${esc(w.status||'—')}</span></td>
+              <td>${fmtDate(w.created_at)}</td>
+              <td>${pending ? `<div class="row-actions" style="margin:0">
+                <button class="btn btn-success" onclick="approveWithdrawal('${esc(w.id)}')">Approve</button>
+                <button class="btn btn-danger" onclick="rejectWithdrawal('${esc(w.id)}')">Reject</button>
+              </div>` : '<span style="color:var(--muted)">—</span>'}</td>
+            </tr>`;
+          }).join('')}</tbody></table></div></div>`;
+      }catch(err){
+        body.innerHTML = errorState(err.message||'Failed to load withdrawals','loadWithdrawals()');
+      }
+    };
+
+    window.approveWithdrawal = async function(id){
+      const ok = await sadqConfirm({title:'Approve withdrawal?', message:'Funds will be marked as paid out to the user.', confirmText:'Approve', danger:false});
+      if(!ok) return;
+      try{
+        const { error } = await supabase.from('withdrawals').update({status:'approved', updated_at:new Date().toISOString()}).eq('id',id);
+        if(error) throw error;
+        showToast('Withdrawal approved');
+        loadWithdrawals();
+      }catch(err){ showToast(err.message||'Failed to approve','error'); }
+    };
+
+    window.rejectWithdrawal = async function(id){
+      const ok = await sadqConfirm({title:'Reject withdrawal?', message:'This withdrawal request will be rejected.', confirmText:'Reject'});
+      if(!ok) return;
+      try{
+        const { error } = await supabase.from('withdrawals').update({status:'rejected', updated_at:new Date().toISOString()}).eq('id',id);
+        if(error) throw error;
+        showToast('Withdrawal rejected','warn');
+        loadWithdrawals();
+      }catch(err){ showToast(err.message||'Failed to reject','error'); }
+    };
+
+    /* ---------- BOOT ---------- */
+    (async function(){
+      try{
+        const { user, profile } = await requireAuth();
+        if(!profile || !['admin','super_admin'].includes(profile.role)){
+          window.location.href = '/dashboard.html';
+          return;
+        }
+        loadServices();
+      }catch(err){
+        document.querySelector('.main').insertAdjacentHTML('afterbegin',
+          `<div class="state"><div class="icon">🔒</div><h3>Authentication required</h3><p>${esc(err.message||'Please sign in.')}</p>
+          <button class="btn btn-primary" onclick="location.href='/login.html'">Sign in</button></div>`);
+      }
+    })();
+  </script>
+  <script src="/js/page-transition.js"></script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+</body>
+</html>

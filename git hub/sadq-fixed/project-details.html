@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:800px;margin:0 auto;padding:16px}
+    .back-link{color:var(--sadq-primary);text-decoration:none;font-size:.875rem;margin-bottom:16px;display:inline-flex;align-items:center;gap:4px}
+    .back-link:hover{text-decoration:underline}
+    .project__thumb{width:100%;height:300px;object-fit:cover;border-radius:var(--sadq-radius);margin-bottom:20px;display:block}
+    .project__thumb-placeholder{width:100%;height:300px;border-radius:var(--sadq-radius);background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));display:flex;align-items:center;justify-content:center;font-size:4rem;color:rgba(255,255,255,.5);margin-bottom:20px}
+    .project__title{font-size:1.75rem;font-weight:700;line-height:1.3;margin-bottom:8px}
+    .project__badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+    .badge{font-size:.6875rem;padding:3px 10px;border-radius:10px;font-weight:500}
+    .badge--web{background:#e3f2fd;color:#1565c0}
+    .badge--mobile{background:#f3e5f5;color:#7b1fa2}
+    .badge--design{background:#fce4ec;color:#c62828}
+    .badge--research{background:#e8f5e9;color:#2e7d32}
+    .badge--other{background:#fff3e0;color:#e65100}
+    .project__desc{font-size:1rem;line-height:1.8;color:var(--text,#F8FAFC);margin-bottom:24px}
+    .project__desc p{margin-bottom:12px}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+    @media(max-width:600px){.info-grid{grid-template-columns:1fr}}
+    .info-card{padding:16px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow)}
+    .info-card__label{font-size:.6875rem;color:var(--sadq-text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .info-card__value{font-size:.875rem;font-weight:500}
+    .tech-stack{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+    .tech-tag{background:#f0f0f0;padding:4px 10px;border-radius:6px;font-size:.75rem;color:var(--text,#F8FAFC)}
+    .owner-card{display:flex;align-items:center;gap:12px;padding:16px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow);margin-bottom:20px}
+    .owner__avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;background:var(--sadq-border)}
+    .owner__avatar-placeholder{width:48px;height:48px;border-radius:50%;background:var(--sadq-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+    .owner__name{font-size:.9375rem;font-weight:500}
+    .owner__sub{font-size:.75rem;color:var(--sadq-text-muted)}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:24px}
+    .gallery img{width:100%;height:120px;object-fit:cover;border-radius:var(--sadq-radius-sm);cursor:pointer}
+    .action-bar{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;transition:var(--sadq-transition);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.project__thumb,.project__thumb-placeholder{height:200px}.project__title{font-size:1.375rem}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/projects.html">Projects</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <a href="/projects.html" class="back-link">← Back to Projects</a>
+    <div id="loading">
+      <div class="skeleton" style="height:300px;margin-bottom:20px"></div>
+      <div class="skeleton" style="height:28px;width:60%;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:16px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:16px;width:80%"></div>
+    </div>
+    <div id="content" class="hidden fade-in"></div>
+    <div id="error" class="empty-state hidden">
+      <div class="empty-state__icon">📁</div>
+      <p>Unable to load this project. Please try again.</p>
+      <a href="/projects.html" style="color:var(--sadq-primary);text-decoration:none;font-size:.875rem">Back to Projects</a>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('id');
+    let project = null;
+
+    async function init() {
+      if (!projectId) { showError(); return; }
+      try {
+        const { data, error } = await supabase.from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .eq('status', 'published')
+          .single();
+        if (error) throw error;
+        if (!data) { showError(); return; }
+        project = data;
+        document.title = `${data.title} — SADQ`;
+        await loadOwner(data);
+      } catch (err) {
+        console.error('[ProjectDetails] Error:', err.message);
+        showError();
+      }
+    }
+
+    async function loadOwner(p) {
+      let owner = null;
+      if (p.owner_id) {
+        try {
+          const { data } = await supabase.from('profiles')
+            .select('full_name, username, profile_photo_url')
+            .eq('id', p.owner_id).single();
+          owner = data;
+        } catch {}
+      }
+      renderProject(p, owner);
+    }
+
+    function renderProject(p, owner) {
+      const techStack = Array.isArray(p.tech_stack) ? p.tech_stack : (p.tech_stack ? (typeof p.tech_stack === 'string' ? JSON.parse(p.tech_stack) : []) : []);
+      const gallery = Array.isArray(p.gallery_images) ? p.gallery_images : (p.gallery_images ? (typeof p.gallery_images === 'string' ? JSON.parse(p.gallery_images) : []) : []);
+      const catIcons = { web: '🌐', mobile: '📱', design: '🎨', research: '📊', other: '📦' };
+
+      document.getElementById('content').innerHTML = `
+        ${p.thumbnail_url
+          ? `<img class="project__thumb" src="${p.thumbnail_url}" alt="${p.title}">`
+          : `<div class="project__thumb-placeholder">${catIcons[p.category] || '📁'}</div>`}
+        <h1 class="project__title">${p.title}</h1>
+        <div class="project__badges">
+          ${p.category ? `<span class="badge badge--${p.category}">${p.category}</span>` : ''}
+          ${p.status === 'published' ? '<span class="badge badge--other">Published</span>' : ''}
+        </div>
+        <div class="project__desc">${p.description || ''}</div>
+        <div class="info-grid">
+          ${p.created_at ? `<div class="info-card"><div class="info-card__label">Created</div><div class="info-card__value">${new Date(p.created_at).toLocaleDateString('en-IN')}</div></div>` : ''}
+          ${p.updated_at ? `<div class="info-card"><div class="info-card__label">Updated</div><div class="info-card__value">${new Date(p.updated_at).toLocaleDateString('en-IN')}</div></div>` : ''}
+          ${p.repo_url ? `<div class="info-card"><div class="info-card__label">Repository</div><div class="info-card__value"><a href="${p.repo_url}" target="_blank" rel="noopener" style="color:var(--sadq-primary)">View Code →</a></div></div>` : ''}
+          ${p.demo_url ? `<div class="info-card"><div class="info-card__label">Live Demo</div><div class="info-card__value"><a href="${p.demo_url}" target="_blank" rel="noopener" style="color:var(--sadq-primary)">Open Demo →</a></div></div>` : ''}
+        </div>
+        ${techStack.length ? `<div class="tech-stack">${techStack.map(t => `<span class="tech-tag">${t}</span>`).join('')}</div>` : ''}
+        ${gallery.length ? `<div class="gallery">${gallery.map(url => `<img src="${url}" alt="" onclick="window.open('${url}','_blank')">`).join('')}</div>` : ''}
+        ${owner ? `
+          <div class="owner-card">
+            ${owner.profile_photo_url
+              ? `<img class="owner__avatar" src="${owner.profile_photo_url}" alt="">`
+              : `<div class="owner__avatar-placeholder">${(owner.full_name || '?').charAt(0)}</div>`}
+            <div>
+              <div class="owner__name">${owner.full_name || 'Anonymous'}</div>
+              <div class="owner__sub">@${owner.username || ''}</div>
+            </div>
+            <a href="/u/${owner.username || p.owner_id}" style="margin-left:auto;font-size:.75rem;color:var(--sadq-primary);text-decoration:none">View Profile →</a>
+          </div>` : ''}
+        <div class="action-bar">
+          ${p.repo_url ? `<a href="${p.repo_url}" target="_blank" rel="noopener" class="btn">📦 View Code</a>` : ''}
+          ${p.demo_url ? `<a href="${p.demo_url}" target="_blank" rel="noopener" class="btn">🚀 Live Demo</a>` : ''}
+          <button class="btn btn--outline" onclick="window.shareProject()">🔗 Share</button>
+        </div>
+      `;
+      document.getElementById('content').classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    window.shareProject = function() {
+      if (navigator.share) { navigator.share({ title: project.title, url: window.location.href }).catch(() => {}); }
+      else { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+    };
+
+    function showError() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

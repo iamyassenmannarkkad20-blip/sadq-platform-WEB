@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:800px;margin:0 auto;padding:16px}
+
+    /* Hero */
+    .hero{background:linear-gradient(135deg,#0f3d20,var(--sadq-primary),var(--sadq-primary-light));border-radius:var(--sadq-radius);padding:40px 24px;margin-bottom:24px;color:#fff;text-align:center;position:relative;overflow:hidden}
+    .hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--sadq-accent)}
+    .hero__icon{font-size:3rem;margin-bottom:8px}
+    .hero__title{font-size:1.75rem;font-weight:800;margin-bottom:8px}
+    .hero__sub{font-size:.875rem;opacity:.85;max-width:500px;margin:0 auto}
+
+    /* Current status */
+    .status-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:20px;box-shadow:var(--sadq-shadow);margin-bottom:20px;display:flex;align-items:center;gap:16px}
+    .status-card__icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;background:linear-gradient(135deg,var(--sadq-accent),#d4af37);color:#fff}
+    .status-card__body{flex:1}
+    .status-card__label{font-size:.6875rem;color:var(--sadq-text-muted);text-transform:uppercase}
+    .status-card__value{font-size:.9375rem;font-weight:600}
+    .status-card__value--active{color:var(--sadq-primary)}
+    .status-card__value--free{color:var(--sadq-text-muted)}
+    .status-card__expiry{font-size:.75rem;color:var(--sadq-text-muted);margin-top:2px}
+
+    /* Plans */
+    .plans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-bottom:24px}
+    .plan-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);transition:var(--sadq-transition);position:relative}
+    .plan-card:hover{box-shadow:var(--sadq-shadow-hover);transform:translateY(-4px)}
+    .plan-card--featured{border:2px solid var(--sadq-accent)}
+    .plan-card__badge{position:absolute;top:12px;right:12px;background:var(--sadq-accent);color:#1a1a1a;font-size:.625rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+    .plan-card__header{padding:24px 20px;text-align:center;border-bottom:1px solid var(--sadq-border)}
+    .plan-card__name{font-size:1.125rem;font-weight:700;margin-bottom:8px}
+    .plan-card__price{font-size:2rem;font-weight:800;color:var(--sadq-primary)}
+    .plan-card__period{font-size:.75rem;color:var(--sadq-text-muted)}
+    .plan-card__features{padding:16px 20px}
+    .plan-card__feature{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.8125rem}
+    .plan-card__feature span{color:var(--sadq-success)}
+    .plan-card__feature--disabled{color:var(--sadq-text-muted);opacity:.5}
+    .plan-card__feature--disabled span{color:var(--sadq-text-muted)}
+    .plan-card__cta{padding:16px 20px;border-top:1px solid var(--sadq-border)}
+    .btn{width:100%;padding:12px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--sadq-transition)}
+    .btn--primary{background:var(--sadq-primary);color:#fff}
+    .btn--primary:hover{background:var(--sadq-primary-light)}
+    .btn--gold{background:var(--sadq-accent);color:#1a1a1a}
+    .btn--gold:hover{background:#d4af37}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* Payment modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+    .modal{background:#fff;border-radius:var(--sadq-radius);padding:24px;max-width:420px;width:100%}
+    .modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+    .modal__row{display:flex;justify-content:space-between;padding:8px 0;font-size:.8125rem;border-bottom:1px solid var(--sadq-border)}
+    .modal__row:last-child{border-bottom:none}
+    .modal__label{color:var(--sadq-text-muted)}
+    .modal__value{font-weight:500}
+    .upi-section{background:#f8f9fa;border-radius:var(--sadq-radius-sm);padding:16px;margin:16px 0;text-align:center}
+    .upi-id{font-family:monospace;font-size:1rem;font-weight:600;color:var(--sadq-primary);margin-bottom:8px}
+    .upi-id span{cursor:pointer;color:var(--sadq-accent);font-size:.75rem}
+    .upi-note{font-size:.75rem;color:var(--sadq-text-muted);margin-top:8px}
+    .modal__close{width:100%;margin-top:12px;padding:10px;background:var(--sadq-primary);color:#fff;border:none;border-radius:var(--sadq-radius-sm);cursor:pointer;font-size:.875rem}
+
+    /* Comparison table */
+    .comparison{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);margin-bottom:24px}
+    .comparison__title{padding:16px 20px;font-size:1rem;font-weight:600;border-bottom:1px solid var(--sadq-border)}
+    .comparison__table{width:100%;border-collapse:collapse;font-size:.8125rem}
+    .comparison__table th{text-align:left;padding:10px 20px;background:#f8f9fa;border-bottom:1px solid var(--sadq-border);font-weight:600}
+    .comparison__table th:not(:first-child){text-align:center}
+    .comparison__table td{padding:10px 20px;border-bottom:1px solid #f5f5f5}
+    .comparison__table td:not(:first-child){text-align:center}
+    .comparison__table tr:last-child td{border-bottom:none}
+    .check{color:var(--sadq-success);font-size:1rem}
+    .cross{color:var(--sadq-text-muted);opacity:.5}
+
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .hidden{display:none!important}
+    @media(max-width:600px){.plans-grid{grid-template-columns:1fr}.comparison__table{font-size:.75rem}.comparison__table th,.comparison__table td{padding:8px 12px}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+  <div class="container">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero__icon">⭐</div>
+      <h1 class="hero__title">SADQ Premium</h1>
+      <p class="hero__sub">Unlock exclusive features, priority support, and enhanced tools to supercharge your SADQ experience.</p>
+    </div>
+
+    <!-- Current status -->
+    <div class="status-card" id="status-card">
+      <div class="status-card__icon" id="status-icon">🆓</div>
+      <div class="status-card__body">
+        <div class="status-card__label">Current Plan</div>
+        <div class="status-card__value status-card__value--free" id="status-value">Free Plan</div>
+        <div class="status-card__expiry" id="status-expiry"></div>
+      </div>
+    </div>
+
+    <!-- Plans -->
+    <div class="plans-grid">
+      <!-- Free -->
+      <div class="plan-card fade-in">
+        <div class="plan-card__header">
+          <div class="plan-card__name">Free</div>
+          <div class="plan-card__price">₹0</div>
+          <div class="plan-card__period">forever</div>
+        </div>
+        <div class="plan-card__features">
+          <div class="plan-card__feature"><span>✓</span> Browse all content</div>
+          <div class="plan-card__feature"><span>✓</span Post articles & thoughts</div>
+          <div class="plan-card__feature"><span>✓</span Create profile</div>
+          <div class="plan-card__feature"><span>✓</span Basic freelancing</div>
+          <div class="plan-card__feature plan-card__feature--disabled"><span>✗</span> Priority listings</div>
+          <div class="plan-card__feature plan-card__feature--disabled"><span>✗</span> Advanced analytics</div>
+          <div class="plan-card__feature plan-card__feature--disabled"><span>✗</span> Premium badge</div>
+        </div>
+        <div class="plan-card__cta">
+          <button class="btn btn--outline" disabled>Current Plan</button>
+        </div>
+      </div>
+
+      <!-- Monthly -->
+      <div class="plan-card plan-card--featured fade-in">
+        <div class="plan-card__badge">Popular</div>
+        <div class="plan-card__header">
+          <div class="plan-card__name">Premium Monthly</div>
+          <div class="plan-card__price">₹99</div>
+          <div class="plan-card__period">per month</div>
+        </div>
+        <div class="plan-card__features">
+          <div class="plan-card__feature"><span>✓</span> Everything in Free</div>
+          <div class="plan-card__feature"><span>✓</span> Priority listings</div>
+          <div class="plan-card__feature"><span>✓</span> Advanced analytics</div>
+          <div class="plan-card__feature"><span>✓</span> Premium badge ⭐</div>
+          <div class="plan-card__feature"><span>✓</span> Unlimited uploads</div>
+          <div class="plan-card__feature"><span>✓</span> Priority support</div>
+          <div class="plan-card__feature plan-card__feature--disabled"><span>✗</span> Custom branding</div>
+        </div>
+        <div class="plan-card__cta">
+          <button class="btn btn--gold" onclick="window.showPayment('monthly',99)">Upgrade Now</button>
+        </div>
+      </div>
+
+      <!-- Yearly -->
+      <div class="plan-card fade-in">
+        <div class="plan-card__header">
+          <div class="plan-card__name">Premium Yearly</div>
+          <div class="plan-card__price">₹999</div>
+          <div class="plan-card__period">per year (Save 16%)</div>
+        </div>
+        <div class="plan-card__features">
+          <div class="plan-card__feature"><span>✓</span> Everything in Monthly</div>
+          <div class="plan-card__feature"><span>✓</span> Custom branding</div>
+          <div class="plan-card__feature"><span>✓</span> Early feature access</div>
+          <div class="plan-card__feature"><span>✓</span> Featured profile placement</div>
+          <div class="plan-card__feature"><span>✓</span> Zero commission month</div>
+          <div class="plan-card__feature"><span>✓</span> Exclusive content access</div>
+          <div class="plan-card__feature"><span>✓</span> VIP support</div>
+        </div>
+        <div class="plan-card__cta">
+          <button class="btn btn--primary" onclick="window.showPayment('yearly',999)">Go Yearly</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="comparison">
+      <div class="comparison__title">Feature Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="comparison__table">
+          <thead><tr><th>Feature</th><th>Free</th><th>Monthly</th><th>Yearly</th></tr></thead>
+          <tbody>
+            <tr><td>Articles & Posts</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+            <tr><td>Profile Creation</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+            <tr><td>Freelancing</td><td class="check">Basic</td><td class="check">Priority</td><td class="check">Priority</td></tr>
+            <tr><td>Upload Limits</td><td>5 items</td><td class="check">Unlimited</td><td class="check">Unlimited</td></tr>
+            <tr><td>Analytics</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+            <tr><td>Premium Badge</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+            <tr><td>Custom Branding</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+            <tr><td>Featured Profile</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+            <tr><td>Support</td><td>Community</td><td>Priority</td><td>VIP</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal" id="modal-body">
+      <div class="modal__title">Complete Your Upgrade</div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    let currentUser=null;
+
+    async function init(){
+      try{
+        const{user}=await getCurrentUser();currentUser=user;
+        if(!user){
+          document.getElementById('status-value').textContent='Not logged in';
+          return;
+        }
+        // Check current subscription
+        const{data}=await supabase.from('premium_subscriptions')
+          .select('plan,status,expiry_date')
+          .eq('user_id',currentUser.id)
+          .eq('status','active')
+          .order('expiry_date',{ascending:false})
+          .limit(1).maybeSingle();
+
+        if(data&&data.status==='active'&&(!data.expiry_date||new Date(data.expiry_date)>new Date())){
+          document.getElementById('status-icon').textContent='⭐';
+          document.getElementById('status-value').textContent=`Premium ${data.plan==='yearly'?'Yearly':'Monthly'}`;
+          document.getElementById('status-value').className='status-card__value status-card__value--active';
+          document.getElementById('status-expiry').textContent=data.expiry_date?`Active until ${new Date(data.expiry_date).toLocaleDateString('en-IN')}`:'Active';
+        }
+      }catch(err){console.error('[Premium] Init error:',err.message);}
+    }
+
+    window.showPayment=function(plan,amount){
+      if(!currentUser){
+        window.location.href='/login.html?redirect=/premium.html';
+        return;
+      }
+
+      const modal=document.getElementById('modal-content');
+      modal.innerHTML=`
+        <div class="modal__row"><span class="modal__label">Plan</span><span class="modal__value">Premium ${plan==='yearly'?'Yearly':'Monthly'}</span></div>
+        <div class="modal__row"><span class="modal__label">Amount</span><span class="modal__value">₹${amount}</span></div>
+        <div class="modal__row"><span class="modal__label">Duration</span><span class="modal__value">${plan==='yearly'?'365 days':'30 days'}</span></div>
+        <div class="upi-section">
+          <div style="font-size:.75rem;color:var(--sadq-text-muted);margin-bottom:8px">Pay via UPI</div>
+          <div class="upi-id">sadq@upi <span onclick="navigator.clipboard.writeText('sadq@upi');this.textContent='Copied!'">📋 Copy</span></div>
+          <div class="upi-note">Or scan the QR code in your UPI app to pay to <strong>sadq@upi</strong></div>
+        </div>
+        <div class="upi-note" style="margin-bottom:12px">After payment, your premium will be activated within 24 hours. For instant activation, contact admin with payment screenshot.</div>
+        <button class="modal__close" onclick="window.confirmPayment('${plan}',${amount})">I've Paid - Submit Request</button>
+        <button class="modal__close" style="background:#6c757d;margin-top:8px" onclick="window.closeModal()">Cancel</button>
+      `;
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    };
+
+    window.confirmPayment=async function(plan,amount){
+      try{
+        const{error}=await supabase.from('premium_payments').insert({
+          user_id:currentUser.id,
+          plan,amount,
+          status:'pending',
+          payment_method:'upi',
+        });
+        if(error)throw error;
+
+        window.closeModal();
+        alert('Payment request submitted! Your premium will be activated within 24 hours.');
+      }catch(err){
+        console.error('[Payment] Error:',err.message);
+        alert('Unable to submit payment request. Please try again or contact admin.');
+      }
+    };
+
+    window.closeModal=function(){document.getElementById('modal-overlay').classList.add('hidden');};
+    document.getElementById('modal-overlay').addEventListener('click',(e)=>{if(e.target.id==='modal-overlay')window.closeModal();});
+
+    init();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

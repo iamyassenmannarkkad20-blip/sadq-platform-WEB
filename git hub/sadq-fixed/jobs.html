@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobs — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .header { position: sticky; top: 0; z-index: 100; height: 64px; background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .header__nav { margin-left: auto; display: flex; gap: 4px; }
+    .header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.8125rem; padding: 6px 10px; border-radius: var(--sadq-radius-sm); }
+    .header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+    .hero { background: linear-gradient(135deg, var(--sadq-primary), var(--sadq-primary-light)); border-radius: var(--sadq-radius); padding: 24px; margin-bottom: 20px; color: #fff; }
+    .hero__title { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .hero__sub { font-size: 0.875rem; opacity: 0.85; margin-bottom: 16px; }
+    .hero__search { width: 100%; padding: 12px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.9375rem; }
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-select { padding: 8px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.8125rem; background: #fff; }
+    .job-list { display: flex; flex-direction: column; gap: 12px; }
+    .job-card { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; box-shadow: var(--sadq-shadow); transition: var(--sadq-transition); text-decoration: none; color: var(--text, #F8FAFC); }
+    .job-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .job-card__header { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 8px; }
+    .job-card__title { font-size: 1rem; font-weight: 600; }
+    .job-card__company { font-size: 0.8125rem; color: var(--sadq-text-muted); margin-bottom: 4px; }
+    .job-card__meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .job-card__meta span { display: flex; align-items: center; gap: 4px; }
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--remote { background: #e3f2fd; color: #1565c0; }
+    .badge--onsite { background: #fff3e0; color: #e65100; }
+    .badge--fulltime { background: #e8f5e9; color: #2e7d32; }
+    .badge--parttime { background: #f3e5f5; color: #7b1fa2; }
+    .badge--internship { background: #fce4ec; color: #c62828; }
+    .empty-state { text-align: center; padding: 60px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state__text { font-size: 1rem; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+    .load-more { text-align: center; padding: 20px; }
+    .btn { padding: 10px 20px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; background: var(--sadq-primary); color: #fff; }
+    .btn:hover { background: var(--sadq-primary-light); }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+      <a href="/register.html">Register</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <div class="hero__title">Job Opportunities</div>
+      <div class="hero__sub">Find your next career opportunity</div>
+      <input type="text" class="hero__search" id="search-input" placeholder="Search jobs by title, company, location...">
+    </div>
+
+    <div class="filter-bar">
+      <select class="filter-select" id="filter-type">
+        <option value="">All Types</option>
+        <option value="full_time">Full Time</option>
+        <option value="part_time">Part Time</option>
+        <option value="internship">Internship</option>
+        <option value="contract">Contract</option>
+      </select>
+      <select class="filter-select" id="filter-workmode">
+        <option value="">All Modes</option>
+        <option value="remote">Remote</option>
+        <option value="onsite">On-site</option>
+        <option value="hybrid">Hybrid</option>
+      </select>
+    </div>
+
+    <div id="loading">
+      <div class="skeleton" style="height:100px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:100px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:100px;"></div>
+    </div>
+
+    <div id="results" class="job-list hidden"></div>
+
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">💼</div>
+      <div class="empty-state__text">No jobs found.</div>
+    </div>
+
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+
+    let searchTerm = '';
+    let searchTimeout = null;
+    let page = 0;
+    const pageSize = 10;
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchTerm = e.target.value.trim();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { page = 0; loadJobs(); }, 400);
+    });
+
+    document.getElementById('filter-type').addEventListener('change', () => { page = 0; loadJobs(); });
+    document.getElementById('filter-workmode').addEventListener('change', () => { page = 0; loadJobs(); });
+
+    document.getElementById('load-more-btn').addEventListener('click', () => { page++; loadJobs(true); });
+
+    function showLoading() { document.getElementById('loading').classList.remove('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.add('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showEmpty() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.remove('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showResults() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.remove('hidden'); document.getElementById('empty').classList.add('hidden'); }
+
+    async function loadJobs(append = false) {
+      if (!append) showLoading();
+
+      try {
+        let query = supabase.from('jobs')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (searchTerm) query = query.or(`title.ilike.%${searchTerm}%,company.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+
+        const filterType = document.getElementById('filter-type').value;
+        const filterMode = document.getElementById('filter-workmode').value;
+        if (filterType) query = query.eq('job_type', filterType);
+        if (filterMode) query = query.eq('work_mode', filterMode);
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        if (!append && (!data || data.length === 0)) { showEmpty(); return; }
+
+        const container = document.getElementById('results');
+        const html = (data || []).map(j => `
+          <a href="/job-details.html?id=${j.id}" class="job-card fade-in">
+            <div class="job-card__header">
+              <div>
+                <div class="job-card__title">${j.title}</div>
+                <div class="job-card__company">${j.company || ''}</div>
+              </div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                ${j.job_type ? `<span class="badge badge--${j.job_type.replace('_','')}">${j.job_type.replace('_',' ')}</span>` : ''}
+                ${j.work_mode ? `<span class="badge badge--${j.work_mode}">${j.work_mode}</span>` : ''}
+              </div>
+            </div>
+            <div class="job-card__meta">
+              ${j.location ? `<span>📍 ${j.location}</span>` : ''}
+              ${(j.salary_min || j.salary_max) ? `<span>💰 ${j.salary_min ? '₹' + j.salary_min : ''}${j.salary_max ? ' - ₹' + j.salary_max : ''}</span>` : ''}
+              ${j.deadline ? `<span>⏰ ${new Date(j.deadline).toLocaleDateString('en-IN')}</span>` : ''}
+            </div>
+          </a>
+        `).join('');
+
+        if (append) container.insertAdjacentHTML('beforeend', html);
+        else container.innerHTML = html;
+
+        showResults();
+        document.getElementById('load-more-wrap').classList.toggle('hidden', (data || []).length < pageSize);
+
+      } catch (error) {
+        console.error('[Jobs] Load error:', error.message);
+        showEmpty();
+      }
+    }
+
+    loadJobs();
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

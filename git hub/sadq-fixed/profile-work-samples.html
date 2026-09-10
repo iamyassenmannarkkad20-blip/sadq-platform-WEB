@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Samples — SADQ</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .sadq-header {
+      position: sticky; top: 0; z-index: 100; height: 64px;
+      background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .sadq-header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sadq-header__nav { margin-left: auto; display: flex; gap: 8px; }
+    .sadq-header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: var(--sadq-radius-sm); }
+    .sadq-header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .section__title { font-size: 1.125rem; font-weight: 600; }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+
+    .samples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .sample-card { border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); overflow: hidden; transition: var(--sadq-transition); }
+    .sample-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .sample-card__thumb { width: 100%; height: 140px; object-fit: cover; background: var(--sadq-border); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--sadq-text-muted); }
+    .sample-card__body { padding: 12px; }
+    .sample-card__title { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sample-card__meta { font-size: 0.75rem; color: var(--sadq-text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .sample-card__actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .badge--published { background: #e8f5e9; color: var(--sadq-success); }
+    .badge--draft { background: #fff3e0; color: #e65100; }
+    .badge--hidden { background: #ffebee; color: #c62828; }
+    .badge--archived { background: #f5f5f5; color: #757575; }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state__text { font-size: 0.9375rem; margin-bottom: 16px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay--active { display: flex; }
+    .modal { background: #fff; border-radius: var(--sadq-radius); padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--sadq-text-muted); line-height: 1; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-family: inherit; transition: var(--sadq-transition); }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(26,86,50,0.1); }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-error { font-size: 0.8125rem; color: var(--sadq-danger); margin-top: 4px; }
+    .form-hint { font-size: 0.75rem; color: var(--sadq-text-muted); margin-top: 4px; }
+
+    .upload-zone { border: 2px dashed var(--sadq-border); border-radius: var(--sadq-radius-sm); padding: 20px; text-align: center; cursor: pointer; transition: var(--sadq-transition); }
+    .upload-zone:hover { border-color: var(--sadq-primary); background: #f0f7f0; }
+    .upload-zone--dragover { border-color: var(--sadq-primary); background: #e8f5e9; }
+    .upload-zone__text { font-size: 0.875rem; color: var(--sadq-text-muted); }
+    .upload-preview { margin-top: 8px; border-radius: var(--sadq-radius-sm); overflow: hidden; }
+    .upload-preview img, .upload-preview video { width: 100%; max-height: 200px; object-fit: cover; }
+
+    .progress-bar { height: 4px; background: var(--sadq-border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .progress-bar__fill { height: 100%; background: var(--sadq-primary); transition: width 0.3s ease; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .visibility-toggle { display: flex; gap: 8px; }
+    .vis-option { flex: 1; padding: 8px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); cursor: pointer; text-align: center; font-size: 0.8125rem; }
+    .vis-option--selected { border-color: var(--sadq-primary); background: #f0f7f0; }
+
+    @media (max-width: 600px) { .samples-grid { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <header class="sadq-header">
+    <a href="/dashboard.html" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/student-profile.html">← Profile</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">Work Samples</h2>
+        <button class="btn btn--primary" id="add-btn">+ Add Work Sample</button>
+      </div>
+
+      <div id="loading-state">
+        <div class="skeleton" style="height: 200px; margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 200px; margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 200px;"></div>
+      </div>
+
+      <div id="samples-grid" class="samples-grid hidden"></div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state__icon">📂</div>
+        <p class="empty-state__text">No work samples yet. Show your best work!</p>
+        <button class="btn btn--primary" onclick="document.getElementById('add-btn').click()">Add Work Sample</button>
+      </div>
+
+      <div id="error-state" class="empty-state hidden">
+        <div class="empty-state__icon">⚠️</div>
+        <p class="empty-state__text">Unable to load work samples. Please try again.</p>
+        <button class="btn btn--primary" id="retry-btn">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div class="modal-overlay" id="sample-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal()">×</button>
+      <h2 class="modal__title" id="modal-title">Add Work Sample</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="ws-title">Title *</label>
+        <input type="text" id="ws-title" class="form-input" placeholder="e.g. Logo Design for College Event" maxlength="200">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ws-description">Description</label>
+        <textarea id="ws-description" class="form-textarea" placeholder="Describe this work sample..." maxlength="1000"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ws-skill">Link to Skill</label>
+        <select id="ws-skill" class="form-select">
+          <option value="">— None —</option>
+        </select>
+        <div class="form-hint">Connect this sample to one of your skills.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ws-url">External URL</label>
+        <input type="url" id="ws-url" class="form-input" placeholder="https://github.com/... or live URL">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Media (Image or File)</label>
+        <div class="upload-zone" id="upload-zone">
+          <p class="upload-zone__text">Click to select or drag a file</p>
+          <p class="upload-zone__text" style="margin-top: 6px; font-size: 0.75rem;">Images: JPG/PNG/WEBP · Docs: PDF/DOC/DOCX · Max 25MB</p>
+          <input type="file" id="ws-file" class="hidden" accept="image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        </div>
+        <div class="upload-preview hidden" id="upload-preview"></div>
+        <div class="progress-bar hidden" id="upload-progress"><div class="progress-bar__fill" id="upload-progress-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Visibility</label>
+        <div class="visibility-toggle" id="vis-toggle">
+          <div class="vis-option vis-option--selected" data-value="public">🌐 Public</div>
+          <div class="vis-option" data-value="members_only">🔒 Members</div>
+          <div class="vis-option" data-value="private">🚫 Private</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ws-status">Status</label>
+        <select id="ws-status" class="form-select">
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+          <option value="hidden">Hidden</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn--primary" id="save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h2 class="modal__title">Delete Work Sample</h2>
+      <p style="margin-bottom: 20px; color: var(--sadq-text-muted);">
+        Are you sure you want to delete this work sample? This cannot be undone.
+      </p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn--ghost" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn--danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth } from '/js/supabase-client.js';
+    import { MediaService } from '/js/media-service.js';
+
+    let currentUser = null;
+    let editingId = null;
+    let deletingId = null;
+    let selectedFile = null;
+    let selectedVisibility = 'public';
+    let existingMediaUrl = null;
+    let existingThumbnailUrl = null;
+    let existingFileType = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    function showLoading() {
+      document.getElementById('loading-state').classList.remove('hidden');
+      document.getElementById('samples-grid').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showError() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('samples-grid').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+    }
+    function showEmpty() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('samples-grid').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showGrid() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('samples-grid').classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function filePreview(url, type) {
+      if (!url) return '📄';
+      if (type && type.startsWith('image/')) return `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+      if (url.match(/\.(jpg|jpeg|png|webp|gif)$/i)) return `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+      if (url.match(/\.(mp4|webm|mov)$/i)) return '🎬';
+      if (url.match(/\.pdf$/i)) return '📄';
+      return '📎';
+    }
+
+    async function loadSkillsDropdown() {
+      const { data, error } = await supabase
+        .from('student_skills')
+        .select('id, skill_name')
+        .eq('student_id', currentUser.id)
+        .order('skill_name');
+
+      if (error || !data) return;
+
+      const select = document.getElementById('ws-skill');
+      select.innerHTML = '<option value="">— None —</option>' +
+        data.map(s => `<option value="${s.id}|${s.skill_name}">${s.skill_name}</option>`).join('');
+    }
+
+    async function loadSamples() {
+      showLoading();
+      try {
+        const { data, error } = await supabase
+          .from('student_work_samples')
+          .select('*')
+          .eq('student_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!data || data.length === 0) { showEmpty(); return; }
+
+        const grid = document.getElementById('samples-grid');
+        grid.innerHTML = data.map(s => `
+          <div class="sample-card fade-in">
+            <div class="sample-card__thumb">${filePreview(s.thumbnail_url || s.media_url, s.file_type)}</div>
+            <div class="sample-card__body">
+              <div class="sample-card__title">${s.title}</div>
+              <div class="sample-card__meta">
+                ${s.skill_name || ''}
+                <span class="badge badge--${s.status}">${s.status}</span>
+              </div>
+              <div class="sample-card__actions">
+                <button class="btn btn--small btn--ghost" onclick="editSample('${s.id}')">Edit</button>
+                ${s.status === 'published'
+                  ? `<button class="btn btn--small btn--ghost" onclick="toggleStatus('${s.id}', 'hidden')">Hide</button>`
+                  : `<button class="btn btn--small btn--ghost" onclick="toggleStatus('${s.id}', 'published')">Publish</button>`
+                }
+                <button class="btn btn--small btn--ghost" style="color:var(--sadq-danger);" onclick="confirmDelete('${s.id}')">Delete</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        showGrid();
+      } catch (error) {
+        console.error('[Work Samples] Load error:', error.message);
+        showError();
+      }
+    }
+
+    // ── Modal ───────────────────────────────────────────────────────
+    window.closeModal = function() {
+      document.getElementById('sample-modal').classList.remove('modal-overlay--active');
+      editingId = null; selectedFile = null; existingMediaUrl = null; existingThumbnailUrl = null; existingFileType = null;
+      document.getElementById('ws-title').value = '';
+      document.getElementById('ws-description').value = '';
+      document.getElementById('ws-url').value = '';
+      document.getElementById('ws-skill').value = '';
+      document.getElementById('ws-status').value = 'published';
+      document.getElementById('upload-preview').classList.add('hidden');
+      document.getElementById('upload-preview').innerHTML = '';
+      document.getElementById('upload-progress').classList.add('hidden');
+      selectedVisibility = 'public';
+      updateVisToggle();
+    };
+
+    window.closeDeleteModal = function() {
+      document.getElementById('delete-modal').classList.remove('modal-overlay--active');
+      deletingId = null;
+    };
+
+    function updateVisToggle() {
+      document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+        el.classList.toggle('vis-option--selected', el.dataset.value === selectedVisibility);
+      });
+    }
+
+    document.getElementById('add-btn').addEventListener('click', async () => {
+      editingId = null;
+      document.getElementById('modal-title').textContent = 'Add Work Sample';
+      await loadSkillsDropdown();
+      closeModal();
+      document.getElementById('sample-modal').classList.add('modal-overlay--active');
+      setTimeout(() => document.getElementById('ws-title').focus(), 100);
+    });
+
+    window.editSample = async function(id) {
+      const { data, error } = await supabase
+        .from('student_work_samples')
+        .select('*')
+        .eq('id', id)
+        .eq('student_id', currentUser.id)
+        .single();
+
+      if (error || !data) { showToast('Unable to load sample.', 'error'); return; }
+
+      editingId = id;
+      await loadSkillsDropdown();
+
+      document.getElementById('modal-title').textContent = 'Edit Work Sample';
+      document.getElementById('ws-title').value = data.title || '';
+      document.getElementById('ws-description').value = data.description || '';
+      document.getElementById('ws-url').value = data.external_url || '';
+      document.getElementById('ws-status').value = data.status || 'published';
+
+      if (data.skill_id) {
+        const opt = [...document.getElementById('ws-skill').options].find(o => o.value.startsWith(data.skill_id));
+        if (opt) opt.selected = true;
+      }
+
+      existingMediaUrl = data.media_url;
+      existingThumbnailUrl = data.thumbnail_url;
+      existingFileType = data.file_type;
+
+      if (data.media_url) {
+        const preview = document.getElementById('upload-preview');
+        preview.classList.remove('hidden');
+        preview.innerHTML = filePreview(data.thumbnail_url || data.media_url, data.file_type);
+      }
+
+      selectedVisibility = data.visibility || 'public';
+      updateVisToggle();
+      closeModal();
+      document.getElementById('sample-modal').classList.add('modal-overlay--active');
+    };
+
+    // Visibility toggle
+    document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+      el.addEventListener('click', () => { selectedVisibility = el.dataset.value; updateVisToggle(); });
+    });
+
+    // Upload zone
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('ws-file');
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('upload-zone--dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('upload-zone--dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault(); uploadZone.classList.remove('upload-zone--dragover');
+      if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+    });
+
+    function handleFileSelect(file) {
+      selectedFile = file;
+      uploadZone.querySelector('p').textContent = file.name;
+
+      // Preview for images
+      const preview = document.getElementById('upload-preview');
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.classList.remove('hidden');
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.classList.remove('hidden');
+        preview.innerHTML = `<div style="padding:12px;background:var(--sadq-border);border-radius:var(--sadq-radius-sm);text-align:center;">📄 ${file.name}</div>`;
+      }
+    }
+
+    // Save
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const title = document.getElementById('ws-title').value.trim();
+      const description = document.getElementById('ws-description').value.trim();
+      const url = document.getElementById('ws-url').value.trim();
+      const skillVal = document.getElementById('ws-skill').value;
+      const status = document.getElementById('ws-status').value;
+
+      if (!title) { showToast('Title is required.', 'error'); return; }
+
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+
+      try {
+        let mediaUrl = existingMediaUrl;
+        let thumbnailUrl = existingThumbnailUrl;
+        let fileType = existingFileType;
+
+        // Upload new file if selected
+        if (selectedFile) {
+          const progressBar = document.getElementById('upload-progress');
+          const progressFill = document.getElementById('upload-progress-fill');
+          progressBar.classList.remove('hidden');
+
+          const result = await MediaService.uploadWorkSample(selectedFile, (pct) => {
+            progressFill.style.width = pct + '%';
+          });
+
+          mediaUrl = result.url;
+          fileType = selectedFile.type;
+          thumbnailUrl = selectedFile.type.startsWith('image/') ? result.url : null;
+
+          progressBar.classList.add('hidden');
+        }
+
+        const skillParts = skillVal ? skillVal.split('|') : [];
+        const record = {
+          student_id: currentUser.id,
+          title, description,
+          external_url: url || null,
+          skill_id: skillParts[0] || null,
+          skill_name: skillParts[1] || null,
+          media_url: mediaUrl,
+          thumbnail_url: thumbnailUrl,
+          file_type: fileType,
+          visibility: selectedVisibility,
+          status,
+        };
+
+        if (editingId) {
+          const { error } = await supabase.from('student_work_samples').update(record).eq('id', editingId).eq('student_id', currentUser.id);
+          if (error) throw error;
+          showToast('Work sample updated!');
+        } else {
+          const { error } = await supabase.from('student_work_samples').insert(record);
+          if (error) throw error;
+          showToast('Work sample added!');
+        }
+
+        closeModal();
+        await loadSamples();
+      } catch (error) {
+        console.error('[Work Samples] Save error:', error.message);
+        showToast(error.message || 'Unable to save. Please try again.', 'error');
+      } finally {
+        saveBtn.disabled = false; saveBtn.textContent = 'Save';
+      }
+    });
+
+    // Toggle status (hide/publish)
+    window.toggleStatus = async function(id, newStatus) {
+      try {
+        const { error } = await supabase
+          .from('student_work_samples')
+          .update({ status: newStatus })
+          .eq('id', id)
+          .eq('student_id', currentUser.id);
+        if (error) throw error;
+        showToast(newStatus === 'published' ? 'Published!' : 'Hidden.');
+        await loadSamples();
+      } catch (error) {
+        showToast('Unable to update. Please try again.', 'error');
+      }
+    };
+
+    // Delete
+    window.confirmDelete = function(id) {
+      deletingId = id;
+      document.getElementById('delete-modal').classList.add('modal-overlay--active');
+    };
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+      if (!deletingId) return;
+      try {
+        const { error } = await supabase.from('student_work_samples').delete().eq('id', deletingId).eq('student_id', currentUser.id);
+        if (error) throw error;
+        showToast('Work sample deleted.');
+        closeDeleteModal();
+        await loadSamples();
+      } catch (error) {
+        showToast('Unable to delete. Please try again.', 'error');
+      }
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', loadSamples);
+
+    async function init() {
+      try {
+        const { user } = await requireAuth();
+        currentUser = user;
+        await loadSamples();
+      } catch (error) { console.error('[Work Samples] Init error:', error); }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

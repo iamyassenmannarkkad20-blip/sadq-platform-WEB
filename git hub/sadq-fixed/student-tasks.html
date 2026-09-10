@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Tasks — SADQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/animations.css">
+<style>
+.dash-header{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.dash-header__welcome h1{font-size:1.5rem;font-weight:800}
+.dash-header__welcome p{font-size:0.8rem;color:var(--text-muted);margin-top:2px}
+.dash-header__avatar{width:44px;height:44px;border-radius:50%;background:var(--gradient-cta);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;border:2px solid var(--border)}
+.dash-container{max-width:1000px;margin:0 auto;padding:24px 20px}
+.task-tabs{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
+.tab-btn{padding:10px 18px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:var(--radius-sm);font-size:0.8125rem;font-weight:600;cursor:pointer;transition:var(--t);font-family:inherit;white-space:nowrap}
+.tab-btn.active{background:var(--gradient-cta);color:#fff;border-color:transparent}
+.tab-btn:hover{border-color:var(--blue)}
+.task-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;transition:var(--t);cursor:pointer}
+.task-card:hover{border-color:var(--border-l);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.task-card__header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.task-card__title{font-size:1rem;font-weight:600}
+.task-card__meta{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+.task-card__progress-wrap{margin-top:12px}
+.task-card__progress{height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
+.task-card__progress-bar{height:100%;background:var(--gradient-cta);border-radius:4px;transition:width 0.5s}
+.task-card__progress-text{font-size:0.6875rem;color:var(--text-muted);margin-top:4px;display:flex;justify-content:space-between}
+.priority-badge{font-size:0.625rem;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;flex-shrink:0}
+.priority-low{background:rgba(16,185,129,0.12);color:var(--emerald)}
+.priority-medium{background:rgba(59,130,246,0.12);color:#60A5FA}
+.priority-high{background:rgba(245,158,11,0.12);color:var(--warning)}
+.priority-urgent{background:rgba(239,68,68,0.12);color:#F87171}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.checklist-item:last-child{border-bottom:none}
+.checklist-checkbox{width:24px;height:24px;border:2px solid var(--border-l);border-radius:6px;cursor:pointer;flex-shrink:0;transition:var(--t);display:flex;align-items:center;justify-content:center}
+.checklist-checkbox.checked{background:var(--emerald);border-color:var(--emerald)}
+.checklist-checkbox.checked::after{content:'✓';color:#fff;font-size:0.875rem;font-weight:700}
+.checklist-label{font-size:0.875rem}
+.checklist-label.checked{text-decoration:line-through;color:var(--text-muted)}
+.btn-continue{background:var(--gradient-cta);color:#fff;padding:8px 20px;border:none;border-radius:var(--radius-sm);font-size:0.8125rem;font-weight:600;cursor:pointer;transition:var(--t);font-family:inherit;margin-top:12px}
+.btn-continue:hover{filter:brightness(1.1);transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<div class="dash-header">
+  <div class="dash-header__welcome">
+    <h1>My Tasks</h1>
+    <p id="student-name">Loading...</p>
+  </div>
+  <a href="/dashboard.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem">← Dashboard</a>
+</div>
+
+<div class="dash-container">
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card stat-card--info"><div class="stat-card__icon">📋</div><div class="stat-card__value" id="stat-total">—</div><div class="stat-card__label">Total Tasks</div></div>
+    <div class="stat-card stat-card--warning"><div class="stat-card__icon">🔄</div><div class="stat-card__value" id="stat-progress">—</div><div class="stat-card__label">In Progress</div></div>
+    <div class="stat-card stat-card--success"><div class="stat-card__icon">✅</div><div class="stat-card__value" id="stat-done">—</div><div class="stat-card__label">Completed</div></div>
+    <div class="stat-card stat-card--accent"><div class="stat-card__icon">⭐</div><div class="stat-card__value" id="stat-points">—</div><div class="stat-card__label">Points Earned</div></div>
+  </div>
+
+  <div class="task-tabs">
+    <button class="tab-btn active" onclick="switchTab('all',this)">All</button>
+    <button class="tab-btn" onclick="switchTab('today',this)">Today</button>
+    <button class="tab-btn" onclick="switchTab('upcoming',this)">Upcoming</button>
+    <button class="tab-btn" onclick="switchTab('in_progress',this)">In Progress</button>
+    <button class="tab-btn" onclick="switchTab('submitted',this)">Pending Review</button>
+    <button class="tab-btn" onclick="switchTab('completed',this)">Completed</button>
+    <button class="tab-btn" onclick="switchTab('overdue',this)">Overdue</button>
+  </div>
+
+  <div id="task-list">
+    <div class="skeleton" style="height:100px;margin-bottom:12px;border-radius:14px"></div>
+    <div class="skeleton" style="height:100px;margin-bottom:12px;border-radius:14px"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-title">Task</h2>
+      <button class="modal__close" onclick="closeModal('taskDetailModal')">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import{supabase,requireAuth} from '/js/supabase-client.js'
+(async()=>{
+let auth
+try{auth=await requireAuth()}catch(e){return}
+const{user,profile}=auth
+document.getElementById('student-name').textContent='Welcome, '+(profile.full_name||'Student')
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+let currentTab='all'
+
+async function loadStats(){
+  const{data,error}=await supabase.rpc('get_task_stats')
+  if(error){console.error(error);return}
+  if(data){
+    document.getElementById('stat-total').textContent=data.total_tasks||0
+    document.getElementById('stat-progress').textContent=data.in_progress_tasks||0
+    document.getElementById('stat-done').textContent=data.completed_tasks||0
+    document.getElementById('stat-points').textContent=data.total_points||0
+  }
+}
+
+async function loadTasks(){
+  const list=document.getElementById('task-list')
+  let query=supabase.from('task_assignments').select(`
+    id,status,started_at,submitted_at,completed_at,approved_at,rejection_reason,evidence_url,
+    tasks(id,title,description,category,priority,due_date,points,require_evidence,require_teacher_approval)
+  `).eq('student_id',user.id).order('created_at',{ascending:false})
+  
+  if(currentTab==='in_progress')query=query.eq('status','in_progress')
+  else if(currentTab==='submitted')query=query.eq('status','submitted')
+  else if(currentTab==='completed')query=query.in('status',['completed','approved'])
+  else if(currentTab==='overdue')query=query.eq('status','overdue')
+  
+  const{data,error}=await query
+  if(error){list.innerHTML='<div class="empty-mini"><div class="empty-mini__text">Error loading tasks.</div></div>';return}
+  
+  let filtered=data||[]
+  if(currentTab==='today'){
+    const today=new Date().toISOString().split('T')[0]
+    filtered=filtered.filter(t=>t.tasks&&t.tasks.due_date===today)
+  }else if(currentTab==='upcoming'){
+    const today=new Date().toISOString().split('T')[0]
+    filtered=filtered.filter(t=>t.tasks&&t.tasks.due_date>today)
+  }
+  
+  if(!filtered.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-state__icon">📋</div><div class="empty-state__text">No tasks here</div><div class="empty-state__sub">Tasks assigned to you will appear here</div></div>'
+    return
+  }
+  
+  list.innerHTML=filtered.map(a=>{
+    const t=a.tasks
+    if(!t)return''
+    const pc=a.priority||t.priority||'medium'
+    const priorityClass=`priority-${pc}`
+    const dueDate=t.due_date?new Date(t.due_date).toLocaleDateString():''
+    const isOverdue=a.status==='overdue'
+    
+    return `<div class="task-card fade-in" onclick="openTask('${a.id}')">
+      <div class="task-card__header">
+        <div style="flex:1;min-width:0">
+          <div class="task-card__title">${esc(t.title)}</div>
+          <div class="task-card__meta">${esc(t.category||'general')}${dueDate?' · 📅 '+dueDate:''}${t.points?' · ⭐ '+t.points+' pts':''}</div>
+        </div>
+        <span class="priority-badge ${priorityClass}">${esc(pc)}</span>
+      </div>
+      ${a.rejection_reason?`<div style="background:rgba(239,68,68,0.08);color:#F87171;padding:8px 12px;border-radius:8px;font-size:0.75rem;margin-top:8px">Rejected: ${esc(a.rejection_reason)}</div>`:''}
+      <button class="btn-continue" onclick="event.stopPropagation();openTask('${a.id}')">${a.status==='submitted'?'View Status':a.status==='completed'||a.status==='approved'?'View':'Continue'}</button>
+    </div>`
+  }).join('')
+}
+
+window.switchTab=function(tab,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  currentTab=tab
+  loadTasks()
+}
+
+window.openTask=async function(assignmentId){
+  const{data:assignment,error}=await supabase.from('task_assignments').select(`
+    id,status,started_at,submitted_at,rejection_reason,evidence_url,
+    tasks(id,title,description,category,priority,due_date,points,require_evidence)
+  `).eq('id',assignmentId).single()
+  
+  if(error||!assignment){showToast('Error loading task','error');return}
+  const t=assignment.tasks
+  
+  document.getElementById('modal-title').textContent=t.title
+  
+  // Load checklist items
+  const{data:items}=await supabase.from('task_items').select('id,label,sort_order').eq('task_id',t.id).order('sort_order')
+  const{data:completions}=await supabase.from('task_completion_items').select('task_item_id,is_completed').eq('assignment_id',assignmentId)
+  
+  const completionMap={}
+  ;(completions||[]).forEach(c=>completionMap[c.task_item_id]=c.is_completed)
+  
+  const checklistHtml=(items||[]).map(item=>{
+    const checked=completionMap[item.id]||false
+    return `<div class="checklist-item">
+      <div class="checklist-checkbox ${checked?'checked':''}" onclick="toggleItem('${assignmentId}','${item.id}',this)"></div>
+      <div class="checklist-label ${checked?'checked':''}">${esc(item.label)}</div>
+    </div>`
+  }).join('')
+  
+  let actionBtn=''
+  if(assignment.status==='assigned'||assignment.status==='in_progress'){
+    actionBtn=`<button class="btn btn--primary" style="width:100%;margin-top:16px" onclick="submitTask('${assignmentId}')">Submit for Review</button>`
+  }else if(assignment.status==='submitted'){
+    actionBtn=`<div style="text-align:center;padding:12px;background:rgba(245,158,11,0.08);color:var(--warning);border-radius:8px;margin-top:16px;font-size:0.8125rem">⏳ Waiting for teacher review</div>`
+  }else if(assignment.status==='approved'){
+    actionBtn=`<div style="text-align:center;padding:12px;background:rgba(16,185,129,0.08);color:var(--emerald);border-radius:8px;margin-top:16px;font-size:0.8125rem">✅ Task approved! Well done!</div>`
+  }
+  
+  document.getElementById('modal-body').innerHTML=`
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">${esc(t.description||'No description')}</p>
+    <div style="display:flex;gap:12px;margin-bottom:16px;font-size:0.75rem;color:var(--text-muted)">
+      ${t.due_date?`<span>📅 Due: ${new Date(t.due_date).toLocaleDateString()}</span>`:''}
+      ${t.points?`<span>⭐ ${t.points} points</span>`:''}
+      <span>Status: <strong style="color:var(--text)">${esc(assignment.status)}</strong></span>
+    </div>
+    ${checklistHtml?`<div style="margin-top:16px"><h3 style="font-size:0.875rem;font-weight:600;margin-bottom:8px">Checklist</h3>${checklistHtml}</div>`:''}
+    ${assignment.rejection_reason?`<div style="background:rgba(239,68,68,0.08);color:#F87171;padding:12px;border-radius:8px;font-size:0.8125rem;margin-top:12px">Rejected: ${esc(assignment.rejection_reason)}</div>`:''}
+    ${actionBtn}
+  `
+  openModal('taskDetailModal')
+}
+
+window.toggleItem=async function(assignmentId,itemId,el){
+  const isCurrentlyChecked=el.classList.contains('checked')
+  const newChecked=!isCurrentlyChecked
+  
+  // Upsert completion
+  const{error}=await supabase.from('task_completion_items').upsert({
+    assignment_id:assignmentId,
+    task_item_id:itemId,
+    is_completed:newChecked,
+    completed_at:newChecked?new Date().toISOString():null
+  },{onConflict:'assignment_id,task_item_id'})
+  
+  if(error){showToast('Error updating','error');return}
+  
+  el.classList.toggle('checked')
+  el.nextElementSibling.classList.toggle('checked')
+  
+  // Update assignment status if first tick
+  if(newChecked){
+    await supabase.from('task_assignments').update({status:'in_progress',started_at:new Date().toISOString()}).eq('id',assignmentId).eq('status','assigned')
+  }
+  
+  // Calculate completion
+  const{data:pct}=await supabase.rpc('calculate_completion',{p_assignment_id:assignmentId})
+  if(pct!==null){
+    await supabase.from('task_assignments').update({completion_percentage:pct}).eq('id',assignmentId)
+  }
+  
+  showToast(newChecked?'Checked!':'Unchecked','success')
+  loadStats()
+}
+
+window.submitTask=async function(assignmentId){
+  if(!confirm('Submit this task for teacher review?'))return
+  
+  const{data,error}=await supabase.rpc('submit_task',{p_assignment_id:assignmentId})
+  if(error){showToast('Error: '+error.message,'error');return}
+  
+  showToast('Task submitted for review!','success')
+  closeModal('taskDetailModal')
+  loadTasks()
+}
+
+loadStats()
+loadTasks()
+})();
+</script>
+<script src="/js/sadq-common.js"></script>
+<script src="/js/interactions.js"></script>
+</body>
+</html>

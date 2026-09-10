@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Articles — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:900px;margin:0 auto;padding:16px}
+    .hero{background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));border-radius:var(--sadq-radius);padding:24px;margin-bottom:20px;color:#fff}
+    .hero__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}
+    .hero__sub{font-size:.875rem;opacity:.85;margin-bottom:16px}
+    .hero__search{width:100%;padding:12px 16px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem}
+    .filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .filter-select{padding:8px 12px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.8125rem;background:#fff}
+    .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+    .article-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);transition:var(--sadq-transition);text-decoration:none;color:var(--text,#F8FAFC)}
+    .article-card:hover{box-shadow:var(--sadq-shadow-hover);transform:translateY(-2px)}
+    .article-card__thumb{width:100%;height:160px;object-fit:cover;display:block;background:var(--sadq-border)}
+    .article-card__thumb-placeholder{width:100%;height:160px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));color:rgba(255,255,255,.4)}
+    .article-card__body{padding:14px}
+    .article-card__category{font-size:.6875rem;color:var(--sadq-primary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .article-card__title{font-size:.9375rem;font-weight:600;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .article-card__excerpt{font-size:.8125rem;color:var(--sadq-text-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px}
+    .article-card__meta{font-size:.75rem;color:var(--sadq-text-muted);display:flex;gap:10px}
+    .article-card__author{display:flex;align-items:center;gap:6px}
+    .article-card__author-avatar{width:20px;height:20px;border-radius:50%;background:var(--sadq-border)}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .empty-state__text{font-size:1rem}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .load-more{text-align:center;padding:20px}
+    .btn{padding:10px 20px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:500;cursor:pointer;background:var(--sadq-primary);color:#fff}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .create-btn{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--sadq-primary);color:#fff;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,50,.3);z-index:50;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:var(--sadq-transition)}
+    .create-btn:hover{background:var(--sadq-primary-light);transform:scale(1.05)}
+    @media(max-width:600px){.results-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:360px){.results-grid{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="hero">
+      <div class="hero__title">✍️ Articles</div>
+      <div class="hero__sub">Read essays, stories, opinions, and more from our community</div>
+      <input type="text" class="hero__search" id="search-input" placeholder="Search articles...">
+    </div>
+    <div class="filter-bar">
+      <select class="filter-select" id="filter-category">
+        <option value="">All Categories</option>
+        <option value="article">Article</option>
+        <option value="essay">Essay</option>
+        <option value="story">Story</option>
+        <option value="poem">Poem</option>
+        <option value="review">Review</option>
+        <option value="opinion">Opinion</option>
+        <option value="news">News</option>
+        <option value="other">Other</option>
+      </select>
+      <select class="filter-select" id="filter-sort">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
+    </div>
+    <div id="loading">
+      <div class="results-grid">
+        <div class="skeleton" style="height:220px"></div>
+        <div class="skeleton" style="height:220px"></div>
+        <div class="skeleton" style="height:220px"></div>
+      </div>
+    </div>
+    <div id="results" class="results-grid hidden"></div>
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">✍️</div>
+      <div class="empty-state__text">No articles found.</div>
+    </div>
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+  <a href="/create-post.html" class="create-btn" title="Write Article">+</a>
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    let searchTerm='',searchTimeout=null,page=0;const pageSize=12;
+
+    document.getElementById('search-input').addEventListener('input',(e)=>{
+      searchTerm=e.target.value.trim();clearTimeout(searchTimeout);
+      searchTimeout=setTimeout(()=>{page=0;loadArticles();},400);
+    });
+    document.getElementById('filter-category').addEventListener('change',()=>{page=0;loadArticles();});
+    document.getElementById('filter-sort').addEventListener('change',()=>{page=0;loadArticles();});
+    document.getElementById('load-more-btn').addEventListener('click',()=>{page++;loadArticles(true);});
+
+    function showLoading(){document.getElementById('loading').classList.remove('hidden');document.getElementById('results').classList.add('hidden');document.getElementById('empty').classList.add('hidden');document.getElementById('load-more-wrap').classList.add('hidden');}
+    function showEmpty(){document.getElementById('loading').classList.add('hidden');document.getElementById('results').classList.add('hidden');document.getElementById('empty').classList.remove('hidden');document.getElementById('load-more-wrap').classList.add('hidden');}
+    function showResults(){document.getElementById('loading').classList.add('hidden');document.getElementById('results').classList.remove('hidden');document.getElementById('empty').classList.add('hidden');}
+
+    async function loadArticles(append=false){
+      if(!append)showLoading();
+      try{
+        let query=supabase.from('posts')
+          .select('*')
+          .eq('status','published')
+          .neq('post_kind','chinthakal')
+          .range(page*pageSize,(page+1)*pageSize-1);
+
+        const sort=document.getElementById('filter-sort').value;
+        query=query.order('created_at',{ascending:sort==='oldest'});
+
+        if(searchTerm)query=query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+        const cat=document.getElementById('filter-category').value;
+        if(cat)query=query.eq('post_kind',cat);
+
+        const{data,error}=await query;
+        if(error)throw error;
+        if(!append&&(!data||data.length===0)){showEmpty();return;}
+
+        const grid=document.getElementById('results');
+        const html=(data||[]).map(a=>{
+          const author=a.profiles||{};
+          const excerpt=(a.content||'').replace(/<[^>]+>/g,'').substring(0,120);
+          return `
+            <a href="/post-details.html?slug=${a.slug||a.id}" class="article-card fade-in">
+              ${a.featured_image_url
+                ?`<img class="article-card__thumb" src="${a.featured_image_url}" alt="${a.title}" loading="lazy">`
+                :`<div class="article-card__thumb-placeholder">✍️</div>`}
+              <div class="article-card__body">
+                <div class="article-card__category">${a.post_kind||'article'}</div>
+                <div class="article-card__title">${a.title}</div>
+                <div class="article-card__excerpt">${excerpt}...</div>
+                <div class="article-card__meta">
+                  <span class="article-card__author">
+                    ${author.profile_photo_url?`<img class="article-card__author-avatar" src="${author.profile_photo_url}" alt="">`:`<div class="article-card__author-avatar" style="background:var(--sadq-primary)"></div>`}
+                    ${author.full_name||'Anonymous'}
+                  </span>
+                  <span>${new Date(a.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+                </div>
+              </div>
+            </a>`;
+        }).join('');
+
+        if(append)grid.insertAdjacentHTML('beforeend',html);
+        else grid.innerHTML=html;
+        showResults();
+        document.getElementById('load-more-wrap').classList.toggle('hidden',(data||[]).length<pageSize);
+      }catch(err){
+        console.error('[Articles] Error:',err.message);
+        showEmpty();
+      }
+    }
+    loadArticles();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

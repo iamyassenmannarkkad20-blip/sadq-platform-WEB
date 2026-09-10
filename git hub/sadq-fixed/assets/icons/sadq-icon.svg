@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SADQ</title>
+  <desc id="desc">SADQ Students Association of Darul Quran mark</desc>
+  <rect width="512" height="512" rx="96" fill="#0F172A"/>
+  <path d="M128 164h256v48H128zM160 244h192v48H160zM192 324h128v48H192z" fill="#38BDF8"/>
+  <circle cx="384" cy="164" r="24" fill="#F9A825"/>
+</svg>

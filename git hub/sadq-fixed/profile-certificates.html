@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificates — SADQ</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .sadq-header { position: sticky; top: 0; z-index: 100; height: 64px; background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .sadq-header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sadq-header__nav { margin-left: auto; display: flex; gap: 8px; }
+    .sadq-header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: var(--sadq-radius-sm); }
+    .sadq-header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .section__title { font-size: 1.125rem; font-weight: 600; }
+    .section__hint { font-size: 0.75rem; color: var(--sadq-text-muted); margin-bottom: 12px; }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+
+    .cert-list { display: flex; flex-direction: column; gap: 8px; }
+    .cert-item { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); transition: var(--sadq-transition); }
+    .cert-item:hover { box-shadow: var(--sadq-shadow-hover); }
+    .cert-item__icon { width: 40px; height: 40px; border-radius: var(--sadq-radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.125rem; }
+    .cert-item__icon--pdf { background: #ffebee; }
+    .cert-item__icon--img { background: #e3f2fd; }
+    .cert-item__icon--official { background: #fff8e1; }
+    .cert-item__body { flex: 1; min-width: 0; }
+    .cert-item__title { font-weight: 500; font-size: 0.9375rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cert-item__org { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+    .cert-item__date { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .cert-item__actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; margin-left: 6px; }
+    .badge--external { background: #e3f2fd; color: #1565c0; }
+    .badge--official { background: #e8f5e9; color: var(--sadq-success); }
+
+    .official-section { background: #f1f8e9; border: 1px solid #c5e1a5; border-radius: var(--sadq-radius); padding: 16px; margin-bottom: 16px; }
+    .official-section__title { font-size: 0.875rem; font-weight: 600; color: #33691e; margin-bottom: 4px; }
+    .official-section__hint { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state__text { font-size: 0.9375rem; margin-bottom: 16px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay--active { display: flex; }
+    .modal { background: #fff; border-radius: var(--sadq-radius); padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--sadq-text-muted); line-height: 1; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-family: inherit; }
+    .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(26,86,50,0.1); }
+    .form-textarea { min-height: 60px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .upload-zone { border: 2px dashed var(--sadq-border); border-radius: var(--sadq-radius-sm); padding: 20px; text-align: center; cursor: pointer; transition: var(--sadq-transition); }
+    .upload-zone:hover { border-color: var(--sadq-primary); background: #f0f7f0; }
+    .upload-zone--dragover { border-color: var(--sadq-primary); background: #e8f5e9; }
+    .upload-zone__text { font-size: 0.875rem; color: var(--sadq-text-muted); }
+
+    .progress-bar { height: 4px; background: var(--sadq-border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .progress-bar__fill { height: 100%; background: var(--sadq-primary); transition: width 0.3s ease; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .vis-option { padding: 8px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); cursor: pointer; text-align: center; font-size: 0.8125rem; }
+    .vis-option--selected { border-color: var(--sadq-primary); background: #f0f7f0; }
+    .vis-toggle { display: flex; gap: 8px; }
+
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <header class="sadq-header">
+    <a href="/dashboard.html" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/student-profile.html">← Profile</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Official SADQ Certificates -->
+    <div class="official-section" id="official-section">
+      <div class="official-section__title">📜 Official SADQ Certificates</div>
+      <div class="official-section__hint">Issued by SADQ. These cannot be modified by students.</div>
+      <div id="official-list" style="margin-top: 12px;">
+        <div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 60px;"></div>
+      </div>
+    </div>
+
+    <!-- External Certificates -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">My Certificates</h2>
+        <button class="btn btn--primary" id="add-btn">+ Upload Certificate</button>
+      </div>
+      <div class="section__hint">External certificates from other organizations. Official SADQ certificates are shown above.</div>
+
+      <div id="loading-state">
+        <div class="skeleton" style="height: 70px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 70px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 70px;"></div>
+      </div>
+
+      <div id="cert-list" class="cert-list hidden"></div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state__icon">📜</div>
+        <p class="empty-state__text">No external certificates uploaded yet.</p>
+        <button class="btn btn--primary" onclick="document.getElementById('add-btn').click()">Upload Certificate</button>
+      </div>
+
+      <div id="error-state" class="empty-state hidden">
+        <div class="empty-state__icon">⚠️</div>
+        <p class="empty-state__text">Unable to load certificates. Please try again.</p>
+        <button class="btn btn--primary" id="retry-btn">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="cert-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal()">×</button>
+      <h2 class="modal__title" id="modal-title">Upload Certificate</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="cert-title">Title *</label>
+        <input type="text" id="cert-title" class="form-input" placeholder="e.g. Web Development Course Certificate" maxlength="200">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="cert-org">Issuing Organization</label>
+          <input type="text" id="cert-org" class="form-input" placeholder="e.g. Coursera, NPTEL" maxlength="200">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cert-date">Issue Date</label>
+          <input type="date" id="cert-date" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="cert-credential">Credential URL (optional)</label>
+        <input type="url" id="cert-credential" class="form-input" placeholder="https://verify.example.com/...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="cert-desc">Description (optional)</label>
+        <textarea id="cert-desc" class="form-textarea" placeholder="Brief description..." maxlength="500"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Certificate File *</label>
+        <div class="upload-zone" id="upload-zone">
+          <p class="upload-zone__text" id="upload-text">Click to select or drag a file</p>
+          <p class="upload-zone__text" style="margin-top: 4px; font-size: 0.6875rem;">PDF, JPG, PNG, WEBP · Max 25MB</p>
+          <input type="file" id="cert-file" class="hidden" accept="application/pdf,image/jpeg,image/png,image/webp">
+        </div>
+        <div class="progress-bar hidden" id="upload-progress">
+          <div class="progress-bar__fill" id="upload-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Visibility</label>
+        <div class="vis-toggle" id="vis-toggle">
+          <div class="vis-option vis-option--selected" data-value="public">🌐 Public</div>
+          <div class="vis-option" data-value="members_only">🔒 Members</div>
+          <div class="vis-option" data-value="private">🚫 Private</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn--primary" id="save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h2 class="modal__title">Delete Certificate</h2>
+      <p style="margin-bottom: 20px; color: var(--sadq-text-muted);">Are you sure you want to delete this certificate? This cannot be undone.</p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn--ghost" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn--danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth } from '/js/supabase-client.js';
+    import { MediaService } from '/js/media-service.js';
+
+    let currentUser = null;
+    let editingId = null;
+    let deletingId = null;
+    let selectedFile = null;
+    let selectedVisibility = 'public';
+    let existingFileUrl = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    function showLoading() {
+      document.getElementById('loading-state').classList.remove('hidden');
+      document.getElementById('cert-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showError() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('cert-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+    }
+    function showEmpty() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('cert-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+    function showList() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('cert-list').classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function updateVisToggle() {
+      document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+        el.classList.toggle('vis-option--selected', el.dataset.value === selectedVisibility);
+      });
+    }
+
+    function fileIcon(url) {
+      if (!url) return '📄';
+      if (url.match(/\.(jpg|jpeg|png|webp)$/i)) return '🖼️';
+      return '📄';
+    }
+
+    // ── Load Official SADQ Certificates ──────────────────────────────
+    async function loadOfficialCertificates() {
+      try {
+        const { data, error } = await supabase
+          .from('issued_certificates')
+          .select(`
+            id, certificate_number, issue_date, status,
+            certificate_templates ( name, description )
+          `)
+          .eq('student_id', currentUser.id)
+          .order('issue_date', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('official-list');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<p style="font-size: 0.8125rem; color: var(--sadq-text-muted); padding: 12px 0;">No official SADQ certificates issued yet.</p>';
+          return;
+        }
+
+        container.innerHTML = data.map(cert => `
+          <div class="cert-item fade-in" style="background: #f1f8e9; border-color: #c5e1a5;">
+            <div class="cert-item__icon cert-item__icon--official">📜</div>
+            <div class="cert-item__body">
+              <div class="cert-item__title">${cert.certificate_templates?.name || 'SADQ Certificate'} <span class="badge badge--official">Official</span></div>
+              ${cert.certificate_templates?.description ? `<div class="cert-item__org">${cert.certificate_templates.description}</div>` : ''}
+              <div class="cert-item__date">
+                ${cert.certificate_number ? `Cert #: ${cert.certificate_number}` : ''}
+                ${cert.issue_date ? ` · ${new Date(cert.issue_date).toLocaleDateString('en-IN')}` : ''}
+              </div>
+            </div>
+            <div class="cert-item__actions">
+              <a href="/verify-certificate.html?token=${cert.id}" class="btn btn--small btn--ghost">View</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('[Official Certs] Load error:', error.message);
+        document.getElementById('official-list').innerHTML = '<p style="font-size: 0.8125rem; color: var(--sadq-text-muted);">Unable to load official certificates.</p>';
+      }
+    }
+
+    // ── Load External Certificates ───────────────────────────────────
+    async function loadExternalCertificates() {
+      showLoading();
+      try {
+        const { data, error } = await supabase
+          .from('student_external_certificates')
+          .select('*')
+          .eq('student_id', currentUser.id)
+          .order('issue_date', { ascending: false, nullsFirst: false });
+
+        if (error) throw error;
+        if (!data || data.length === 0) { showEmpty(); return; }
+
+        const container = document.getElementById('cert-list');
+        container.innerHTML = data.map(cert => `
+          <div class="cert-item fade-in">
+            <div class="cert-item__icon ${cert.certificate_file_url && cert.certificate_file_url.match(/\.(jpg|jpeg|png|webp)$/i) ? 'cert-item__icon--img' : 'cert-item__icon--pdf'}">
+              ${fileIcon(cert.certificate_file_url)}
+            </div>
+            <div class="cert-item__body">
+              <div class="cert-item__title">${cert.title} <span class="badge badge--external">External</span></div>
+              ${cert.issuing_organization ? `<div class="cert-item__org">${cert.issuing_organization}</div>` : ''}
+              ${cert.issue_date ? `<div class="cert-item__date">${new Date(cert.issue_date).toLocaleDateString('en-IN')}</div>` : ''}
+            </div>
+            <div class="cert-item__actions">
+              ${cert.certificate_file_url ? `<a href="${cert.certificate_file_url}" target="_blank" class="btn btn--small btn--ghost">View</a>` : ''}
+              ${cert.credential_url ? `<a href="${cert.credential_url}" target="_blank" class="btn btn--small btn--ghost">Verify</a>` : ''}
+              <button class="btn btn--small btn--ghost" onclick="editCert('${cert.id}')">Edit</button>
+              <button class="btn btn--small btn--ghost" style="color:var(--sadq-danger);" onclick="confirmDelete('${cert.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        showList();
+      } catch (error) {
+        console.error('[Certificates] Load error:', error.message);
+        showError();
+      }
+    }
+
+    // ── Modal ────────────────────────────────────────────────────────
+    window.closeModal = function() {
+      document.getElementById('cert-modal').classList.remove('modal-overlay--active');
+      editingId = null; selectedFile = null; existingFileUrl = null;
+      document.getElementById('cert-title').value = '';
+      document.getElementById('cert-org').value = '';
+      document.getElementById('cert-date').value = '';
+      document.getElementById('cert-credential').value = '';
+      document.getElementById('cert-desc').value = '';
+      document.getElementById('upload-text').textContent = 'Click to select or drag a file';
+      document.getElementById('upload-progress').classList.add('hidden');
+      selectedVisibility = 'public';
+      updateVisToggle();
+    };
+
+    window.closeDeleteModal = function() {
+      document.getElementById('delete-modal').classList.remove('modal-overlay--active');
+      deletingId = null;
+    };
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      closeModal();
+      document.getElementById('modal-title').textContent = 'Upload Certificate';
+      document.getElementById('cert-modal').classList.add('modal-overlay--active');
+      setTimeout(() => document.getElementById('cert-title').focus(), 100);
+    });
+
+    window.editCert = async function(id) {
+      const { data, error } = await supabase
+        .from('student_external_certificates')
+        .select('*')
+        .eq('id', id)
+        .eq('student_id', currentUser.id)
+        .single();
+
+      if (error || !data) { showToast('Unable to load certificate.', 'error'); return; }
+
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Certificate';
+      document.getElementById('cert-title').value = data.title || '';
+      document.getElementById('cert-org').value = data.issuing_organization || '';
+      document.getElementById('cert-date').value = data.issue_date || '';
+      document.getElementById('cert-credential').value = data.credential_url || '';
+      document.getElementById('cert-desc').value = data.description || '';
+      existingFileUrl = data.certificate_file_url;
+      if (existingFileUrl) {
+        document.getElementById('upload-text').textContent = 'File uploaded ✓ (click to replace)';
+      }
+      selectedVisibility = data.visibility || 'public';
+      updateVisToggle();
+      closeModal();
+      document.getElementById('cert-modal').classList.add('modal-overlay--active');
+    };
+
+    // Visibility toggle
+    document.querySelectorAll('#vis-toggle .vis-option').forEach(el => {
+      el.addEventListener('click', () => { selectedVisibility = el.dataset.value; updateVisToggle(); });
+    });
+
+    // Upload zone
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('cert-file');
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('upload-zone--dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('upload-zone--dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault(); uploadZone.classList.remove('upload-zone--dragover');
+      if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+    });
+
+    function handleFileSelect(file) {
+      const { valid, error } = MediaService.validateDocument(file);
+      if (!valid) {
+        // Also check if it's an image
+        const imgCheck = MediaService.validateImage(file);
+        if (!imgCheck.valid) {
+          showToast(error || imgCheck.error, 'error');
+          return;
+        }
+      }
+      selectedFile = file;
+      document.getElementById('upload-text').textContent = file.name;
+    }
+
+    // Save
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const title = document.getElementById('cert-title').value.trim();
+      const org = document.getElementById('cert-org').value.trim();
+      const date = document.getElementById('cert-date').value;
+      const credential = document.getElementById('cert-credential').value.trim();
+      const desc = document.getElementById('cert-desc').value.trim();
+
+      if (!title) { showToast('Title is required.', 'error'); return; }
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+        let fileUrl = existingFileUrl;
+
+        if (selectedFile) {
+          const progressBar = document.getElementById('upload-progress');
+          const progressFill = document.getElementById('upload-progress-fill');
+          progressBar.classList.remove('hidden');
+
+          const result = await MediaService.uploadCertificate(selectedFile, (pct) => {
+            progressFill.style.width = pct + '%';
+          });
+          fileUrl = result.url;
+          progressBar.classList.add('hidden');
+        }
+
+        const record = {
+          student_id: currentUser.id,
+          title,
+          issuing_organization: org || null,
+          issue_date: date || null,
+          certificate_file_url: fileUrl,
+          credential_url: credential || null,
+          description: desc || null,
+          visibility: selectedVisibility,
+        };
+
+        if (editingId) {
+          const { error } = await supabase.from('student_external_certificates').update(record).eq('id', editingId).eq('student_id', currentUser.id);
+          if (error) throw error;
+          showToast('Certificate updated!');
+        } else {
+          const { error } = await supabase.from('student_external_certificates').insert(record);
+          if (error) throw error;
+          showToast('Certificate added!');
+        }
+
+        closeModal();
+        await loadExternalCertificates();
+      } catch (error) {
+        console.error('[Certificates] Save error:', error.message);
+        showToast(error.message || 'Unable to save.', 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save';
+      }
+    });
+
+    // Delete
+    window.confirmDelete = function(id) {
+      deletingId = id;
+      document.getElementById('delete-modal').classList.add('modal-overlay--active');
+    };
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+      if (!deletingId) return;
+      try {
+        const { error } = await supabase.from('student_external_certificates').delete().eq('id', deletingId).eq('student_id', currentUser.id);
+        if (error) throw error;
+        showToast('Certificate deleted.');
+        closeDeleteModal();
+        await loadExternalCertificates();
+      } catch (error) {
+        showToast('Unable to delete.', 'error');
+      }
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', loadExternalCertificates);
+
+    async function init() {
+      try {
+        const { user } = await requireAuth();
+        currentUser = user;
+        await Promise.all([loadOfficialCertificates(), loadExternalCertificates()]);
+      } catch (error) { console.error('[Certificates] Init error:', error); }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

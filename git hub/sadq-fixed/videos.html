@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videos — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:900px;margin:0 auto;padding:16px}
+    .hero{background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));border-radius:var(--sadq-radius);padding:24px;margin-bottom:20px;color:#fff}
+    .hero__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}
+    .hero__sub{font-size:.875rem;opacity:.85;margin-bottom:16px}
+    .hero__search{width:100%;padding:12px 16px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem}
+    .tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+    .tab{padding:8px 14px;border:1px solid var(--sadq-border);border-radius:20px;background:#fff;cursor:pointer;font-size:.8125rem;font-weight:500;white-space:nowrap;transition:var(--sadq-transition)}
+    .tab--active{background:var(--sadq-primary);color:#fff;border-color:var(--sadq-primary)}
+    .video-player{background:#000;border-radius:var(--sadq-radius);overflow:hidden;margin-bottom:24px;position:relative}
+    .video-player video{width:100%;max-height:500px;display:block}
+    .video-player__empty{padding:80px 16px;text-align:center;color:rgba(255,255,255,.5)}
+    .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+    .video-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);transition:var(--sadq-transition);cursor:pointer}
+    .video-card:hover{box-shadow:var(--sadq-shadow-hover);transform:translateY(-2px)}
+    .video-card__thumb{width:100%;height:140px;object-fit:cover;display:block;background:var(--sadq-border);position:relative}
+    .video-card__thumb-placeholder{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--sadq-text-muted);background:#1a1a1a}
+    .video-card__play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff}
+    .video-card__body{padding:12px}
+    .video-card__title{font-size:.875rem;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .video-card__meta{font-size:.75rem;color:var(--sadq-text-muted)}
+    .video-card--active{border:2px solid var(--sadq-primary)}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .empty-state__text{font-size:1rem}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .load-more{text-align:center;padding:20px}
+    .btn{padding:10px 20px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:500;cursor:pointer;background:var(--sadq-primary);color:#fff}
+    .btn:hover{background:var(--sadq-primary-light)}
+    @media(max-width:600px){.results-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:360px){.results-grid{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="hero">
+      <div class="hero__title">🎬 Video Gallery</div>
+      <div class="hero__sub">Watch lectures, tutorials, and student-created content</div>
+      <input type="text" class="hero__search" id="search-input" placeholder="Search videos...">
+    </div>
+    <div class="tabs" id="tabs">
+      <div class="tab tab--active" data-cat="all">All</div>
+      <div class="tab" data-cat="lecture">🎓 Lectures</div>
+      <div class="tab" data-cat="tutorial">📚 Tutorials</div>
+      <div class="tab" data-cat="event">📅 Events</div>
+      <div class="tab" data-cat="other">📦 Other</div>
+    </div>
+    <div id="player-section" class="hidden">
+      <div class="video-player" id="player"></div>
+    </div>
+    <div id="loading">
+      <div class="results-grid">
+        <div class="skeleton" style="height:200px"></div>
+        <div class="skeleton" style="height:200px"></div>
+        <div class="skeleton" style="height:200px"></div>
+      </div>
+    </div>
+    <div id="results" class="results-grid hidden"></div>
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">🎬</div>
+      <div class="empty-state__text">No videos available yet.</div>
+    </div>
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    let activeCat = 'all';
+    let searchTerm = '';
+    let searchTimeout = null;
+    let page = 0;
+    const pageSize = 12;
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchTerm = e.target.value.trim();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { page = 0; loadVideos(); }, 400);
+    });
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+        tab.classList.add('tab--active');
+        activeCat = tab.dataset.cat;
+        page = 0;
+        loadVideos();
+      });
+    });
+    document.getElementById('load-more-btn').addEventListener('click', () => { page++; loadVideos(true); });
+
+    function showLoading() { document.getElementById('loading').classList.remove('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.add('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showEmpty() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.add('hidden'); document.getElementById('empty').classList.remove('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showResults() { document.getElementById('loading').classList.add('hidden'); document.getElementById('results').classList.remove('hidden'); document.getElementById('empty').classList.add('hidden'); }
+
+    window.playVideo = function(url, title) {
+      const player = document.getElementById('player');
+      const section = document.getElementById('player-section');
+      section.classList.remove('hidden');
+      player.innerHTML = `<video controls autoplay src="${url}"></video>`;
+      player.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.title = `${title} — SADQ`;
+    };
+
+    async function loadVideos(append = false) {
+      if (!append) showLoading();
+      try {
+        let query = supabase.from('videos')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (searchTerm) query = query.ilike('title', `%${searchTerm}%`);
+        if (activeCat !== 'all') query = query.eq('category', activeCat);
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        if (!append && (!data || data.length === 0)) { showEmpty(); return; }
+
+        const grid = document.getElementById('results');
+        const html = (data || []).map(v => `
+          <div class="video-card fade-in" onclick="window.playVideo('${v.video_url || v.url || v.video_file_url || ''}', '${v.title.replace(/'/g, '')}')">
+            ${(v.thumbnail_url || v.thumbnail || v.image_url)
+              ? `<img class="video-card__thumb" src="${v.thumbnail_url || v.thumbnail || v.image_url}" alt="${v.title}"><div class="video-card__play">▶</div>`
+              : `<div class="video-card__thumb-placeholder">🎬</div>`}
+            <div class="video-card__body">
+              <div class="video-card__title">${v.title}</div>
+              <div class="video-card__meta">
+                ${v.duration ? `${v.duration} · ` : ''}${v.views ? v.views + ' views' : ''} ${v.created_at ? '· ' + new Date(v.created_at).toLocaleDateString('en-IN') : ''}
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        if (append) grid.insertAdjacentHTML('beforeend', html);
+        else grid.innerHTML = html;
+
+        showResults();
+        document.getElementById('load-more-wrap').classList.toggle('hidden', (data || []).length < pageSize);
+      } catch (err) {
+        console.error('[Videos] Error:', err.message);
+        showEmpty();
+      }
+    }
+
+    loadVideos();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

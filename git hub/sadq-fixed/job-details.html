@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:760px;margin:0 auto;padding:16px}
+    .back-link{color:var(--sadq-primary);text-decoration:none;font-size:.875rem;margin-bottom:16px;display:inline-flex;align-items:center;gap:4px}
+    .back-link:hover{text-decoration:underline}
+    .job__header{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:24px;box-shadow:var(--sadq-shadow);margin-bottom:20px}
+    .job__title{font-size:1.5rem;font-weight:700;margin-bottom:8px}
+    .job__company{font-size:1rem;color:var(--sadq-text-muted);margin-bottom:12px}
+    .job__badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+    .badge{font-size:.6875rem;padding:3px 10px;border-radius:10px;font-weight:500}
+    .badge--full_time{background:#e8f5e9;color:#2e7d32}
+    .badge--part_time{background:#f3e5f5;color:#7b1fa2}
+    .badge--internship{background:#fce4ec;color:#c62828}
+    .badge--contract{background:#fff3e0;color:#e65100}
+    .badge--remote{background:#e3f2fd;color:#1565c0}
+    .badge--onsite{background:#fff3e0;color:#e65100}
+    .badge--hybrid{background:#e8f5e9;color:#2e7d32}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+    @media(max-width:600px){.info-grid{grid-template-columns:1fr}}
+    .info-card{padding:14px;background:#f8f9fa;border-radius:var(--sadq-radius-sm)}
+    .info-card__label{font-size:.6875rem;color:var(--sadq-text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .info-card__value{font-size:.875rem;font-weight:500}
+    .job__section{margin-bottom:24px}
+    .job__section-title{font-size:1.125rem;font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--sadq-primary)}
+    .job__content{font-size:.9375rem;line-height:1.8;color:var(--text,#F8FAFC)}
+    .job__content p{margin-bottom:10px}
+    .job__list{list-style:none;padding-left:0}
+    .job__list li{padding:6px 0 6px 24px;position:relative;font-size:.9375rem}
+    .job__list li::before{content:'✓';position:absolute;left:0;color:var(--sadq-primary);font-weight:bold}
+    .apply-bar{position:sticky;bottom:0;background:#fff;padding:16px;box-shadow:0 -2px 8px rgba(0,0,0,.08);display:flex;gap:8px;justify-content:center}
+    .btn{padding:14px 32px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;transition:var(--sadq-transition);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.job__title{font-size:1.25rem}.job__header{padding:16px}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/jobs.html">Jobs</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <a href="/jobs.html" class="back-link">← Back to Jobs</a>
+    <div id="loading">
+      <div class="skeleton" style="height:120px;margin-bottom:20px"></div>
+      <div class="skeleton" style="height:16px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:16px;width:80%"></div>
+    </div>
+    <div id="content" class="hidden fade-in"></div>
+    <div id="error" class="empty-state hidden">
+      <div class="empty-state__icon">💼</div>
+      <p>Unable to load this job listing. Please try again.</p>
+      <a href="/jobs.html" style="color:var(--sadq-primary);text-decoration:none;font-size:.875rem">Back to Jobs</a>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('id');
+    let currentUser = null;
+    let job = null;
+
+    async function init() {
+      try { const { user } = await getCurrentUser(); currentUser = user; } catch {}
+      if (!jobId) { showError(); return; }
+      try {
+        const { data, error } = await supabase.from('jobs')
+          .select('*').eq('id', jobId).eq('status', 'published').single();
+        if (error) throw error;
+        if (!data) { showError(); return; }
+        job = data;
+        document.title = `${data.title} — SADQ`;
+        renderJob(data);
+      } catch (err) {
+        console.error('[JobDetails] Error:', err.message);
+        showError();
+      }
+    }
+
+    function renderJob(j) {
+      document.getElementById('content').innerHTML = `
+        <div class="job__header">
+          <h1 class="job__title">${j.title}</h1>
+          <div class="job__company">${j.company || ''}</div>
+          <div class="job__badges">
+            ${j.job_type ? `<span class="badge badge--${j.job_type}">${j.job_type.replace('_',' ')}</span>` : ''}
+            ${j.work_mode ? `<span class="badge badge--${j.work_mode}">${j.work_mode}</span>` : ''}
+          </div>
+        </div>
+        <div class="info-grid">
+          ${j.location ? `<div class="info-card"><div class="info-card__label">Location</div><div class="info-card__value">${j.location}</div></div>` : ''}
+          ${(j.salary_min || j.salary_max) ? `<div class="info-card"><div class="info-card__label">Salary</div><div class="info-card__value">${j.salary_min ? '₹' + j.salary_min : ''}${j.salary_max ? ' – ₹' + j.salary_max : ''}</div></div>` : ''}
+          ${j.experience ? `<div class="info-card"><div class="info-card__label">Experience</div><div class="info-card__value">${j.experience}</div></div>` : ''}
+          ${j.deadline ? `<div class="info-card"><div class="info-card__label">Deadline</div><div class="info-card__value">${new Date(j.deadline).toLocaleDateString('en-IN')}</div></div>` : ''}
+        </div>
+        ${j.description ? `
+          <div class="job__section">
+            <h2 class="job__section-title">Description</h2>
+            <div class="job__content">${j.description}</div>
+          </div>` : ''}
+        ${j.requirements ? `
+          <div class="job__section">
+            <h2 class="job__section-title">Requirements</h2>
+            <ul class="job__list">${j.requirements.split('\\n').filter(r => r.trim()).map(r => `<li>${r.trim()}</li>`).join('')}</ul>
+          </div>` : ''}
+        ${j.responsibilities ? `
+          <div class="job__section">
+            <h2 class="job__section-title">Responsibilities</h2>
+            <ul class="job__list">${j.responsibilities.split('\\n').filter(r => r.trim()).map(r => `<li>${r.trim()}</li>`).join('')}</ul>
+          </div>` : ''}
+        ${j.apply_url ? `
+          <div class="job__section">
+            <h2 class="job__section-title">How to Apply</h2>
+            <p>Apply at: <a href="${j.apply_url}" target="_blank" rel="noopener" style="color:var(--sadq-primary)">${j.apply_url}</a></p>
+          </div>` : ''}
+      `;
+      document.getElementById('content').classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+
+      // Add apply bar
+      const applyBar = document.createElement('div');
+      applyBar.className = 'apply-bar';
+      applyBar.innerHTML = `
+        ${currentUser
+          ? `<button class="btn" id="apply-btn" onclick="window.applyJob()">Apply Now</button>`
+          : `<a href="/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}" class="btn">Login to Apply</a>`}
+        <button class="btn btn--outline" onclick="window.shareJob()">🔗 Share</button>
+      `;
+      document.getElementById('content').appendChild(applyBar);
+    }
+
+    window.applyJob = async function() {
+      const btn = document.getElementById('apply-btn');
+      btn.disabled = true; btn.textContent = 'Applying...';
+      try {
+        const { error } = await supabase.from('job_applications')
+          .insert({ job_id: job.id, applicant_id: currentUser.id, status: 'pending' });
+        if (error) {
+          if (error.message.includes('duplicate') || error.message.includes('unique')) {
+            alert('You have already applied for this job.');
+          } else { throw error; }
+        } else {
+          alert('Application submitted successfully!');
+          btn.textContent = '✓ Applied';
+        }
+      } catch (err) {
+        console.error('[Apply] Error:', err.message);
+        alert('Unable to apply. Please try again.');
+        btn.disabled = false; btn.textContent = 'Apply Now';
+      }
+    };
+
+    window.shareJob = function() {
+      if (navigator.share) { navigator.share({ title: job.title, url: window.location.href }).catch(() => {}); }
+      else { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+    };
+
+    function showError() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

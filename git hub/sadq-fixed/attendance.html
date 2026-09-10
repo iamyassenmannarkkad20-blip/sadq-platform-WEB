@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:700px;margin:0 auto;padding:16px}
+    .guard{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+    .guard__icon{font-size:3rem;opacity:.3}
+    .guard__text{font-size:.9375rem;color:var(--sadq-text-muted)}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn--success{background:var(--sadq-success)}
+    .btn--danger{background:var(--sadq-danger)}
+
+    /* Check-in card */
+    .checkin-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:24px;box-shadow:var(--sadq-shadow);margin-bottom:20px;text-align:center}
+    .checkin-card__icon{font-size:3rem;margin-bottom:12px}
+    .checkin-card__title{font-size:1.125rem;font-weight:600;margin-bottom:8px}
+    .checkin-card__sub{font-size:.8125rem;color:var(--sadq-text-muted);margin-bottom:20px}
+    .checkin-card__event-name{font-size:.9375rem;font-weight:500;color:var(--sadq-primary);margin-bottom:16px}
+    .checkin-success{background:#e8f5e9;border-radius:var(--sadq-radius-sm);padding:16px;margin-top:16px;display:none}
+    .checkin-success--show{display:block}
+
+    /* Tabs */
+    .tabs{display:flex;gap:4px;margin-bottom:20px}
+    .tab{flex:1;padding:10px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);background:#fff;cursor:pointer;font-size:.8125rem;font-weight:500;text-align:center;transition:var(--sadq-transition)}
+    .tab--active{background:var(--sadq-primary);color:#fff;border-color:var(--sadq-primary)}
+
+    /* Attendance history */
+    .attendance-list{display:flex;flex-direction:column;gap:10px}
+    .attendance-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow)}
+    .attendance-item__icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0;background:#e8f5e9;color:var(--sadq-primary)}
+    .attendance-item__body{flex:1;min-width:0}
+    .attendance-item__event{font-size:.875rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .attendance-item__time{font-size:.75rem;color:var(--sadq-text-muted)}
+    .attendance-item__status{font-size:.6875rem;padding:2px 8px;border-radius:10px;font-weight:500}
+    .attendance-item__status--present{background:#e8f5e9;color:var(--sadq-primary)}
+    .attendance-item__status--absent{background:#fce4ec;color:var(--sadq-danger)}
+    .attendance-item__status--late{background:#fff3e0;color:#e65100}
+
+    /* Stats */
+    .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+    .stat-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:16px;box-shadow:var(--sadq-shadow);text-align:center}
+    .stat-card__num{font-size:1.5rem;font-weight:700}
+    .stat-card__num--green{color:var(--sadq-primary)}
+    .stat-card__num--red{color:var(--sadq-danger)}
+    .stat-card__num--orange{color:#e65100}
+    .stat-card__label{font-size:.6875rem;color:var(--sadq-text-muted);text-transform:uppercase;margin-top:4px}
+
+    .empty-state{text-align:center;padding:40px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:2.5rem;opacity:.3;margin-bottom:8px}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius-sm)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/events.html">Events</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div id="guard" class="guard hidden">
+      <div class="guard__icon">📋</div>
+      <p class="guard-text" id="guard-text">Loading...</p>
+      <a href="/login.html" class="btn" id="guard-btn" style="display:none">Login</a>
+    </div>
+    <div id="main" class="hidden">
+      <h1 style="font-size:1.25rem;font-weight:700;margin-bottom:20px">📋 Attendance</h1>
+      <div class="tabs">
+        <div class="tab tab--active" data-tab="checkin" onclick="window.switchTab('checkin')">Check In</div>
+        <div class="tab" data-tab="history" onclick="window.switchTab('history')">My History</div>
+      </div>
+
+      <!-- Check-in tab -->
+      <div id="checkin-tab">
+        <div class="checkin-card">
+          <div class="checkin-card__icon">✅</div>
+          <div class="checkin-card__title">Event Check-In</div>
+          <div class="checkin-card__sub">Enter the event code provided by the organizer</div>
+          <input type="text" id="event-code" placeholder="Enter event code..." style="width:100%;max-width:300px;padding:12px 16px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:1rem;text-align:center;text-transform:uppercase;margin-bottom:16px" onkeyup="this.value=this.value.toUpperCase()">
+          <button class="btn btn--success" id="checkin-btn" onclick="window.checkIn()">Check In</button>
+          <div class="checkin-success" id="checkin-success">
+            <div style="font-size:1.5rem;margin-bottom:4px">✅</div>
+            <div style="font-size:.9375rem;font-weight:600;color:var(--sadq-primary)">Checked in successfully!</div>
+            <div id="checkin-event-name" style="font-size:.8125rem;color:var(--sadq-text-muted);margin-top:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History tab -->
+      <div id="history-tab" class="hidden">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-card__num stat-card__num--green" id="stat-present">0</div><div class="stat-card__label">Present</div></div>
+          <div class="stat-card"><div class="stat-card__num stat-card__num--orange" id="stat-late">0</div><div class="stat-card__label">Late</div></div>
+          <div class="stat-card"><div class="stat-card__num stat-card__num--red" id="stat-absent">0</div><div class="stat-card__label">Absent</div></div>
+        </div>
+        <div id="history-loading">
+          <div class="skeleton" style="height:60px;margin-bottom:10px"></div>
+          <div class="skeleton" style="height:60px;margin-bottom:10px"></div>
+          <div class="skeleton" style="height:60px"></div>
+        </div>
+        <div id="history-list" class="attendance-list hidden"></div>
+        <div id="history-empty" class="empty-state hidden">
+          <div class="empty-state__icon">📋</div>
+          <p>No attendance records yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    let currentUser=null,activeTab='checkin';
+
+    async function init(){
+      try{
+        const{user}=await getCurrentUser();currentUser=user;
+        if(!user){document.getElementById('guard-text').textContent='Please login to access attendance.';document.getElementById('guard-btn').style.display='inline-flex';document.getElementById('guard').classList.remove('hidden');return;}
+        document.getElementById('guard').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('main').classList.add('fade-in');
+      }catch(err){console.error('[Attendance] Init error:',err.message);}
+    }
+
+    window.switchTab=function(tab){
+      activeTab=tab;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('tab--active',t.dataset.tab===tab));
+      document.getElementById('checkin-tab').classList.toggle('hidden',tab!=='checkin');
+      document.getElementById('history-tab').classList.toggle('hidden',tab!=='history');
+      if(tab==='history')loadHistory();
+    };
+
+    window.checkIn=async function(){
+      const code=document.getElementById('event-code').value.trim();
+      const btn=document.getElementById('checkin-btn');
+      if(!code){alert('Please enter an event code.');return;}
+      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Checking in...';
+      try{
+        // Find event by attendance_code
+        const{data:event,error:eventError}=await supabase.from('events')
+          .select('id,title,start_at').eq('attendance_code',code).eq('status','published').single();
+        if(eventError||!event){throw new Error('Invalid event code. Please check and try again.');}
+
+        // Check if already checked in
+        const{data:existing}=await supabase.from('event_attendance')
+          .select('id').eq('event_id',event.id).eq('user_id',currentUser.id).maybeSingle();
+
+        if(existing){throw new Error('You have already checked in for this event.');}
+
+        // Determine status (present/late)
+        const now=new Date();const start=new Date(event.start_at);
+        const lateThreshold=new Date(start.getTime()+15*60000);
+        const status=now>lateThreshold?'late':'present';
+
+        // Insert attendance record
+        const{error:insertError}=await supabase.from('event_attendance')
+          .insert({event_id:event.id,user_id:currentUser.id,status,check_in_time:new Date().toISOString()});
+        if(insertError)throw insertError;
+
+        document.getElementById('checkin-success').classList.add('checkin-success--show');
+        document.getElementById('checkin-event-name').textContent=event.title;
+        document.getElementById('event-code').value='';
+      }catch(err){
+        console.error('[CheckIn] Error:',err.message);
+        alert(err.message||'Unable to check in. Please try again.');
+      }finally{btn.disabled=false;btn.textContent='Check In';}
+    };
+
+    async function loadHistory(){
+      try{
+        const{data,error}=await supabase.from('event_attendance')
+          .select('id,status,check_in_time,event_id,events!event_attendance_event_id_fkey(title,start_at,location)')
+          .eq('user_id',currentUser.id)
+          .order('check_in_time',{ascending:false}).limit(30);
+        if(error)throw error;
+
+        document.getElementById('history-loading').classList.add('hidden');
+
+        if(!data||data.length===0){
+          document.getElementById('history-empty').classList.remove('hidden');
+          return;
+        }
+
+        const present=data.filter(a=>a.status==='present').length;
+        const late=data.filter(a=>a.status==='late').length;
+        const absent=data.filter(a=>a.status==='absent').length;
+        document.getElementById('stat-present').textContent=present;
+        document.getElementById('stat-late').textContent=late;
+        document.getElementById('stat-absent').textContent=absent;
+
+        document.getElementById('history-list').innerHTML=data.map(a=>{
+          const event=a.events||{};
+          const icons={present:'✅',late:'⏰',absent:'❌'};
+          return `
+            <div class="attendance-item fade-in">
+              <div class="attendance-item__icon">${icons[a.status]||'📋'}</div>
+              <div class="attendance-item__body">
+                <div class="attendance-item__event">${event.title||'Unknown Event'}</div>
+                <div class="attendance-item__time">${new Date(a.check_in_time).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${event.location||''}</div>
+              </div>
+              <span class="attendance-item__status attendance-item__status--${a.status}">${a.status}</span>
+            </div>`;
+        }).join('');
+        document.getElementById('history-list').classList.remove('hidden');
+      }catch(err){
+        console.error('[History] Error:',err.message);
+        document.getElementById('history-loading').classList.add('hidden');
+        document.getElementById('history-empty').classList.remove('hidden');
+      }
+    }
+
+    init();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

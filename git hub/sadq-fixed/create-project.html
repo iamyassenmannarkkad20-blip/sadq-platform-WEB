@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Project — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__title{color:#fff;font-size:1rem;font-weight:600;margin-left:12px}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .container{max-width:640px;margin:0 auto;padding:16px}
+    .guard{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+    .guard__icon{font-size:3rem;opacity:.3}
+    .form-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:24px;box-shadow:var(--sadq-shadow);margin-bottom:16px}
+    .form-card__title{font-size:1.125rem;font-weight:600;margin-bottom:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:.8125rem;font-weight:500;margin-bottom:6px}
+    .form-label span{color:var(--sadq-danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:12px 14px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;font-family:inherit;transition:var(--sadq-transition);background:#fff}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .form-textarea{resize:vertical;min-height:120px}
+    .form-hint{font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px}
+    .form-error{font-size:.75rem;color:var(--sadq-danger);margin-top:4px}
+    .form-row{display:flex;gap:12px}
+    .form-row .form-group{flex:1}
+    .tags-input{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);min-height:42px;cursor:text}
+    .tags-input__tag{display:flex;align-items:center;gap:4px;background:#f0f7f0;color:var(--sadq-primary);padding:4px 10px;border-radius:12px;font-size:.75rem}
+    .tags-input__tag button{background:none;border:none;cursor:pointer;color:var(--sadq-primary);font-size:.875rem;line-height:1}
+    .tags-input__input{border:none;outline:none;font-size:.8125rem;font-family:inherit;background:none;flex:1;min-width:100px}
+    .upload-zone{border:2px dashed var(--sadq-border);border-radius:var(--sadq-radius-sm);padding:24px;text-align:center;cursor:pointer;transition:var(--sadq-transition)}
+    .upload-zone:hover{border-color:var(--sadq-primary);background:#f8faf8}
+    .upload-zone--uploaded{padding:0;border-style:solid;border-color:var(--sadq-primary)}
+    .upload-zone__icon{font-size:2rem;opacity:.5;margin-bottom:8px}
+    .upload-zone__text{font-size:.8125rem;color:var(--sadq-text-muted)}
+    .upload-preview{width:100%;max-height:250px;object-fit:cover;border-radius:var(--sadq-radius-sm);display:block}
+    .upload-remove{margin-top:8px;font-size:.75rem;color:var(--sadq-danger);background:none;border:none;cursor:pointer}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--sadq-transition)}
+    .btn--primary{background:var(--sadq-primary);color:#fff}
+    .btn--primary:hover{background:var(--sadq-primary-light)}
+    .btn--primary:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--sadq-radius-sm);color:#fff;font-size:.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--sadq-transition);max-width:350px}
+    .toast--show{opacity:1;transform:translateY(0)}
+    .toast--success{background:var(--sadq-success)}
+    .toast--error{background:var(--sadq-danger)}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @media(max-width:600px){.form-row{flex-direction:column}.btn-row{flex-direction:column-reverse}.btn{width:100%}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <span class="header__title">Create Project</span>
+    <nav class="header__nav"><a href="/dashboard.html">Dashboard</a></nav>
+  </header>
+  <div class="container">
+    <div id="guard" class="guard hidden">
+      <div class="guard__icon">📁</div>
+      <p class="guard-text" id="guard-text" style="color:var(--sadq-text-muted)">Loading...</p>
+      <a href="/login.html" class="btn btn--primary" id="guard-btn" style="display:none">Login</a>
+    </div>
+    <div id="main" class="hidden">
+      <div class="form-card">
+        <div class="form-card__title">Showcase a New Project</div>
+        <form id="project-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label">Project Title <span>*</span></label>
+            <input type="text" id="project-title" class="form-input" placeholder="e.g. Quran Memorization Tracker App" maxlength="200" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description <span>*</span></label>
+            <textarea id="project-description" class="form-textarea" placeholder="Describe your project — what it does, who it's for, and what you learned building it..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="project-category" class="form-select">
+              <option value="web">🌐 Web Application</option>
+              <option value="mobile">📱 Mobile App</option>
+              <option value="design">🎨 Design</option>
+              <option value="research">📊 Research</option>
+              <option value="other">📦 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tech Stack</label>
+            <div class="tags-input" id="tags-container" onclick="document.getElementById('tag-input').focus()">
+              <input type="text" id="tag-input" class="tags-input__input" placeholder="Type a technology and press Enter..." onkeydown="window.handleTagInput(event)">
+            </div>
+            <div class="form-hint">Add technologies used (e.g. React, Node.js, Flutter)</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Repository URL</label>
+              <input type="url" id="repo-url" class="form-input" placeholder="https://github.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Live Demo URL</label>
+              <input type="url" id="demo-url" class="form-input" placeholder="https://...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Thumbnail Image</label>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('project-image').click()">
+              <div class="upload-zone__icon">📷</div>
+              <div class="upload-zone__text">Click to upload a thumbnail</div>
+            </div>
+            <input type="file" id="project-image" accept="image/*" class="hidden" onchange="window.handleImageUpload(event)">
+          </div>
+          <div class="form-error hidden" id="form-error"></div>
+          <div class="btn-row">
+            <button type="button" class="btn btn--outline" id="draft-btn">Save Draft</button>
+            <button type="submit" class="btn btn--primary" id="publish-btn">Publish Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    let currentUser=null,tags=[],imageUrl=null;
+
+    function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast toast--${type} toast--show`;setTimeout(()=>t.classList.remove('toast--show'),4000);}
+
+    async function init(){
+      try{
+        const{user}=await getCurrentUser();currentUser=user;
+        if(!user){document.getElementById('guard-text').textContent='Please login to create a project.';document.getElementById('guard-btn').style.display='inline-block';document.getElementById('guard').classList.remove('hidden');return;}
+        document.getElementById('guard').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('main').classList.add('fade-in');
+      }catch(err){console.error('[CreateProject] Init error:',err.message);}
+    }
+
+    window.handleTagInput=function(e){
+      if(e.key==='Enter'||e.key===','){
+        e.preventDefault();
+        const tag=e.target.value.trim().replace(/[^a-zA-Z0-9.\s-]/g,'');
+        if(tag&&!tags.includes(tag)&&tags.length<10){tags.push(tag);renderTags();}
+        e.target.value='';
+      }else if(e.key==='Backspace'&&!e.target.value&&tags.length>0){tags.pop();renderTags();}
+    };
+
+    function renderTags(){
+      const container=document.getElementById('tags-container');
+      const input=document.getElementById('tag-input');
+      container.querySelectorAll('.tags-input__tag').forEach(el=>el.remove());
+      tags.forEach((tag,i)=>{
+        const el=document.createElement('span');
+        el.className='tags-input__tag';
+        el.innerHTML=`${tag} <button type="button" onclick="window.removeTag(${i})">×</button>`;
+        container.insertBefore(el,input);
+      });
+    }
+
+    window.removeTag=function(index){tags.splice(index,1);renderTags();};
+
+    window.handleImageUpload=async function(event){
+      const file=event.target.files[0];if(!file)return;
+      if(!file.type.startsWith('image/')){showToast('Please select an image.','error');return;}
+      if(file.size>5*1024*1024){showToast('Image must be under 5MB.','error');return;}
+      const zone=document.getElementById('upload-zone');
+      zone.innerHTML='<div class="upload-zone__text">Uploading...</div>';
+      try{
+        const fileName=`projects/${currentUser.id}/${Date.now()}-${file.name}`;
+        const{error}=await supabase.storage.from('profile-media').upload(fileName,file,{cacheControl:'3600',upsert:false});
+        if(error)throw error;
+        const{data:urlData}=supabase.storage.from('profile-media').getPublicUrl(fileName);
+        imageUrl=urlData.publicUrl;
+        zone.classList.add('upload-zone--uploaded');
+        zone.innerHTML=`<img class="upload-preview" src="${imageUrl}" alt="Project thumbnail"><button type="button" class="upload-remove" onclick="window.removeImage()">Remove image</button>`;
+        showToast('Image uploaded!','success');
+      }catch(err){console.error('[ImageUpload] Error:',err.message);zone.innerHTML='<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Upload failed. Click to retry.</div>';showToast('Unable to upload.','error');}
+    };
+
+    window.removeImage=function(){imageUrl=null;const zone=document.getElementById('upload-zone');zone.classList.remove('upload-zone--uploaded');zone.innerHTML='<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Click to upload a thumbnail</div>';document.getElementById('project-image').value='';};
+
+    async function submitProject(status){
+      const title=document.getElementById('project-title').value.trim();
+      const desc=document.getElementById('project-description').value.trim();
+      const category=document.getElementById('project-category').value;
+      const repoUrl=document.getElementById('repo-url').value.trim();
+      const demoUrl=document.getElementById('demo-url').value.trim();
+      const errorEl=document.getElementById('form-error');
+      errorEl.classList.add('hidden');
+
+      if(!title){errorEl.textContent='Title is required.';errorEl.classList.remove('hidden');return;}
+      if(!desc){errorEl.textContent='Description is required.';errorEl.classList.remove('hidden');return;}
+      const saveStatus=status==='published'?'pending_review':'draft';
+
+      const btn=status==='published'?document.getElementById('publish-btn'):document.getElementById('draft-btn');
+      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> '+(status==='published'?'Publishing...':'Saving...');
+
+      try{
+        const data={
+          title,description:desc,category,status:saveStatus,
+          tech_stack:tags.length>0?JSON.stringify(tags):null,
+          repo_url:repoUrl||null,
+          demo_url:demoUrl||null,
+          owner_id:currentUser.id,
+        };
+
+        const{data:result,error}=await supabase.from('projects').insert(data).select('id').single();
+        if(error)throw error;
+
+        if(status==='published'){showToast('Project submitted for review!','success');setTimeout(()=>{window.location.href='/dashboard.html';},1000);}
+        else{showToast('Draft saved!','success');setTimeout(()=>{window.location.href='/dashboard.html';},1000);}
+      }catch(err){console.error('[SubmitProject] Error:',err.message);errorEl.textContent=err.message||'Unable to save. Please try again.';errorEl.classList.remove('hidden');}
+      finally{btn.disabled=false;btn.textContent=status==='published'?'Publish Project':'Save Draft';}
+    }
+
+    document.getElementById('publish-btn').addEventListener('click',()=>submitProject('published'));
+    document.getElementById('draft-btn').addEventListener('click',()=>submitProject('draft'));
+    init();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

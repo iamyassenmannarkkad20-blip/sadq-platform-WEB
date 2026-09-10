@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teacher Tasks — SADQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/animations.css">
+<style>
+.dash-header{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.dash-header h1{font-size:1.5rem;font-weight:800}
+.dash-header p{font-size:0.8rem;color:var(--text-muted);margin-top:2px}
+.dash-container{max-width:1000px;margin:0 auto;padding:24px 20px}
+.class-selector{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.class-selector label{font-size:0.8125rem;font-weight:600;color:var(--text-muted)}
+.class-select{padding:10px 16px;background:rgba(255,255,255,0.05);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.875rem;font-family:inherit;min-width:200px}
+.class-select:focus{outline:none;border-color:var(--blue)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-mini__value{font-size:1.5rem;font-weight:700}
+.stat-mini__label{font-size:0.7rem;color:var(--text-muted);margin-top:2px}
+.task-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.tab-btn{padding:8px 16px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:var(--radius-sm);font-size:0.8125rem;font-weight:600;cursor:pointer;transition:var(--t);font-family:inherit;white-space:nowrap}
+.tab-btn.active{background:var(--gradient-cta);color:#fff;border-color:transparent}
+.task-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:var(--t)}
+.task-card:hover{border-color:var(--border-l);box-shadow:var(--shadow-md)}
+.task-card__header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.task-card__title{font-size:1rem;font-weight:600}
+.task-card__meta{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+.task-card__progress{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:12px;overflow:hidden}
+.task-card__progress-bar{height:100%;background:var(--gradient-cta);border-radius:3px;transition:width 0.5s}
+.priority-badge{font-size:0.625rem;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;flex-shrink:0}
+.priority-low{background:rgba(16,185,129,0.12);color:var(--emerald)}
+.priority-medium{background:rgba(59,130,246,0.12);color:#60A5FA}
+.priority-high{background:rgba(245,158,11,0.12);color:var(--warning)}
+.priority-urgent{background:rgba(239,68,68,0.12);color:#F87171}
+.status-badge{font-size:0.625rem;padding:2px 8px;border-radius:10px;font-weight:500}
+.review-btn{padding:6px 14px;border:1px solid var(--border);background:transparent;color:var(--text-muted);border-radius:var(--radius-sm);font-size:0.75rem;cursor:pointer;font-family:inherit;transition:var(--t);margin-top:8px}
+.review-btn:hover{border-color:var(--blue);color:var(--blue)}
+.review-btn--approve{border-color:var(--emerald);color:var(--emerald)}
+.review-btn--approve:hover{background:rgba(16,185,129,0.1)}
+.review-btn--reject{border-color:var(--danger);color:var(--danger)}
+.review-btn--reject:hover{background:rgba(239,68,68,0.1)}
+</style>
+</head>
+<body>
+<div class="dash-header">
+  <div>
+    <h1>📋 Teacher Tasks</h1>
+    <p id="teacher-name">Loading...</p>
+  </div>
+  <a href="/teacher-dashboard.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem">← Dashboard</a>
+</div>
+
+<div class="dash-container">
+  <div class="class-selector">
+    <label>Select Class:</label>
+    <select class="class-select" id="class-select" onchange="loadClassData()">
+      <option value="">— Select a class —</option>
+    </select>
+    <button class="btn btn--primary" onclick="openModal('createTaskModal')" id="create-btn" disabled>+ Create Task</button>
+  </div>
+
+  <div class="stats-row" id="class-stats" style="display:none">
+    <div class="stat-mini"><div class="stat-mini__value" id="s-students">—</div><div class="stat-mini__label">Students</div></div>
+    <div class="stat-mini"><div class="stat-mini__value" id="s-tasks">—</div><div class="stat-mini__label">Tasks</div></div>
+    <div class="stat-mini"><div class="stat-mini__value" id="s-completion" style="color:var(--emerald)">—</div><div class="stat-mini__label">Completion %</div></div>
+    <div class="stat-mini"><div class="stat-mini__value" id="s-pending" style="color:var(--warning)">—</div><div class="stat-mini__label">Pending Reviews</div></div>
+    <div class="stat-mini"><div class="stat-mini__value" id="s-overdue" style="color:var(--danger)">—</div><div class="stat-mini__label">Overdue</div></div>
+  </div>
+
+  <div class="task-tabs" id="task-tabs" style="display:none">
+    <button class="tab-btn active" onclick="filterTasks('all',this)">All</button>
+    <button class="tab-btn" onclick="filterTasks('assigned',this)">Assigned</button>
+    <button class="tab-btn" onclick="filterTasks('in_progress',this)">In Progress</button>
+    <button class="tab-btn" onclick="filterTasks('submitted',this)">Pending Review</button>
+    <button class="tab-btn" onclick="filterTasks('completed',this)">Completed</button>
+    <button class="tab-btn" onclick="filterTasks('overdue',this)">Overdue</button>
+  </div>
+
+  <div id="task-list">
+    <div class="empty-state">
+      <div class="empty-state__icon">📚</div>
+      <div class="empty-state__text">Select a class to view tasks</div>
+      <div class="empty-state__sub">Choose one of your authorized classes above</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="createTaskModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal__header">
+      <h2 class="modal__title">Create Task</h2>
+      <button class="modal__close" onclick="closeModal('createTaskModal')">&times;</button>
+    </div>
+    <form id="createTaskForm" onsubmit="return createTask(event)">
+      <div class="form-group"><label class="form-label">Task Title</label><input class="form-input" name="title" placeholder="Enter task title" required></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" placeholder="Task description"></textarea></div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select class="form-select" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Points</label><input class="form-input" type="number" name="points" value="10" min="0"></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" type="date" name="due_date"></div>
+      <div class="form-group"><label class="form-label">Checklist Items (one per line)</label><textarea class="form-textarea" name="checklist" placeholder="Planning&#10;Research&#10;Draft&#10;Submission"></textarea></div>
+      <div class="form-group" style="display:flex;gap:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-muted)"><input type="checkbox" name="require_evidence"> Require Evidence</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--text-muted)"><input type="checkbox" name="require_approval" checked> Require Approval</label>
+      </div>
+      <div class="form-group"><label class="form-label">Assign To</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button type="button" class="btn btn--ghost" style="font-size:0.75rem;padding:6px 12px" onclick="selectAllStudents()">Select All</button>
+          <button type="button" class="btn btn--ghost" style="font-size:0.75rem;padding:6px 12px" onclick="deselectAllStudents()">Deselect All</button>
+        </div>
+        <div id="student-list" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px"></div>
+      </div>
+      <button type="submit" class="btn btn--primary" style="width:100%" id="createTaskBtn">Create & Assign Task</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal__header">
+      <h2 class="modal__title" id="review-title">Review Submission</h2>
+      <button class="modal__close" onclick="closeModal('reviewModal')">&times;</button>
+    </div>
+    <div id="review-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import{supabase,verifyTeacherSession} from '/js/supabase-client.js?v=20260910'
+(async()=>{
+
+// Teacher session from localStorage (existing pattern)
+const tsRaw=localStorage.getItem('teacher_session')
+if(!tsRaw){window.location.href='/login.html';return}
+let teacherSession
+try{teacherSession=JSON.parse(tsRaw)}catch(e){window.location.href='/login.html';return}
+
+// Check expiry
+if(teacherSession._exp&&Date.now()>teacherSession._exp){
+  localStorage.removeItem('teacher_session')
+  window.location.href='/login.html'
+  return
+}
+
+const verifiedTeacher=await verifyTeacherSession(teacherSession.id).catch(()=>null)
+if(!verifiedTeacher){localStorage.removeItem('teacher_session');window.location.href='/login.html';return}
+teacherSession={...teacherSession,...verifiedTeacher}
+
+document.getElementById('teacher-name').textContent='Welcome, '+(teacherSession.full_name||'Teacher')
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+let selectedClassId=null
+let classStudents=[]
+let currentFilter='all'
+
+// Load teacher's authorized classes
+async function loadClasses(){
+  const{data,error}=await supabase
+    .from('teacher_classes')
+    .select('id,class_name,class_organisation,is_active')
+    .eq('teacher_id',teacherSession.id)
+    .eq('is_active',true)
+    .order('class_name')
+
+  if(error){showToast('Error loading classes','error');return}
+  if(!data||!data.length){
+    document.getElementById('class-select').innerHTML='<option value="">No classes assigned — contact admin</option>'
+    return
+  }
+
+  const select=document.getElementById('class-select')
+  select.innerHTML='<option value="">— Select a class —</option>'+data.map(c=>
+    `<option value="${c.id}">${esc(c.class_name)}${c.class_organisation?' ('+esc(c.class_organisation)+')':''}</option>`
+  ).join('')
+}
+
+window.loadClassData=async function(){
+  const select=document.getElementById('class-select')
+  selectedClassId=select.value
+  if(!selectedClassId){
+    document.getElementById('class-stats').style.display='none'
+    document.getElementById('task-tabs').style.display='none'
+    document.getElementById('create-btn').disabled=true
+    document.getElementById('task-list').innerHTML='<div class="empty-state"><div class="empty-state__icon">📚</div><div class="empty-state__text">Select a class to view tasks</div></div>'
+    return
+  }
+
+  document.getElementById('create-btn').disabled=false
+  document.getElementById('class-stats').style.display='grid'
+  document.getElementById('task-tabs').style.display='flex'
+
+  // Load students in this class
+  const{data:students}=await supabase
+    .from('class_memberships')
+    .select('student_id,profiles(id,full_name,username)')
+    .eq('teacher_class_id',selectedClassId)
+
+  classStudents=students||[]
+  document.getElementById('s-students').textContent=classStudents.length
+
+  // Load tasks for this class
+  await loadTasks()
+  await loadClassStats()
+}
+
+async function loadClassStats(){
+  if(!selectedClassId)return
+
+  const{data:tasks}=await supabase
+    .from('tasks')
+    .select('id,status')
+    .eq('teacher_class_id',selectedClassId)
+
+  const total=tasks?tasks.length:0
+  const completed=tasks?tasks.filter(t=>['completed','approved'].includes(t.status)).length:0
+  const pending=tasks?tasks.filter(t=>t.status==='submitted').length:0
+  const overdue=tasks?tasks.filter(t=>t.status==='overdue').length:0
+  const pct=total>0?Math.round((completed/total)*100):0
+
+  document.getElementById('s-tasks').textContent=total
+  document.getElementById('s-completion').textContent=pct+'%'
+  document.getElementById('s-pending').textContent=pending
+  document.getElementById('s-overdue').textContent=overdue
+}
+
+async function loadTasks(){
+  if(!selectedClassId)return
+  const list=document.getElementById('task-list')
+
+  let query=supabase.from('tasks').select('*').eq('teacher_class_id',selectedClassId).order('created_at',{ascending:false})
+  if(currentFilter!=='all')query=query.eq('status',currentFilter)
+
+  const{data,error}=await query
+  if(error){list.innerHTML='<div class="empty-mini"><div class="empty-mini__text">Error loading tasks</div></div>';return}
+  if(!data||!data.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-state__icon">📋</div><div class="empty-state__text">No tasks for this class yet</div><div class="empty-state__sub">Create a task to get started</div></div>'
+    return
+  }
+
+  // For each task, load assignments summary
+  list.innerHTML=''
+  for(const t of data){
+    const{data:assignments}=await supabase
+      .from('task_assignments')
+      .select('id,status')
+      .eq('task_id',t.id)
+
+    const totalAssign=assignments?assignments.length:0
+    const completedAssign=assignments?assignments.filter(a=>['completed','approved'].includes(a.status)).length:0
+    const pendingReview=assignments?assignments.filter(a=>a.status==='submitted').length:0
+    const pct=totalAssign>0?Math.round((completedAssign/totalAssign)*100):0
+    const pc=t.priority||'medium'
+
+    const card=document.createElement('div')
+    card.className='task-card fade-in'
+    card.innerHTML=`
+      <div class="task-card__header">
+        <div style="flex:1;min-width:0">
+          <div class="task-card__title">${esc(t.title)}</div>
+          <div class="task-card__meta">${totalAssign} students · ${completedAssign} completed · ${pct}% done</div>
+          ${t.due_date?`<div class="task-card__meta">📅 Due: ${new Date(t.due_date).toLocaleDateString()}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <span class="priority-badge priority-${pc}">${esc(pc)}</span>
+          <span class="status-badge badge--blue">${esc(t.status)}</span>
+        </div>
+      </div>
+      <div class="task-card__progress"><div class="task-card__progress-bar" style="width:${pct}%"></div></div>
+      ${pendingReview>0?`<div style="margin-top:8px"><button class="review-btn review-btn--approve" onclick="reviewSubmissions('${t.id}')">${pendingReview} pending review →</button></div>`:''}
+    `
+    list.appendChild(card)
+  }
+}
+
+window.filterTasks=function(filter,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  currentFilter=filter
+  loadTasks()
+}
+
+window.reviewSubmissions=async function(taskId){
+  const{data:assignments,error}=await supabase
+    .from('task_assignments')
+    .select('id,status,rejection_reason,evidence_url,student_id,tasks(title)')
+    .eq('task_id',taskId)
+    .eq('status','submitted')
+
+  if(error||!assignments||!assignments.length){
+    showToast('No submissions to review','info')
+    return
+  }
+
+  document.getElementById('review-title').textContent='Review Submissions'
+  document.getElementById('review-body').innerHTML=assignments.map(a=>`
+    <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-size:0.875rem;font-weight:600;margin-bottom:4px">Student: ${esc(a.student_id.substring(0,8))}...</div>
+      ${a.evidence_url?`<a href="${esc(a.evidence_url)}" target="_blank" style="font-size:0.75rem;color:var(--blue)">View Evidence →</a>`:''}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="review-btn review-btn--approve" onclick="reviewAssignment('${a.id}','approve')">Approve</button>
+        <button class="review-btn review-btn--reject" onclick="reviewAssignment('${a.id}','reject')">Reject</button>
+      </div>
+    </div>
+  `).join('')
+  openModal('reviewModal')
+}
+
+window.reviewAssignment=async function(assignmentId,action){
+  let comment=null
+  if(action==='reject'){
+    comment=prompt('Enter rejection reason:')
+    if(!comment)return
+  }else if(action==='approve'){
+    if(!confirm('Approve this submission?'))return
+  }
+
+  const{data,error}=await supabase.rpc('review_task',{
+    p_assignment_id:assignmentId,
+    p_action:action,
+    p_comment:comment
+  })
+
+  if(error){showToast('Error: '+error.message,'error');return}
+  showToast(action==='approve'?'Task approved!':'Task rejected','success')
+  closeModal('reviewModal')
+  loadTasks()
+  loadClassStats()
+}
+
+// Create task modal — load students when opened
+const createBtn=document.getElementById('create-btn')
+const origOnclick=createBtn.onclick
+createBtn.addEventListener('click',()=>{
+  if(!selectedClassId){showToast('Select a class first','warning');return}
+  // Populate student list
+  const list=document.getElementById('student-list')
+  if(classStudents.length===0){
+    list.innerHTML='<div style="color:var(--text-muted);font-size:0.75rem;padding:8px">No students in this class</div>'
+  }else{
+    list.innerHTML=classStudents.map(s=>
+      `<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:0.8125rem">
+        <input type="checkbox" value="${s.student_id}" name="students" style="width:18px;height:18px;accent-color:var(--blue)">
+        ${esc(s.profiles?s.profiles.full_name||'Unknown':'Unknown')}
+      </label>`
+    ).join('')
+  }
+})
+
+window.selectAllStudents=function(){
+  document.querySelectorAll('input[name="students"]').forEach(cb=>cb.checked=true)
+}
+window.deselectAllStudents=function(){
+  document.querySelectorAll('input[name="students"]').forEach(cb=>cb.checked=false)
+}
+
+window.createTask=async function(e){
+  e.preventDefault()
+  if(!selectedClassId){showToast('Select a class first','warning');return}
+
+  const btn=document.getElementById('createTaskBtn')
+  const form=e.target
+  const fd=new FormData(form)
+  btn.disabled=true;btn.textContent='Creating...'
+
+  const checklist=fd.get('checklist').trim().split('\n').filter(l=>l.trim())
+  const selectedStudents=fd.getAll('students')
+
+  if(selectedStudents.length===0){
+    showToast('Select at least one student','warning')
+    btn.disabled=false;btn.textContent='Create & Assign Task'
+    return
+  }
+
+  // Create task
+  const{data:task,error:taskErr}=await supabase.from('tasks').insert({
+    title:fd.get('title'),
+    description:fd.get('description'),
+    priority:fd.get('priority'),
+    points:parseInt(fd.get('points'))||0,
+    due_date:fd.get('due_date')||null,
+    require_evidence:fd.get('require_evidence')==='on',
+    require_teacher_approval:fd.get('require_approval')==='on',
+    status:'published',
+    created_by:teacherSession.id,
+    creator_role:'teacher',
+    teacher_class_id:selectedClassId,
+    teacher_id:teacherSession.id
+  }).select('id').single()
+
+  if(taskErr){
+    showToast('Error: '+taskErr.message,'error')
+    btn.disabled=false;btn.textContent='Create & Assign Task'
+    return
+  }
+
+  // Add checklist items
+  if(checklist.length){
+    const items=checklist.map((label,i)=>({task_id:task.id,label,sort_order:i}))
+    await supabase.from('task_items').insert(items)
+  }
+
+  // Assign to selected students via RPC
+  const studentIds=selectedStudents.map(s=>s)
+  const{data:assignResult,error:assignErr}=await supabase.rpc('assign_task',{
+    p_task_id:task.id,
+    p_student_ids:studentIds
+  })
+
+  if(assignErr){
+    showToast('Task created but assignment failed: '+assignErr.message,'warning')
+  }else{
+    showToast(`Task created and assigned to ${assignResult.assigned_count||studentIds.length} students!`,'success')
+  }
+
+  closeModal('createTaskModal')
+  form.reset()
+  btn.disabled=false;btn.textContent='Create & Assign Task'
+  loadTasks()
+  loadClassStats()
+}
+
+loadClasses()
+})();
+</script>
+<script src="/js/interactions.js"></script>
+</body>
+</html>

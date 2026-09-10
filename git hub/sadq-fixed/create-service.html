@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Service — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__title{color:#fff;font-size:1rem;font-weight:600;margin-left:12px}
+    .container{max-width:640px;margin:0 auto;padding:16px}
+    .guard{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+    .guard__icon{font-size:3rem;opacity:.3}
+    .form-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:24px;box-shadow:var(--sadq-shadow);margin-bottom:16px}
+    .form-card__title{font-size:1.125rem;font-weight:600;margin-bottom:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:.8125rem;font-weight:500;margin-bottom:6px}
+    .form-label span{color:var(--sadq-danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:12px 14px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;font-family:inherit;transition:var(--sadq-transition);background:#fff}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .form-textarea{resize:vertical;min-height:120px}
+    .form-hint{font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px}
+    .form-error{font-size:.75rem;color:var(--sadq-danger);margin-top:4px}
+    .form-row{display:flex;gap:12px}
+    .form-row .form-group{flex:1}
+    .upload-zone{border:2px dashed var(--sadq-border);border-radius:var(--sadq-radius-sm);padding:24px;text-align:center;cursor:pointer;transition:var(--sadq-transition)}
+    .upload-zone:hover{border-color:var(--sadq-primary);background:#f8faf8}
+    .upload-zone--uploaded{padding:0;border-style:solid;border-color:var(--sadq-primary)}
+    .upload-zone__icon{font-size:2rem;opacity:.5;margin-bottom:8px}
+    .upload-zone__text{font-size:.8125rem;color:var(--sadq-text-muted)}
+    .upload-preview{width:100%;max-height:250px;object-fit:cover;border-radius:var(--sadq-radius-sm);display:block}
+    .upload-remove{margin-top:8px;font-size:.75rem;color:var(--sadq-danger);background:none;border:none;cursor:pointer}
+    .service-type-toggle{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);overflow:hidden}
+    .service-type-toggle button{flex:1;padding:10px;border:none;background:#fff;cursor:pointer;font-size:.8125rem;font-weight:500;transition:var(--sadq-transition)}
+    .service-type-toggle button--active{background:var(--sadq-primary);color:#fff}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--sadq-transition)}
+    .btn--primary{background:var(--sadq-primary);color:#fff}
+    .btn--primary:hover{background:var(--sadq-primary-light)}
+    .btn--primary:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .btn--outline:disabled{opacity:.6;cursor:not-allowed}
+    .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--sadq-radius-sm);color:#fff;font-size:.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--sadq-transition);max-width:350px}
+    .toast--show{opacity:1;transform:translateY(0)}
+    .toast--success{background:var(--sadq-success)}
+    .toast--error{background:var(--sadq-danger)}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @media(max-width:600px){.form-row{flex-direction:column}.btn-row{flex-direction:column-reverse}.btn{width:100%}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <span class="header__title">Create Service</span>
+    <nav class="header__nav"><a href="/dashboard.html">Dashboard</a></nav>
+  </header>
+  <div class="container">
+    <div id="guard" class="guard hidden">
+      <div class="guard__icon">🛠️</div>
+      <p class="guard-text" id="guard-text" style="color:var(--sadq-text-muted)">Loading...</p>
+      <a href="/login.html" class="btn btn--primary" id="guard-btn" style="display:none">Login</a>
+    </div>
+    <div id="main" class="hidden">
+      <div class="form-card">
+        <div class="form-card__title">Offer a New Service</div>
+        <form id="service-form" onsubmit="return false;">
+          <!-- Service Type Toggle -->
+          <div class="service-type-toggle" id="type-toggle">
+            <button type="button" class="service-type-toggle button--active" id="btn-regular" onclick="window.switchType('regular')">Regular Service</button>
+            <button type="button" id="btn-translation" onclick="window.switchType('translation')">Translation Service</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Title <span>*</span></label>
+            <input type="text" id="service-title" class="form-input" placeholder="e.g. Arabic Calligraphy Design" maxlength="200" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description <span>*</span></label>
+            <textarea id="service-description" class="form-textarea" placeholder="Describe what you offer, delivery time, and what's included..." required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price (₹) <span>*</span></label>
+              <input type="number" id="service-price" class="form-input" placeholder="500" min="0" step="50" required>
+              <div class="form-hint">Enter 0 for free services</div>
+            </div>
+            <div class="form-group" id="category-group">
+              <label class="form-label">Category</label>
+              <select id="service-category" class="form-select">
+                <option value="design">Design</option>
+                <option value="development">Development</option>
+                <option value="writing">Writing</option>
+                <option value="video">Video Editing</option>
+                <option value="translation">Translation</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Translation-specific fields -->
+          <div id="translation-fields" class="hidden">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Source Language <span>*</span></label>
+                <input type="text" id="source-lang" class="form-input" placeholder="e.g. Arabic" list="lang-list">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Target Language <span>*</span></label>
+                <input type="text" id="target-lang" class="form-input" placeholder="e.g. English" list="lang-list">
+              </div>
+            </div>
+            <datalist id="lang-list">
+              <option value="Arabic"><option value="English"><option value="Malayalam"><option value="Urdu">
+              <option value="Hindi"><option value="Tamil"><option value="Kannada"><option value="French">
+              <option value="Persian"><option value="Turkish">
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Service Image (optional)</label>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('service-image').click()">
+              <div class="upload-zone__icon">📷</div>
+              <div class="upload-zone__text">Click to upload an image</div>
+            </div>
+            <input type="file" id="service-image" accept="image/*" class="hidden" onchange="window.handleImageUpload(event)">
+          </div>
+
+          <div class="form-error hidden" id="form-error"></div>
+          <div class="btn-row">
+            <button type="button" class="btn btn--outline" id="draft-btn">Save Draft</button>
+            <button type="submit" class="btn btn--primary" id="publish-btn">Publish Service</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <datalist id="lang-list"></datalist>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    let currentUser=null,serviceType='regular',imageUrl=null;
+
+    function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast toast--${type} toast--show`;setTimeout(()=>t.classList.remove('toast--show'),4000);}
+
+    async function init(){
+      try{
+        const{user}=await getCurrentUser();currentUser=user;
+        if(!user){document.getElementById('guard-text').textContent='Please login to create a service.';document.getElementById('guard-btn').style.display='inline-block';document.getElementById('guard').classList.remove('hidden');return;}
+        document.getElementById('guard').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('main').classList.add('fade-in');
+      }catch(err){console.error('[CreateService] Init error:',err.message);}
+    }
+
+    window.switchType=function(type){
+      serviceType=type;
+      document.getElementById('btn-regular').classList.toggle('button--active',type==='regular');
+      document.getElementById('btn-translation').classList.toggle('button--active',type==='translation');
+      document.getElementById('translation-fields').classList.toggle('hidden',type!=='translation');
+      document.getElementById('category-group').style.display=type==='translation'?'none':'block';
+    };
+
+    window.handleImageUpload=async function(event){
+      const file=event.target.files[0];if(!file)return;
+      if(!file.type.startsWith('image/')){showToast('Please select an image.','error');return;}
+      if(file.size>5*1024*1024){showToast('Image must be under 5MB.','error');return;}
+      const zone=document.getElementById('upload-zone');
+      zone.innerHTML='<div class="upload-zone__text">Uploading...</div>';
+      try{
+        const fileName=`services/${currentUser.id}/${Date.now()}-${file.name}`;
+        const{error}=await supabase.storage.from('profile-media').upload(fileName,file,{cacheControl:'3600',upsert:false});
+        if(error)throw error;
+        const{data:urlData}=supabase.storage.from('profile-media').getPublicUrl(fileName);
+        imageUrl=urlData.publicUrl;
+        zone.classList.add('upload-zone--uploaded');
+        zone.innerHTML=`<img class="upload-preview" src="${imageUrl}" alt="Service image"><button type="button" class="upload-remove" onclick="window.removeImage()">Remove image</button>`;
+        showToast('Image uploaded!','success');
+      }catch(err){console.error('[ImageUpload] Error:',err.message);zone.innerHTML='<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Upload failed. Click to retry.</div>';showToast('Unable to upload.','error');}
+    };
+
+    window.removeImage=function(){imageUrl=null;const zone=document.getElementById('upload-zone');zone.classList.remove('upload-zone--uploaded');zone.innerHTML='<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Click to upload an image</div>';document.getElementById('service-image').value='';};
+
+    async function submitService(status){
+      const title=document.getElementById('service-title').value.trim();
+      const desc=document.getElementById('service-description').value.trim();
+      const price=parseFloat(document.getElementById('service-price').value);
+      const errorEl=document.getElementById('form-error');
+      errorEl.classList.add('hidden');
+
+      if(!title){errorEl.textContent='Title is required.';errorEl.classList.remove('hidden');return;}
+      if(!desc){errorEl.textContent='Description is required.';errorEl.classList.remove('hidden');return;}
+      if(isNaN(price)||price<0){errorEl.textContent='Valid price is required.';errorEl.classList.remove('hidden');return;}
+      const saveStatus=status==='published'?'pending_review':'draft';
+
+      if(serviceType==='translation'){
+        const src=document.getElementById('source-lang').value.trim();
+        const tgt=document.getElementById('target-lang').value.trim();
+        if(!src||!tgt){errorEl.textContent='Source and target languages are required for translation services.';errorEl.classList.remove('hidden');return;}
+      }
+
+      const btn=status==='published'?document.getElementById('publish-btn'):document.getElementById('draft-btn');
+      btn.disabled=true;btn.innerHTML='<span class="spinner"></span> '+(status==='published'?'Publishing...':'Saving...');
+
+      try{
+        const baseData={title,description:desc,price,status:saveStatus};
+        let table,data,providerField;
+
+        if(serviceType==='translation'){
+          table='translation_services';providerField='freelancer_id';
+          data={...baseData,source_language:document.getElementById('source-lang').value.trim(),target_language:document.getElementById('target-lang').value.trim(),[providerField]:currentUser.id};
+        }else{
+          table='services';providerField='provider_id';
+          data={...baseData,category:document.getElementById('service-category').value,[providerField]:currentUser.id};
+        }
+
+        const{data:result,error}=await supabase.from(table).insert(data).select('id').single();
+        if(error)throw error;
+
+        if(status==='published'){showToast('Service submitted for review!','success');setTimeout(()=>{window.location.href='/dashboard.html';},1000);}
+        else{showToast('Draft saved!','success');setTimeout(()=>{window.location.href='/dashboard.html';},1000);}
+      }catch(err){console.error('[SubmitService] Error:',err.message);errorEl.textContent=err.message||'Unable to save. Please try again.';errorEl.classList.remove('hidden');}
+      finally{btn.disabled=false;btn.textContent=status==='published'?'Publish Service':'Save Draft';}
+    }
+
+    document.getElementById('publish-btn').addEventListener('click',()=>submitService('published'));
+    document.getElementById('draft-btn').addEventListener('click',()=>submitService('draft'));
+    init();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

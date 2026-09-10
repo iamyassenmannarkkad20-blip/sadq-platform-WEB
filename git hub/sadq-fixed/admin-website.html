@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Editor — SADQ Admin</title>
+<style>
+:root{--p:#2563EB;--pl:#1D4ED8;--bg:#050816;--card:#10152A;--text:#F8FAFC;--muted:#94A3B8;--border:rgba(255,255,255,0.08);--danger:#EF4444;--success:#10B981;--gold:#F9A825;--r:12px;--rs:8px;--shadow:0 4px 20px rgba(0,0,0,0.4);--t:0.3s ease;--sw:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#2563EB,#0F172A);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar__h{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+.sidebar__sub{font-size:0.6875rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.sidebar__link{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.875rem;transition:var(--t);border-left:3px solid transparent}
+.sidebar__link:hover{background:rgba(255,255,255,0.08);color:#fff}.sidebar__link--active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+.sidebar__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar__section{padding:12px 16px 4px;font-size:0.6875rem;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.main{margin-left:var(--sw);padding:16px;min-height:100vh}.main__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}.main__sub{font-size:0.8125rem;color:var(--muted);margin-bottom:20px}
+.btn{padding:10px 20px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:600;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px}
+.btn--primary{background:var(--blue);color:#fff}.btn--primary:hover{background:var(--pl)}.btn--primary:disabled{opacity:0.6}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.section__title{font-size:1rem;font-weight:600;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-row{display:flex;gap:12px;flex-wrap:wrap}.form-row .form-group{flex:1;min-width:200px}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input,.form-textarea{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem;font-family:inherit;transition:border 0.3s}
+.form-input:focus,.form-textarea:focus{outline:none;border-color:var(--blue)}
+.form-textarea{min-height:80px;resize:vertical}
+.img-preview{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);margin-top:4px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:110;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:1rem;cursor:pointer}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar--open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:block}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<button class="menu-toggle" id="mt">☰</button>
+<aside class="sidebar" id="sb">
+<div class="sidebar__h"><a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a><div class="sidebar__sub">Control Center</div></div>
+<nav>
+<div class="sidebar__section">Overview</div>
+<a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+<div class="sidebar__section">People</div>
+<a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+<a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+<div class="sidebar__section">Organisation</div>
+<a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+<a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+<a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+<div class="sidebar__section">Content</div>
+<a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+<a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+<a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+<a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+<a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+<div class="sidebar__section">Recognition</div>
+<a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+<a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+<div class="sidebar__section">Marketplace</div>
+<a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+<a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+<a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+<div class="sidebar__section">Finance</div>
+<a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+<a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+<a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+<div class="sidebar__section">Platform</div>
+<a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+<a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+<a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+<a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+<a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+<a href="/admin-website.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">🌐</span> Website Editor</a>
+<a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+<div class="sidebar__section">Back</div>
+<a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+<a href="#" class="sidebar__link" id="lo"><span class="sidebar__icon">🚪</span> Logout</a>
+</nav>
+</aside>
+<div class="main">
+<h1 class="main__title">Website Content Editor</h1>
+<p class="main__sub">Edit homepage content — changes appear immediately on the live website.</p>
+
+<div class="section">
+<div class="section__title">🏠 Homepage Hero</div>
+<div class="form-group"><label>Hero Title</label><input class="form-input" data-key="homepage_hero_title" placeholder="Main heading"></div>
+<div class="form-group"><label>Hero Subtitle</label><input class="form-input" data-key="homepage_hero_subtitle" placeholder="Sub heading"></div>
+<div class="form-group"><label>Welcome Message</label><textarea class="form-textarea" data-key="welcome_message" placeholder="Welcome message..."></textarea></div>
+</div>
+
+<div class="section">
+<div class="section__title">👥 Committee Members</div>
+<div class="form-row">
+<div class="form-group"><label>President Name</label><input class="form-input" data-key="president_name"></div>
+<div class="form-group"><label>President Place</label><input class="form-input" data-key="president_place"></div>
+</div>
+<div class="form-group"><label>President Photo URL</label><input class="form-input" data-key="president_photo" placeholder="https://..."></div>
+<div class="form-row">
+<div class="form-group"><label>Secretary Name</label><input class="form-input" data-key="secretary_name"></div>
+<div class="form-group"><label>Secretary Place</label><input class="form-input" data-key="secretary_place"></div>
+</div>
+<div class="form-group"><label>Secretary Photo URL</label><input class="form-input" data-key="secretary_photo" placeholder="https://..."></div>
+<div class="form-row">
+<div class="form-group"><label>Treasurer Name</label><input class="form-input" data-key="treasurer_name"></div>
+<div class="form-group"><label>Treasurer Place</label><input class="form-input" data-key="treasurer_place"></div>
+</div>
+<div class="form-group"><label>Treasurer Photo URL</label><input class="form-input" data-key="treasurer_photo" placeholder="https://..."></div>
+</div>
+
+<div class="section">
+<div class="section__title">ℹ️ About & Contact</div>
+<div class="form-group"><label>About SADQ</label><textarea class="form-textarea" data-key="about_sadq" style="min-height:100px"></textarea></div>
+<div class="form-row">
+<div class="form-group"><label>Contact Email</label><input class="form-input" data-key="contact_email"></div>
+<div class="form-group"><label>Contact Phone</label><input class="form-input" data-key="contact_phone"></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section__title">🔗 Social Links</div>
+<div class="form-group"><label>Instagram URL</label><input class="form-input" data-key="instagram_url"></div>
+<div class="form-group"><label>YouTube URL</label><input class="form-input" data-key="youtube_url"></div>
+</div>
+
+<button class="btn btn--primary" id="save-all" onclick="saveAll()" style="position:fixed;bottom:24px;right:24px;box-shadow:0 8px 24px rgba(37,99,235,0.3);z-index:50">💾 Save All Changes</button>
+<div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import{supabase,requireAuth,signOut} from '/js/supabase-client.js'
+async function init(){try{const{user,profile}=await requireAuth();if(!profile||!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';return}
+document.getElementById('lo').addEventListener('click',e=>{e.preventDefault();signOut()})
+document.getElementById('mt').addEventListener('click',()=>document.getElementById('sb').classList.toggle('sidebar--open'))
+await loadSettings()}catch(e){console.error(e)}}
+async function loadSettings(){try{const{data,error}=await supabase.from('site_settings').select('key,value')
+if(error)throw error
+if(data){data.forEach(s=>{const el=document.querySelector(`[data-key="${s.key}"]`);if(el)el.value=s.value||''})}}catch(e){console.error('Settings load error:',e.message)}}
+window.saveAll=async()=>{const btn=document.getElementById('save-all');btn.disabled=true;btn.textContent='Saving...'
+const{data:ud}=await supabase.auth.getUser()
+const inputs=document.querySelectorAll('[data-key]')
+let count=0,errors=0
+for(const input of inputs){const key=input.dataset.key,value=input.value
+try{const{error}=await supabase.from('site_settings').update({value,updated_by:ud?.user?.id}).eq('key',key)
+if(error)errors++;else count++}catch(e){errors++}}
+toast(errors?`Saved ${count} items, ${errors} errors`:`All ${count} items saved!`,errors?'error':'success')
+btn.disabled=false;btn.textContent='💾 Save All Changes'}
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

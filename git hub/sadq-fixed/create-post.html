@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Article — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px;align-items:center}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .header__title{color:#fff;font-size:1rem;font-weight:600;margin-left:12px}
+    .container{max-width:720px;margin:0 auto;padding:16px}
+
+    /* Guard */
+    .guard{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+    .guard__icon{font-size:3rem;opacity:.3}
+    .guard__text{font-size:.9375rem;color:var(--sadq-text-muted)}
+
+    /* Form Card */
+    .form-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:24px;box-shadow:var(--sadq-shadow);margin-bottom:16px}
+    .form-card__title{font-size:1.125rem;font-weight:600;margin-bottom:20px}
+
+    /* Form elements */
+    .form-group{margin-bottom:18px}
+    .form-label{display:block;font-size:.8125rem;font-weight:500;margin-bottom:6px}
+    .form-label span{color:var(--sadq-danger)}
+    .form-input{width:100%;padding:12px 14px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;font-family:inherit;transition:var(--sadq-transition)}
+    .form-input:focus{outline:none;border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .form-input--title{font-size:1.125rem;font-weight:600}
+    .form-select{width:100%;padding:10px 12px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;background:#fff;font-family:inherit}
+
+    /* Rich text editor */
+    .editor-toolbar{display:flex;gap:4px;padding:8px;border:1px solid var(--sadq-border);border-bottom:none;border-radius:var(--sadq-radius-sm) var(--sadq-radius-sm) 0 0;background:#f8f9fa;flex-wrap:wrap}
+    .editor-btn{padding:6px 10px;border:none;background:none;cursor:pointer;font-size:.875rem;border-radius:4px;transition:var(--sadq-transition)}
+    .editor-btn:hover{background:#e0e0e0}
+    .editor-divider{width:1px;background:var(--sadq-border);margin:2px 4px}
+    .editor-content{width:100%;min-height:300px;padding:16px;border:1px solid var(--sadq-border);border-radius:0 0 var(--sadq-radius-sm) var(--sadq-radius-sm);font-size:.9375rem;line-height:1.8;font-family:inherit;outline:none;transition:var(--sadq-transition)}
+    .editor-content:focus{border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .editor-content:empty:before{content:attr(data-placeholder);color:var(--sadq-text-muted)}
+
+    /* Tags input */
+    .tags-input{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);min-height:42px;cursor:text}
+    .tags-input__tag{display:flex;align-items:center;gap:4px;background:#f0f7f0;color:var(--sadq-primary);padding:4px 10px;border-radius:12px;font-size:.75rem}
+    .tags-input__tag button{background:none;border:none;cursor:pointer;color:var(--sadq-primary);font-size:.875rem;line-height:1}
+    .tags-input__input{border:none;outline:none;font-size:.8125rem;font-family:inherit;background:none;flex:1;min-width:100px}
+
+    /* Image upload */
+    .upload-zone{border:2px dashed var(--sadq-border);border-radius:var(--sadq-radius-sm);padding:24px;text-align:center;cursor:pointer;transition:var(--sadq-transition)}
+    .upload-zone:hover{border-color:var(--sadq-primary);background:#f8faf8}
+    .upload-zone--uploaded{padding:0;border-style:solid;border-color:var(--sadq-primary)}
+    .upload-zone__icon{font-size:2rem;opacity:.5;margin-bottom:8px}
+    .upload-zone__text{font-size:.8125rem;color:var(--sadq-text-muted)}
+    .upload-preview{width:100%;max-height:300px;object-fit:cover;border-radius:var(--sadq-radius-sm);display:block}
+    .upload-remove{margin-top:8px;font-size:.75rem;color:var(--sadq-danger);background:none;border:none;cursor:pointer}
+
+    /* Buttons */
+    .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--sadq-transition)}
+    .btn--primary{background:var(--sadq-primary);color:#fff}
+    .btn--primary:hover{background:var(--sadq-primary-light)}
+    .btn--primary:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .btn--outline:disabled{opacity:.6;cursor:not-allowed}
+
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--sadq-radius-sm);color:#fff;font-size:.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--sadq-transition);max-width:350px}
+    .toast--show{opacity:1;transform:translateY(0)}
+    .toast--success{background:var(--sadq-success)}
+    .toast--error{background:var(--sadq-danger)}
+
+    .form-error{font-size:.75rem;color:var(--sadq-danger);margin-top:4px}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    @media(max-width:600px){.form-card{padding:16px}.btn-row{flex-direction:column-reverse}.btn{width:100%}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <span class="header__title">Create Article</span>
+    <nav class="header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div id="guard" class="guard hidden">
+      <div class="guard__icon">✍️</div>
+      <p class="guard-text" id="guard-text">Loading...</p>
+      <a href="/login.html" class="btn btn--primary" id="guard-btn" style="display:none">Login</a>
+    </div>
+
+    <div id="main" class="hidden">
+      <div class="form-card">
+        <div class="form-card__title">Write a New Article</div>
+
+        <form id="post-form" onsubmit="return false;">
+          <!-- Title -->
+          <div class="form-group">
+            <label class="form-label">Title <span>*</span></label>
+            <input type="text" id="post-title" class="form-input form-input--title" placeholder="Enter an engaging title..." maxlength="200" required>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="post-kind" class="form-select">
+              <option value="article">Article</option>
+              <option value="essay">Essay</option>
+              <option value="story">Story</option>
+              <option value="poem">Poem</option>
+              <option value="review">Review</option>
+              <option value="opinion">Opinion</option>
+              <option value="news">News</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- Featured Image -->
+          <div class="form-group">
+            <label class="form-label">Featured Image</label>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('featured-image').click()">
+              <div class="upload-zone__icon">📷</div>
+              <div class="upload-zone__text">Click to upload an image (optional)</div>
+            </div>
+            <input type="file" id="featured-image" accept="image/*" class="hidden" onchange="window.handleImageUpload(event)">
+          </div>
+
+          <!-- Content -->
+          <div class="form-group">
+            <label class="form-label">Content <span>*</span></label>
+            <div class="editor-toolbar">
+              <button type="button" class="editor-btn" onclick="window.execEdit('bold')" title="Bold"><b>B</b></button>
+              <button type="button" class="editor-btn" onclick="window.execEdit('italic')" title="Italic"><i>I</i></button>
+              <button type="button" class="editor-btn" onclick="window.execEdit('underline')" title="Underline"><u>U</u></button>
+              <div class="editor-divider"></div>
+              <button type="button" class="editor-btn" onclick="window.execEdit('formatBlock','h2')" title="Heading">H2</button>
+              <button type="button" class="editor-btn" onclick="window.execEdit('formatBlock','blockquote')" title="Quote">❝</button>
+              <div class="editor-divider"></div>
+              <button type="button" class="editor-btn" onclick="window.execEdit('insertUnorderedList')" title="Bullet list">• List</button>
+              <button type="button" class="editor-btn" onclick="window.execEdit('insertOrderedList')" title="Numbered list">1. List</button>
+              <div class="editor-divider"></div>
+              <button type="button" class="editor-btn" onclick="window.insertLink()" title="Insert link">🔗</button>
+              <button type="button" class="editor-btn" onclick="window.insertImage()" title="Insert image inline">🖼️</button>
+            </div>
+            <div class="editor-content" id="post-content" contenteditable="true" data-placeholder="Start writing your article..." oninput="window.updateCharCount()"></div>
+            <div style="font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px;text-align:right"><span id="char-count">0</span> characters</div>
+          </div>
+
+          <!-- Tags -->
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            <div class="tags-input" id="tags-container" onclick="document.getElementById('tag-input').focus()">
+              <input type="text" id="tag-input" class="tags-input__input" placeholder="Type a tag and press Enter..." onkeydown="window.handleTagInput(event)">
+            </div>
+            <div class="form-hint" style="font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px">Add up to 8 tags to help readers find your article.</div>
+          </div>
+
+          <!-- Slug -->
+          <div class="form-group">
+            <label class="form-label">Custom URL (optional)</label>
+            <input type="text" id="post-slug" class="form-input" placeholder="my-article-slug" pattern="[a-z0-9-]+">
+            <div class="form-hint" style="font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px">Lowercase letters, numbers, and hyphens only. Leave blank for auto-generated.</div>
+          </div>
+
+          <div class="form-error hidden" id="form-error"></div>
+
+          <!-- Actions -->
+          <div class="btn-row">
+            <button type="button" class="btn btn--outline" id="draft-btn">Save Draft</button>
+            <button type="submit" class="btn btn--primary" id="publish-btn">Publish Article</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let tags = [];
+    let featuredImageUrl = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 4000);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────
+    async function init() {
+      try {
+        const { user } = await getCurrentUser();
+        currentUser = user;
+        if (!user) {
+          document.getElementById('guard-text').textContent = 'Please login to create an article.';
+          document.getElementById('guard-btn').style.display = 'inline-block';
+          document.getElementById('guard').classList.remove('hidden');
+          return;
+        }
+        document.getElementById('guard').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('main').classList.add('fade-in');
+        document.getElementById('post-title').focus();
+      } catch (err) {
+        console.error('[CreatePost] Init error:', err.message);
+        document.getElementById('guard-text').textContent = 'Unable to load. Please try again.';
+      }
+    }
+
+    // ── Rich Text Editor ──────────────────────────────────────────────
+    window.execEdit = function(command, value = null) {
+      document.execCommand(command, false, value);
+      document.getElementById('post-content').focus();
+    };
+
+    window.insertLink = function() {
+      const url = prompt('Enter URL:');
+      if (url) window.execEdit('createLink', url);
+    };
+
+    window.insertImage = function() {
+      const url = prompt('Enter image URL:');
+      if (url) window.execEdit('insertImage', url);
+    };
+
+    window.updateCharCount = function() {
+      const content = document.getElementById('post-content').innerText;
+      document.getElementById('char-count').textContent = content.length;
+    };
+
+    // ── Tags ───────────────────────────────────────────────────────────
+    window.handleTagInput = function(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const input = e.target;
+        const tag = input.value.trim().replace(/[^a-zA-Z0-9\s-]/g, '').toLowerCase().replace(/\s+/g, '-');
+        if (tag && !tags.includes(tag) && tags.length < 8) {
+          tags.push(tag);
+          renderTags();
+        }
+        input.value = '';
+      } else if (e.key === 'Backspace' && !e.target.value && tags.length > 0) {
+        tags.pop();
+        renderTags();
+      }
+    };
+
+    function renderTags() {
+      const container = document.getElementById('tags-container');
+      const input = document.getElementById('tag-input');
+      // Remove existing tags
+      container.querySelectorAll('.tags-input__tag').forEach(el => el.remove());
+
+      tags.forEach((tag, i) => {
+        const el = document.createElement('span');
+        el.className = 'tags-input__tag';
+        el.innerHTML = `#${tag} <button type="button" onclick="window.removeTag(${i})">×</button>`;
+        container.insertBefore(el, input);
+      });
+    }
+
+    window.removeTag = function(index) {
+      tags.splice(index, 1);
+      renderTags();
+    };
+
+    // ── Image Upload ───────────────────────────────────────────────────
+    window.handleImageUpload = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate
+      if (!file.type.startsWith('image/')) { showToast('Please select an image file.', 'error'); return; }
+      if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', 'error'); return; }
+
+      const zone = document.getElementById('upload-zone');
+      zone.innerHTML = '<div class="upload-zone__text">Uploading...</div>';
+
+      try {
+        // Use MediaService if available, otherwise direct upload
+        const fileName = `posts/${currentUser.id}/${Date.now()}-${file.name}`;
+        const { data, error } = await supabase.storage.from('profile-media')
+          .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage.from('profile-media').getPublicUrl(fileName);
+        featuredImageUrl = urlData.publicUrl;
+
+        zone.classList.add('upload-zone--uploaded');
+        zone.innerHTML = `
+          <img class="upload-preview" src="${featuredImageUrl}" alt="Featured image">
+          <button type="button" class="upload-remove" onclick="window.removeImage()">Remove image</button>
+        `;
+        showToast('Image uploaded!', 'success');
+      } catch (err) {
+        console.error('[ImageUpload] Error:', err.message);
+        zone.innerHTML = '<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Upload failed. Click to try again.</div>';
+        showToast('Unable to upload image.', 'error');
+      }
+    };
+
+    window.removeImage = function() {
+      featuredImageUrl = null;
+      const zone = document.getElementById('upload-zone');
+      zone.classList.remove('upload-zone--uploaded');
+      zone.innerHTML = '<div class="upload-zone__icon">📷</div><div class="upload-zone__text">Click to upload an image (optional)</div>';
+      document.getElementById('featured-image').value = '';
+    };
+
+    // ── Submit ────────────────────────────────────────────────────────
+    async function submitPost(status) {
+      const title = document.getElementById('post-title').value.trim();
+      const content = document.getElementById('post-content').innerHTML.trim();
+      const postKind = document.getElementById('post-kind').value;
+      const slug = document.getElementById('post-slug').value.trim();
+
+      const errorEl = document.getElementById('form-error');
+      errorEl.classList.add('hidden');
+
+      if (!title) { errorEl.textContent = 'Title is required.'; errorEl.classList.remove('hidden'); return; }
+      if (title.length < 5) { errorEl.textContent = 'Title must be at least 5 characters.'; errorEl.classList.remove('hidden'); return; }
+      if (!content || content === '<br>') { errorEl.textContent = 'Content is required.'; errorEl.classList.remove('hidden'); return; }
+      const saveStatus = status === 'published' ? 'pending_review' : 'draft';
+
+      const btn = status === 'published' ? document.getElementById('publish-btn') : document.getElementById('draft-btn');
+      btn.disabled = true;
+      btn.innerHTML = status === 'published' ? '<span class="spinner"></span> Publishing...' : '<span class="spinner"></span> Saving...';
+
+      try {
+        const postData = {
+          title,
+          content,
+          post_kind: postKind,
+          tags: tags.length > 0 ? JSON.stringify(tags) : null,
+          featured_image_url: featuredImageUrl,
+          author_id: currentUser.id,
+          status: saveStatus,
+          slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 80),
+        };
+
+        const { data, error } = await supabase.from('posts').insert(postData).select('id, slug').single();
+        if (error) {
+          if (error.message.includes('duplicate') || error.message.includes('unique')) {
+            errorEl.textContent = 'This slug is already taken. Please use a different one.';
+            errorEl.classList.remove('hidden');
+          } else {
+            throw error;
+          }
+          return;
+        }
+
+        if (status === 'published') {
+          showToast('Article submitted for review!', 'success');
+          setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
+        } else {
+          showToast('Draft saved!', 'success');
+          setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
+        }
+      } catch (err) {
+        console.error('[SubmitPost] Error:', err.message);
+        errorEl.textContent = err.message || 'Unable to save. Please try again.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = status === 'published' ? 'Publish Article' : 'Save Draft';
+      }
+    }
+
+    document.getElementById('publish-btn').addEventListener('click', () => submitPost('published'));
+    document.getElementById('draft-btn').addEventListener('click', () => submitPost('draft'));
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

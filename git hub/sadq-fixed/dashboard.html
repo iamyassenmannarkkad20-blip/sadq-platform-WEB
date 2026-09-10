@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — SADQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/animations.css">
+<style>
+.dash-header{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.dash-header__welcome h1{font-size:1.5rem;font-weight:800}
+.dash-header__welcome p{font-size:0.8rem;color:var(--text-muted);margin-top:2px}
+.dash-header__avatar{width:44px;height:44px;border-radius:50%;background:var(--gradient-cta);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;border:2px solid var(--border)}
+
+.dash-container{max-width:1000px;margin:0 auto;padding:24px 20px}
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.dash-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.quick-card{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:20px;text-align:center;transition:var(--t-premium);text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.quick-card::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);transition:left 0.8s}
+.quick-card:hover::after{left:100%}
+.quick-card:hover{transform:translateY(-4px);border-color:var(--border-hover);box-shadow:var(--shadow-md),var(--shadow-glow-purple)}
+.quick-card__icon{font-size:2rem;margin-bottom:10px}
+.quick-card__title{font-size:0.85rem;font-weight:600;color:var(--text-secondary)}
+
+.dash-section{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px}
+.dash-section__title{font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.dash-loading{display:flex;align-items:center;justify-content:center;padding:40px}
+.dash-empty{text-align:center;padding:32px;color:var(--text-muted);font-size:0.85rem}
+
+@media(max-width:768px){.dash-header{padding:16px}.dash-stats{grid-template-columns:repeat(2,1fr)}.dash-quick{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="aurora-bg"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<header class="dash-header">
+  <div class="dash-header__welcome">
+    <h1 class="text-gradient">Dashboard</h1>
+    <p id="userName">Loading...</p>
+  </div>
+  <div class="dash-header__avatar" id="avatar">?</div>
+</header>
+
+<div class="dash-container">
+  <!-- Stats -->
+  <div class="dash-stats stagger-group" id="statsGrid">
+    <div class="stat-card stagger-item">
+      <div class="stat-card__icon">🎓</div>
+      <div class="stat-card__value" id="statPosts">0</div>
+      <div class="stat-card__label">My Posts</div>
+    </div>
+    <div class="stat-card stagger-item">
+      <div class="stat-card__icon">🏆</div>
+      <div class="stat-card__value" id="statCerts">0</div>
+      <div class="stat-card__label">Certificates</div>
+    </div>
+    <div class="stat-card stagger-item">
+      <div class="stat-card__icon">📅</div>
+      <div class="stat-card__value" id="statEvents">0</div>
+      <div class="stat-card__label">Events Joined</div>
+    </div>
+    <div class="stat-card stagger-item">
+      <div class="stat-card__icon">⭐</div>
+      <div class="stat-card__value" id="statPoints">0</div>
+      <div class="stat-card__label">Achievement Points</div>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section__title">👤 Account Overview</div>
+    <div id="profileSummary"><div class="dash-loading">Loading profile...</div></div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="dash-quick">
+    <a href="/create-post.html" class="quick-card"><div class="quick-card__icon">✍️</div><div class="quick-card__title">Write Article</div></a>
+    <a href="/create-service.html" class="quick-card"><div class="quick-card__icon">🛠️</div><div class="quick-card__title">Offer Service</div></a>
+    <a href="/create-project.html" class="quick-card"><div class="quick-card__icon">📁</div><div class="quick-card__title">Create Project</div></a>
+    <a href="/profile-edit.html" class="quick-card"><div class="quick-card__icon">👤</div><div class="quick-card__title">Edit Profile</div></a>
+    <a href="/events.html" class="quick-card"><div class="quick-card__icon">📅</div><div class="quick-card__title">Browse Events</div></a>
+    <a href="/student-profile.html" class="quick-card"><div class="quick-card__icon">📄</div><div class="quick-card__title">My Profile</div></a>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="dash-section">
+    <div class="dash-section__title">📋 Recent Activity</div>
+    <div id="activityList">
+      <div class="dash-loading">Loading activity...</div>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section__title">✅ Task Progress</div>
+    <div id="taskSummary"><div class="dash-loading">Loading task progress...</div></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section__title">📖 Quran Progress</div>
+    <div id="quranSummary"><div class="dash-loading">Loading Quran progress...</div></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section__title">🔔 Notifications</div>
+    <div id="notificationSummary"><div class="dash-loading">Loading notifications...</div></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section__title">🏆 Achievements and Certificates</div>
+    <div id="achievementSummary"><div class="dash-loading">Loading achievements...</div></div>
+  </div>
+
+  <!-- Upcoming Events -->
+  <div class="dash-section">
+    <div class="dash-section__title">📅 Upcoming Events</div>
+    <div id="eventsList">
+      <div class="dash-empty">No upcoming events.</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+async function init(){
+  try{
+    const{data:{user}}=await supabase.auth.getUser();
+    if(!user){window.location.href='/login.html';return}
+    const{data:profile}=await supabase.from('profiles').select('*').eq('id',user.id).single();
+    if(!profile){window.location.href='/login.html';return}
+    if(String(profile.account_status)!=='active'){window.location.href='/login.html?message='+encodeURIComponent(profile.account_status||'inactive');return}
+    if(['admin','super_admin'].includes(String(profile.role))){window.location.href='/admin-dashboard.html';return}
+    if(!profile.profile_completed&&profile.full_name){window.location.href='/profile-onboarding.html';return}
+
+    document.getElementById('userName').textContent='Welcome, '+((profile.full_name||'Student').split(' ')[0]);
+    document.getElementById('avatar').textContent=(profile.full_name||'?').charAt(0).toUpperCase();
+
+    // Trigger stagger
+    setTimeout(()=>{document.getElementById('statsGrid').classList.add('visible')},100);
+
+    // Load stats
+    const[posts,certs,events]=await Promise.all([
+      supabase.from('posts').select('id',{count:'exact'}).eq('author_id',user.id),
+      supabase.from('certificates').select('id',{count:'exact'}).eq('student_id',user.id).eq('status','published'),
+      supabase.from('event_registrations').select('id',{count:'exact'}).eq('student_id',user.id)
+    ]);
+    document.getElementById('statPosts').textContent=posts.count||0;
+    document.getElementById('statCerts').textContent=certs.count||0;
+    document.getElementById('statEvents').textContent=events.count||0;
+    document.getElementById('statPoints').textContent=profile.achievement_points||0;
+    window.__sadqUserId=user.id;
+    renderProfile(profile);
+    await Promise.all([loadTaskSummary(),loadQuranSummary(),loadNotifications(user.id),loadAchievements(),loadActivity(user.id),loadEvents(user.id)]);
+  }catch(e){console.error('[Dashboard] Init error:',e);document.querySelectorAll('.dash-loading').forEach(el=>{el.textContent='Unable to load dashboard data.'})}
+}
+
+function renderProfile(profile){
+  document.getElementById('profileSummary').innerHTML=`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><strong>${esc(profile.full_name||'Student')}</strong><span class="badge">${esc(profile.account_status||'unknown')}</span><span style="color:var(--text-muted);font-size:.8rem">Profile visibility: ${esc(profile.profile_visibility||'private')}</span></div>`;
+}
+
+function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function setSummary(id,html){document.getElementById(id).innerHTML=html}
+
+async function loadTaskSummary(){
+  try{const{data,error}=await supabase.rpc('get_task_stats');if(error)throw error;const stats=data||{};setSummary('taskSummary',`<div><strong>${stats.completed_tasks||0}</strong> completed of <strong>${stats.total_tasks||0}</strong> assigned tasks · ${stats.in_progress_tasks||0} in progress · ${stats.pending_tasks||0} awaiting review</div>`)}catch(e){setSummary('taskSummary','<div class="dash-empty">Task progress is unavailable.</div>')}
+}
+async function loadQuranSummary(){
+  try{const{data,error}=await supabase.rpc('get_quran_stats');if(error)throw error;const stats=data||{};setSummary('quranSummary',`<div><strong>${stats.progress_percentage||0}%</strong> complete · ${stats.completed_juz||0}/30 Juz completed · ${stats.in_progress_juz||0} in progress · ${stats.khatm_count||0} Khatm</div>`)}catch(e){setSummary('quranSummary','<div class="dash-empty">Quran progress is unavailable.</div>')}
+}
+async function loadNotifications(userId){
+  try{const{data,error}=await supabase.from('notifications').select('id,title,is_read,created_at').eq('user_id',userId).order('created_at',{ascending:false}).limit(5);if(error)throw error;setSummary('notificationSummary',data?.length?data.map(n=>`<div style="padding:7px 0;border-bottom:1px solid var(--border)"><strong>${esc(n.title||'Notification')}</strong><span style="float:right;color:var(--text-muted);font-size:.75rem">${n.is_read?'Read':'Unread'}</span></div>`).join(''):'<div class="dash-empty">No notifications yet.</div>')}catch(e){setSummary('notificationSummary','<div class="dash-empty">Notifications are unavailable.</div>')}
+}
+async function loadAchievements(){
+  try{const[{data:achievements,error:achievementError},{data:certificates,error:certificateError}]=await Promise.all([supabase.from('student_achievements').select('*').eq('student_id',profileId()).order('achievement_date',{ascending:false}).limit(3),supabase.from('certificates').select('*').eq('student_id',profileId()).eq('status','published').order('created_at',{ascending:false}).limit(3)]);if(achievementError)throw achievementError;if(certificateError)throw certificateError;const rows=[...(achievements||[]).map(a=>`<div>🏅 ${esc(a.title||'Achievement')}</div>`),...(certificates||[]).map(c=>`<div>📜 ${esc(c.title||c.certificate_type||'Certificate')}</div>`)];setSummary('achievementSummary',rows.length?rows.join(''):'<div class="dash-empty">No achievements or certificates yet.</div>')}catch(e){setSummary('achievementSummary','<div class="dash-empty">Achievements are unavailable.</div>')}
+}
+function profileId(){return window.__sadqUserId}
+async function loadActivity(userId){
+  try{const{data,error}=await supabase.from('posts').select('title,created_at').eq('author_id',userId).order('created_at',{ascending:false}).limit(5);if(error)throw error;setSummary('activityList',data?.length?data.map(p=>`<div style="padding:7px 0;border-bottom:1px solid var(--border)">Published post: ${esc(p.title||'Untitled')} <span style="color:var(--text-muted);font-size:.75rem">${new Date(p.created_at).toLocaleDateString('en-IN')}</span></div>`).join(''):'<div class="dash-empty">No recent activity yet.</div>')}catch(e){setSummary('activityList','<div class="dash-empty">Activity is unavailable.</div>')}
+}
+async function loadEvents(userId){
+  try{const{data,error}=await supabase.from('event_registrations').select('*').eq('student_id',userId).order('registered_at',{ascending:false}).limit(5);if(error)throw error;setSummary('eventsList',data?.length?data.map(r=>`<div style="padding:7px 0;border-bottom:1px solid var(--border)">Registered event <span style="color:var(--text-muted);font-size:.75rem">${new Date(r.registered_at).toLocaleDateString('en-IN')}</span></div>`).join(''):'<div class="dash-empty">No event registrations yet.</div>')}catch(e){setSummary('eventsList','<div class="dash-empty">Events are unavailable.</div>')}
+}
+init();
+</script>
+<script src="/js/smooth-scroll.js"></script>
+<script src="/js/interactions.js"></script>
+<script src="/js/page-transition.js"></script>
+</body>
+</html>

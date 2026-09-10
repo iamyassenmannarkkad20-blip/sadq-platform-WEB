@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Skills — SADQ</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .sadq-header {
+      position: sticky; top: 0; z-index: 100; height: 64px;
+      background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .sadq-header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sadq-header__nav { margin-left: auto; display: flex; gap: 8px; }
+    .sadq-header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: var(--sadq-radius-sm); }
+    .sadq-header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+    .section {
+      background: var(--sadq-card-bg); border-radius: var(--sadq-radius);
+      padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow);
+    }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section__title { font-size: 1.125rem; font-weight: 600; }
+
+    .btn {
+      padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+
+    .skills-list { display: flex; flex-direction: column; gap: 8px; }
+    .skill-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm); transition: var(--sadq-transition);
+    }
+    .skill-item:hover { box-shadow: var(--sadq-shadow-hover); }
+    .skill-item__icon { font-size: 1.25rem; flex-shrink: 0; }
+    .skill-item__body { flex: 1; }
+    .skill-item__name { font-weight: 500; font-size: 0.9375rem; }
+    .skill-item__meta { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+    .skill-item__actions { display: flex; gap: 4px; }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state__text { font-size: 0.9375rem; margin-bottom: 16px; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay--active { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--sadq-radius); padding: 24px;
+      max-width: 450px; width: 100%; max-height: 90vh; overflow-y: auto;
+    }
+    .modal__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close {
+      float: right; background: none; border: none; font-size: 1.5rem;
+      cursor: pointer; color: var(--sadq-text-muted); line-height: 1;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-family: inherit;
+      transition: var(--sadq-transition);
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--sadq-primary);
+      box-shadow: 0 0 0 3px rgba(26, 86, 50, 0.1);
+    }
+    .form-error { font-size: 0.8125rem; color: var(--sadq-danger); margin-top: 4px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 20px; border-radius: var(--sadq-radius-sm);
+      color: #fff; font-size: 0.875rem; z-index: 300;
+      opacity: 0; transform: translateY(10px); transition: var(--sadq-transition);
+    }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%; animation: skeleton-loading 1.5s infinite;
+      border-radius: var(--sadq-radius-sm);
+    }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .badge--beginner { background: #e3f2fd; color: #1565c0; }
+    .badge--intermediate { background: #f3e5f5; color: #7b1fa2; }
+    .badge--advanced { background: #fff3e0; color: #e65100; }
+    .badge--expert { background: #e8f5e9; color: #2e7d32; }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <header class="sadq-header">
+    <a href="/dashboard.html" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/student-profile.html">← Profile</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">My Skills</h2>
+        <button class="btn btn--primary" id="add-skill-btn">+ Add Skill</button>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading-state">
+        <div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div>
+        <div class="skeleton" style="height: 60px;"></div>
+      </div>
+
+      <!-- Skills list -->
+      <div id="skills-list" class="skills-list hidden"></div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state__icon">💼</div>
+        <p class="empty-state__text">No skills added yet. Showcase what you know!</p>
+        <button class="btn btn--primary" onclick="document.getElementById('add-skill-btn').click()">Add Your First Skill</button>
+      </div>
+
+      <!-- Error state -->
+      <div id="error-state" class="empty-state hidden">
+        <div class="empty-state__icon">⚠️</div>
+        <p class="empty-state__text">Unable to load skills. Please try again.</p>
+        <button class="btn btn--primary" id="retry-btn">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Skill Modal -->
+  <div class="modal-overlay" id="skill-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal()">×</button>
+      <h2 class="modal__title" id="modal-title">Add Skill</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="skill-name">Skill Name *</label>
+        <input type="text" id="skill-name" class="form-input" placeholder="e.g. Python, Graphic Design, Arabic Translation" maxlength="100">
+        <div class="form-error hidden" id="skill-name-error"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="skill-category">Category</label>
+        <select id="skill-category" class="form-select">
+          <option value="Programming">Programming</option>
+          <option value="Design">Design</option>
+          <option value="Translation">Translation</option>
+          <option value="Writing">Writing</option>
+          <option value="Video Editing">Video Editing</option>
+          <option value="Web Development">Web Development</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="skill-proficiency">Proficiency</label>
+        <select id="skill-proficiency" class="form-select">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn--primary" id="save-skill-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h2 class="modal__title">Delete Skill</h2>
+      <p style="margin-bottom: 20px; color: var(--sadq-text-muted);">
+        Are you sure you want to delete "<span id="delete-skill-name"></span>"? This cannot be undone.
+      </p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn--ghost" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn--danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let editingSkillId = null;
+    let deletingSkillId = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    function showLoading() {
+      document.getElementById('loading-state').classList.remove('hidden');
+      document.getElementById('skills-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function showError() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('skills-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+    }
+
+    function showEmpty() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('skills-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function showSkills() {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('skills-list').classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    }
+
+    function proficiencyBadge(level) {
+      return `<span class="badge badge--${level}">${level}</span>`;
+    }
+
+    function skillIcon(category) {
+      const icons = {
+        'Programming': '💻', 'Design': '🎨', 'Translation': '🌐',
+        'Writing': '✍️', 'Video Editing': '🎬', 'Web Development': '🔗',
+        'Other': '⭐'
+      };
+      return icons[category] || '⭐';
+    }
+
+    // ── Load Skills ──────────────────────────────────────────────────
+    async function loadSkills() {
+      showLoading();
+      try {
+        const { data, error } = await supabase
+          .from('student_skills')
+          .select('*')
+          .eq('student_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          showEmpty();
+          return;
+        }
+
+        const container = document.getElementById('skills-list');
+        container.innerHTML = data.map(skill => `
+          <div class="skill-item fade-in">
+            <div class="skill-item__icon">${skillIcon(skill.skill_category)}</div>
+            <div class="skill-item__body">
+              <div class="skill-item__name">${skill.skill_name}</div>
+              <div class="skill-item__meta">
+                ${skill.skill_category} · ${proficiencyBadge(skill.proficiency)}
+              </div>
+            </div>
+            <div class="skill-item__actions">
+              <button class="btn btn--small btn--ghost" onclick="editSkill('${skill.id}', '${skill.skill_name.replace(/'/g, "\\'")}', '${skill.skill_category}', '${skill.proficiency}')">Edit</button>
+              <button class="btn btn--small btn--ghost" style="color: var(--sadq-danger);" onclick="confirmDelete('${skill.id}', '${skill.skill_name.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        showSkills();
+      } catch (error) {
+        console.error('[Skills] Load error:', error.message);
+        showError();
+      }
+    }
+
+    // ── Modal helpers ───────────────────────────────────────────────
+    window.closeModal = function() {
+      document.getElementById('skill-modal').classList.remove('modal-overlay--active');
+      editingSkillId = null;
+      document.getElementById('skill-name').value = '';
+      document.getElementById('skill-name-error').classList.add('hidden');
+    };
+
+    window.closeDeleteModal = function() {
+      document.getElementById('delete-modal').classList.remove('modal-overlay--active');
+      deletingSkillId = null;
+    };
+
+    // ── Add/Edit ─────────────────────────────────────────────────────
+    document.getElementById('add-skill-btn').addEventListener('click', () => {
+      editingSkillId = null;
+      document.getElementById('modal-title').textContent = 'Add Skill';
+      document.getElementById('skill-name').value = '';
+      document.getElementById('skill-category').value = 'Programming';
+      document.getElementById('skill-proficiency').value = 'intermediate';
+      document.getElementById('skill-modal').classList.add('modal-overlay--active');
+      setTimeout(() => document.getElementById('skill-name').focus(), 100);
+    });
+
+    window.editSkill = function(id, name, category, proficiency) {
+      editingSkillId = id;
+      document.getElementById('modal-title').textContent = 'Edit Skill';
+      document.getElementById('skill-name').value = name;
+      document.getElementById('skill-category').value = category;
+      document.getElementById('skill-proficiency').value = proficiency;
+      document.getElementById('skill-modal').classList.add('modal-overlay--active');
+    };
+
+    document.getElementById('save-skill-btn').addEventListener('click', async () => {
+      const name = document.getElementById('skill-name').value.trim();
+      const category = document.getElementById('skill-category').value;
+      const proficiency = document.getElementById('skill-proficiency').value;
+      const errorEl = document.getElementById('skill-name-error');
+      const saveBtn = document.getElementById('save-skill-btn');
+
+      if (!name) {
+        errorEl.textContent = 'Skill name is required.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      if (name.length < 2) {
+        errorEl.textContent = 'Skill name must be at least 2 characters.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      errorEl.classList.add('hidden');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        if (editingSkillId) {
+          // Update existing
+          const { error } = await supabase
+            .from('student_skills')
+            .update({ skill_name: name, skill_category: category, proficiency })
+            .eq('id', editingSkillId)
+            .eq('student_id', currentUser.id);
+
+          if (error) throw error;
+          showToast('Skill updated successfully!');
+        } else {
+          // Insert new
+          const { error } = await supabase
+            .from('student_skills')
+            .insert({ student_id: currentUser.id, skill_name: name, skill_category: category, proficiency });
+
+          if (error) {
+            if (error.code === '23505') {
+              throw new Error('You already have this skill added.');
+            }
+            throw error;
+          }
+          showToast('Skill added successfully!');
+        }
+
+        closeModal();
+        await loadSkills();
+      } catch (error) {
+        console.error('[Skills] Save error:', error.message);
+        showToast(error.message || 'Unable to save skill. Please try again.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
+      }
+    });
+
+    // ── Delete ───────────────────────────────────────────────────────
+    window.confirmDelete = function(id, name) {
+      deletingSkillId = id;
+      document.getElementById('delete-skill-name').textContent = name;
+      document.getElementById('delete-modal').classList.add('modal-overlay--active');
+    };
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+      if (!deletingSkillId) return;
+
+      try {
+        const { error } = await supabase
+          .from('student_skills')
+          .delete()
+          .eq('id', deletingSkillId)
+          .eq('student_id', currentUser.id);
+
+        if (error) throw error;
+
+        showToast('Skill deleted.');
+        closeDeleteModal();
+        await loadSkills();
+      } catch (error) {
+        console.error('[Skills] Delete error:', error.message);
+        showToast('Unable to delete skill. Please try again.', 'error');
+      }
+    });
+
+    // ── Retry ────────────────────────────────────────────────────────
+    document.getElementById('retry-btn').addEventListener('click', loadSkills);
+
+    // ── Init ─────────────────────────────────────────────────────────
+    async function init() {
+      try {
+        const { user } = await requireAuth();
+        currentUser = user;
+        await loadSkills();
+      } catch (error) {
+        console.error('[Skills] Init error:', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

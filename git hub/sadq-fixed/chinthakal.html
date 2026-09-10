@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chinthakal — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:680px;margin:0 auto;padding:16px}
+    .page-header{text-align:center;margin-bottom:20px}
+    .page-title{font-size:1.5rem;font-weight:700;color:var(--sadq-primary)}
+    .page-sub{font-size:.875rem;color:var(--sadq-text-muted)}
+
+    /* Compose box */
+    .compose{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:16px;box-shadow:var(--sadq-shadow);margin-bottom:20px}
+    .compose__textarea{width:100%;border:none;resize:none;font-size:.9375rem;font-family:inherit;outline:none;min-height:60px;color:var(--text,#F8FAFC);background:transparent}
+    .compose__textarea::placeholder{color:var(--sadq-text-muted)}
+    .compose__bottom{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--sadq-border)}
+    .compose__char-count{font-size:.75rem;color:var(--sadq-text-muted)}
+    .compose__char-count--warning{color:var(--sadq-danger)}
+    .btn{padding:8px 20px;border:none;border-radius:var(--sadq-radius-sm);font-size:.8125rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;transition:var(--sadq-transition)}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn--link{background:none;color:var(--sadq-primary);padding:8px 12px;text-decoration:none;font-size:.8125rem;font-weight:500}
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Feed */
+    .feed{display:flex;flex-direction:column;gap:12px}
+    .thought-card{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:16px;box-shadow:var(--sadq-shadow);transition:var(--sadq-transition)}
+    .thought-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+    .thought__header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .thought__avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--sadq-border);flex-shrink:0}
+    .thought__avatar-placeholder{width:40px;height:40px;border-radius:50%;background:var(--sadq-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.875rem;flex-shrink:0}
+    .thought__author{font-size:.875rem;font-weight:600}
+    .thought__username{font-size:.75rem;color:var(--sadq-text-muted)}
+    .thought__time{font-size:.6875rem;color:var(--sadq-text-muted);margin-left:auto}
+    .thought__text{font-size:.9375rem;line-height:1.7;color:var(--text,#F8FAFC);white-space:pre-wrap;word-break:break-word}
+    .thought__image{width:100%;border-radius:var(--sadq-radius-sm);margin-top:10px;max-height:400px;object-fit:cover}
+    .thought__actions{display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid var(--sadq-border)}
+    .action-btn{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font-size:.8125rem;color:var(--sadq-text-muted);transition:var(--sadq-transition);padding:4px}
+    .action-btn:hover{color:var(--sadq-primary)}
+    .action-btn--liked{color:var(--sadq-danger)}
+    .action-btn--liked:hover{color:var(--sadq-danger)}
+
+    /* Tags in thought */
+    .thought__tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .tag{background:#f0f7f0;color:var(--sadq-primary);padding:2px 8px;border-radius:10px;font-size:.6875rem;text-decoration:none}
+
+    /* Empty */
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .empty-state__text{font-size:1rem;margin-bottom:4px}
+    .empty-state__sub{font-size:.8125rem}
+
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .load-more{text-align:center;padding:20px}
+    .login-prompt{text-align:center;padding:40px 16px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius);box-shadow:var(--sadq-shadow);margin-bottom:20px}
+    .login-prompt a{color:var(--sadq-primary);font-weight:500;text-decoration:none}
+    .login-prompt a:hover{text-decoration:underline}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/login.html" id="nav-auth">Login</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">💭 Chinthakal</h1>
+      <p class="page-sub">Share your thoughts, reflections, and ideas</p>
+    </div>
+
+    <!-- Compose (for logged-in users) -->
+    <div id="compose-section" class="compose hidden">
+      <textarea class="compose__textarea" id="thought-input" placeholder="What's on your mind?" maxlength="500" oninput="window.updateCharCount()"></textarea>
+      <div class="compose__bottom">
+        <span class="compose__char-count" id="char-count">500</span>
+        <button class="btn" id="post-thought-btn" onclick="window.postThought()">Share Thought</button>
+      </div>
+    </div>
+
+    <!-- Login prompt (for guests) -->
+    <div id="login-prompt" class="login-prompt hidden">
+      <p style="font-size:.875rem;margin-bottom:4px">Want to share your thoughts?</p>
+      <a href="/login.html?redirect=/chinthakal.html">Login</a> or <a href="/register.html?redirect=/chinthakal.html">Register</a> to join the conversation.
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="skeleton" style="height:120px;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:120px;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:120px"></div>
+    </div>
+
+    <!-- Feed -->
+    <div id="feed" class="feed hidden"></div>
+
+    <!-- Empty -->
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">💭</div>
+      <div class="empty-state__text">No thoughts shared yet.</div>
+      <div class="empty-state__sub">Be the first to share!</div>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="empty-state hidden">
+      <div class="empty-state__icon">⚠️</div>
+      <div class="empty-state__text">Unable to load. Please try again.</div>
+      <button class="btn" onclick="location.reload()">Retry</button>
+    </div>
+
+    <!-- Load more -->
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let page = 0;
+    const pageSize = 15;
+    const likedThoughts = new Set();
+
+    async function init() {
+      try {
+        const { user } = await getCurrentUser();
+        currentUser = user;
+        if (user) {
+          document.getElementById('compose-section').classList.remove('hidden');
+          document.getElementById('nav-auth').textContent = 'Logout';
+          document.getElementById('nav-auth').href = '#';
+          document.getElementById('nav-auth').onclick = async (e) => {
+            e.preventDefault(); await supabase.auth.signOut(); window.location.href = '/login.html';
+          };
+        } else {
+          document.getElementById('login-prompt').classList.remove('hidden');
+        }
+      } catch {}
+      await loadThoughts();
+    }
+
+    function showLoading() { document.getElementById('loading').classList.remove('hidden'); document.getElementById('feed').classList.add('hidden'); document.getElementById('empty').classList.add('hidden'); document.getElementById('error').classList.add('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showEmpty() { document.getElementById('loading').classList.add('hidden'); document.getElementById('feed').classList.add('hidden'); document.getElementById('empty').classList.remove('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showError() { document.getElementById('loading').classList.add('hidden'); document.getElementById('feed').classList.add('hidden'); document.getElementById('error').classList.remove('hidden'); document.getElementById('load-more-wrap').classList.add('hidden'); }
+    function showFeed() { document.getElementById('loading').classList.add('hidden'); document.getElementById('empty').classList.add('hidden'); document.getElementById('error').classList.add('hidden'); document.getElementById('feed').classList.remove('hidden'); }
+
+    async function loadThoughts(append = false) {
+      if (!append) showLoading();
+      try {
+        // Query posts with post_kind = 'chinthakal' or 'thought'
+        const { data, error } = await supabase.from('posts')
+          .select('*')
+          .eq('status', 'published')
+          .eq('post_kind', 'chinthakal')
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (error) throw error;
+
+        if (!append && (!data || data.length === 0)) { showEmpty(); return; }
+
+        const feed = document.getElementById('feed');
+        const html = (data || []).map(t => renderThought(t)).join('');
+
+        if (append) feed.insertAdjacentHTML('beforeend', html);
+        else feed.innerHTML = html;
+
+        showFeed();
+        document.getElementById('load-more-wrap').classList.toggle('hidden', (data || []).length < pageSize);
+
+        // Load like counts
+        if (currentUser) await loadLikedStatus(data || []);
+      } catch (err) {
+        console.error('[Chinthakal] Error:', err.message);
+        showError();
+      }
+    }
+
+    function renderThought(t) {
+      const author = t.profiles || {};
+      const tags = Array.isArray(t.tags) ? t.tags : (t.tags ? (() => { try { return JSON.parse(t.tags) } catch { return [] } })() : []);
+      const avatar = author.profile_photo_url
+        ? `<img class="thought__avatar" src="${author.profile_photo_url}" alt="" onerror="this.style.display='none'">`
+        : `<div class="thought__avatar-placeholder">${(author.full_name || '?').charAt(0)}</div>`;
+
+      return `
+        <div class="thought-card fade-in" id="thought-${t.id}">
+          <div class="thought__header">
+            ${avatar}
+            <div>
+              <div class="thought__author">${author.full_name || 'Anonymous'}</div>
+              <div class="thought__username">@${author.username || ''}</div>
+            </div>
+            <div class="thought__time">${timeAgo(t.created_at)}</div>
+          </div>
+          <div class="thought__text">${t.content || t.title || ''}</div>
+          ${t.featured_image_url ? `<img class="thought__image" src="${t.featured_image_url}" alt="" loading="lazy">` : ''}
+          ${tags.length ? `<div class="thought__tags">${tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}</div>` : ''}
+          <div class="thought__actions">
+            <button class="action-btn" id="like-btn-${t.id}" onclick="window.toggleLike('${t.id}')">
+              <span id="like-icon-${t.id}">🤍</span> <span id="like-count-${t.id}">0</span>
+            </button>
+            <button class="action-btn" onclick="window.shareThought('${t.id}')">🔗 Share</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadLikedStatus(thoughts) {
+      for (const t of thoughts) {
+        try {
+          const { count } = await supabase.from('post_likes')
+            .select('id', { count: 'exact', head: true }).eq('post_id', t.id);
+          const countEl = document.getElementById(`like-count-${t.id}`);
+          if (countEl) countEl.textContent = count || 0;
+
+          if (currentUser) {
+            const { data } = await supabase.from('post_likes')
+              .select('id').eq('post_id', t.id).eq('user_id', currentUser.id).maybeSingle();
+            if (data) {
+              likedThoughts.add(t.id);
+              updateLikeUI(t.id, true);
+            }
+          }
+        } catch {}
+      }
+    }
+
+    function updateLikeUI(id, liked) {
+      const icon = document.getElementById(`like-icon-${id}`);
+      const btn = document.getElementById(`like-btn-${id}`);
+      if (icon) icon.textContent = liked ? '❤️' : '🤍';
+      if (btn) btn.classList.toggle('action-btn--liked', liked);
+    }
+
+    window.toggleLike = async function(id) {
+      if (!currentUser) { window.location.href = '/login.html?redirect=/chinthakal.html'; return; }
+      try {
+        if (likedThoughts.has(id)) {
+          await supabase.from('post_likes').delete().eq('post_id', id).eq('user_id', currentUser.id);
+          likedThoughts.delete(id);
+          updateLikeUI(id, false);
+          const countEl = document.getElementById(`like-count-${id}`);
+          if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+        } else {
+          await supabase.from('post_likes').insert({ post_id: id, user_id: currentUser.id });
+          likedThoughts.add(id);
+          updateLikeUI(id, true);
+          const countEl = document.getElementById(`like-count-${id}`);
+          if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+        }
+      } catch (err) { console.error('[Like] Error:', err.message); }
+    };
+
+    window.shareThought = function(id) {
+      const url = `${window.location.origin}/post-details.html?id=${id}`;
+      if (navigator.share) { navigator.share({ title: 'SADQ Chinthakal', url }).catch(() => {}); }
+      else { navigator.clipboard.writeText(url); alert('Link copied!'); }
+    };
+
+    // ── Compose ────────────────────────────────────────────────────────
+    window.updateCharCount = function() {
+      const input = document.getElementById('thought-input');
+      const remaining = 500 - input.value.length;
+      const el = document.getElementById('char-count');
+      el.textContent = remaining;
+      el.classList.toggle('compose__char-count--warning', remaining < 50);
+    };
+
+    window.postThought = async function() {
+      const input = document.getElementById('thought-input');
+      const btn = document.getElementById('post-thought-btn');
+      const text = input.value.trim();
+      if (!text) return;
+      if (text.length > 500) return;
+
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Sharing...';
+      try {
+        const { data, error } = await supabase.from('posts').insert({
+          title: text.substring(0, 100),
+          content: text,
+          post_kind: 'chinthakal',
+          author_id: currentUser.id,
+          status: 'published',
+          slug: `chinthakal-${Date.now()}`,
+        }).select('id').single();
+
+        if (error) throw error;
+
+        input.value = '';
+        window.updateCharCount();
+        page = 0;
+        await loadThoughts();
+      } catch (err) {
+        console.error('[PostThought] Error:', err.message);
+        alert('Unable to share. Please try again.');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Share Thought';
+      }
+    };
+
+    document.getElementById('load-more-btn').addEventListener('click', () => { page++; loadThoughts(true); });
+
+    function timeAgo(dateStr) {
+      const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+      return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

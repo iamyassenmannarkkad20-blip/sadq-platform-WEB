@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificates & Wishes — SADQ Admin</title>
+<style>
+:root{--p:#2563EB;--pl:#1D4ED8;--bg:#050816;--card:#10152A;--text:#F8FAFC;--muted:#94A3B8;--border:rgba(255,255,255,0.08);--danger:#EF4444;--success:#10B981;--gold:#F9A825;--r:12px;--rs:8px;--shadow:0 4px 20px rgba(0,0,0,0.4);--t:0.3s ease;--sw:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#2563EB,#0F172A);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar__h{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+.sidebar__sub{font-size:0.6875rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.sidebar__link{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.875rem;transition:var(--t);border-left:3px solid transparent}
+.sidebar__link:hover{background:rgba(255,255,255,0.08);color:#fff}.sidebar__link--active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+.sidebar__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar__section{padding:12px 16px 4px;font-size:0.6875rem;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.main{margin-left:var(--sw);padding:16px;min-height:100vh}.main__title{font-size:1.5rem;font-weight:700;margin-bottom:20px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:500;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn--primary{background:var(--blue);color:#fff}.btn--danger{background:var(--danger);color:#fff}.btn--ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn--small{padding:4px 10px;font-size:0.8125rem}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}.tab{padding:8px 16px;border:1px solid var(--border);border-radius:var(--rs);background:var(--card,#10152A);cursor:pointer;font-size:0.875rem;font-weight:500;transition:var(--t)}
+.tab--active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cert-card{background:var(--card,#10152A);border:1px solid var(--border);border-radius:var(--r);padding:16px;transition:var(--t)}
+.cert-card:hover{box-shadow:var(--shadow)}
+.cert-card img{width:100%;height:120px;object-fit:cover;border-radius:var(--rs);margin-bottom:8px}
+.cert-type{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block;margin-bottom:4px}
+.ct-cert{background:rgba(245,158,11,0.12);color:var(--gold)}.ct-wish{background:rgba(16,185,129,0.12);color:var(--success)}.ct-ach{background:rgba(59,130,246,0.12);color:#60A5FA}.ct-photo{background:rgba(59,130,246,0.12);color:#F9A825}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem;font-family:inherit}
+.form-input:focus{outline:none;border-color:var(--blue)}
+.form-textarea{min-height:60px;resize:vertical}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.06) 25%,rgba(255,255,255,0.12) 50%,rgba(255,255,255,0.06) 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay--active{display:flex}.modal{background:var(--card,#10152A);border-radius:var(--r);padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+.modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:110;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:1rem;cursor:pointer}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar--open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:block}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<button class="menu-toggle" id="mt">☰</button>
+<aside class="sidebar" id="sb">
+<div class="sidebar__h"><a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a><div class="sidebar__sub">Control Center</div></div>
+<nav>
+<div class="sidebar__section">Overview</div>
+<a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+<div class="sidebar__section">People</div>
+<a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+<a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+<div class="sidebar__section">Organisation</div>
+<a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+<a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+<a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+<div class="sidebar__section">Content</div>
+<a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+<a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+<a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+<a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+<a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+<div class="sidebar__section">Recognition</div>
+<a href="/admin-certificates.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">📜</span> Certificates</a>
+<a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+<div class="sidebar__section">Marketplace</div>
+<a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+<a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+<a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+<div class="sidebar__section">Finance</div>
+<a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+<a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+<a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+<div class="sidebar__section">Platform</div>
+<a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+<a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+<a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+<a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+<a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+<a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+<a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+<div class="sidebar__section">Back</div>
+<a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+<a href="#" class="sidebar__link" id="lo"><span class="sidebar__icon">🚪</span> Logout</a>
+</nav>
+</aside>
+<div class="main">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px">
+<h1 class="main__title">Certificates & Wishes</h1>
+<button class="btn btn--primary" onclick="openCreate()">+ Add Certificate / Wish</button>
+</div>
+<div class="tabs">
+<div class="tab tab--active" onclick="filterType('all',this)">All</div>
+<div class="tab" onclick="filterType('certificate',this)">📜 Certificates</div>
+<div class="tab" onclick="filterType('wish',this)">🎉 Wishes</div>
+<div class="tab" onclick="filterType('achievement',this)">🏆 Achievements</div>
+<div class="tab" onclick="filterType('photo',this)">📸 Photos</div>
+</div>
+<div class="section">
+<div id="loading"><div class="skeleton" style="height:120px;margin-bottom:8px"></div><div class="skeleton" style="height:120px;margin-bottom:8px"></div></div>
+<div class="card-grid" id="grid"></div>
+<div id="empty" class="empty hidden"><div class="empty__icon">📜</div><p>No certificates yet. Click "Add Certificate" to create one.</p></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal"><div class="modal">
+<button onclick="closeModal()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)">×</button>
+<h2 class="modal__title">Add Certificate / Wish</h2>
+<div class="form-group"><label>Type *</label><select class="form-select" id="c-type"><option value="certificate">📜 Certificate</option><option value="wish">🎉 Wish / Congratulations</option><option value="achievement">🏆 Achievement</option><option value="photo">📸 Event Photo</option></select></div>
+<div class="form-group"><label>Student Name *</label><input class="form-input" id="c-student" placeholder="Student name"></div>
+<div class="form-group"><label>Title *</label><input class="form-input" id="c-title" placeholder="e.g. First Prize in Quran Competition"></div>
+<div class="form-group"><label>Description</label><textarea class="form-textarea" id="c-desc" placeholder="Description..."></textarea></div>
+<div class="form-group"><label>Image URL</label><input class="form-input" id="c-image" placeholder="https://... (certificate/photo URL)"></div>
+<div class="form-group"><label>Event Name</label><input class="form-input" id="c-event" placeholder="Event name"></div>
+<div class="form-group"><label>Event Date</label><input class="form-input" type="date" id="c-date"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+<button class="btn btn--primary" id="save-btn" onclick="saveCert()">Save</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import{supabase,requireAuth,signOut} from '/js/supabase-client.js'
+let cu=null,filt='all'
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+async function init(){try{const{user,profile}=await requireAuth();if(!profile||!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';return}cu=user;document.getElementById('lo').addEventListener('click',e=>{e.preventDefault();signOut()});document.getElementById('mt').addEventListener('click',()=>document.getElementById('sb').classList.toggle('sidebar--open'));await load()}catch(e){console.error(e)}}
+async function load(){const l=document.getElementById('loading'),g=document.getElementById('grid'),e=document.getElementById('empty');l.classList.remove('hidden');g.innerHTML='';e.classList.add('hidden')
+try{let q=supabase.from('certificates').select('*').order('created_at',{ascending:false}).limit(50)
+if(filt!=='all')q=q.eq('certificate_type',filt)
+const{data,error}=await q
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+const typeClass={'certificate':'ct-cert','wish':'ct-wish','achievement':'ct-ach','photo':'ct-photo'}
+const typeIcon={'certificate':'📜','wish':'🎉','achievement':'🏆','photo':'📸'}
+g.innerHTML=data.map(c=>`<div class="cert-card">${c.image_url?`<img src="${c.image_url}" alt="">`:''}<span class="cert-type ${typeClass[c.certificate_type]||'ct-cert'}">${typeIcon[c.certificate_type]||'📜'} ${c.certificate_type}</span><div style="font-weight:600;font-size:0.9375rem;margin:4px 0">${c.title||'Untitled'}</div><div style="font-size:0.8125rem;color:var(--muted)">${c.student_name||'—'} · ${c.event_name||''}</div>${c.description?`<div style="font-size:0.75rem;color:var(--muted);margin-top:4px">${c.description.substring(0,100)}</div>`:''}<div style="margin-top:8px"><button class="btn btn--danger btn--small" onclick="delCert('${c.id}')">Delete</button></div></div>`).join('')
+l.classList.add('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+window.filterType=(t,el)=>{filt=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('tab--active'));el.classList.add('tab--active');load()}
+window.openCreate=()=>document.getElementById('modal').classList.add('modal-overlay--active')
+window.closeModal=()=>{document.getElementById('modal').classList.remove('modal-overlay--active');['c-student','c-title','c-desc','c-image','c-event','c-date'].forEach(id=>document.getElementById(id).value='');document.getElementById('c-type').value='certificate'}
+window.saveCert=async()=>{const t=document.getElementById('c-type').value,sn=document.getElementById('c-student').value.trim(),ti=document.getElementById('c-title').value.trim(),d=document.getElementById('c-desc').value.trim(),img=document.getElementById('c-image').value.trim(),en=document.getElementById('c-event').value.trim(),dt=document.getElementById('c-date').value
+if(!sn||!ti){toast('Student name and title required','error');return}
+const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Saving...'
+try{const{error}=await supabase.from('certificates').insert({certificate_type:t,student_name:sn,title:ti,description:d,image_url:img||null,event_name:en||null,event_date:dt||null,issued_by:'SADQ'})
+if(error)throw error;toast('Certificate added!');closeModal();await load()}catch(e){toast(e.message,'error')}finally{btn.disabled=false;btn.textContent='Save'}}
+window.delCert=async(id)=>{if(!confirm('Delete this certificate?'))return
+try{const{error}=await supabase.from('certificates').delete().eq('id',id);if(error)throw error;toast('Deleted');await load()}catch(e){toast(e.message,'error')}}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

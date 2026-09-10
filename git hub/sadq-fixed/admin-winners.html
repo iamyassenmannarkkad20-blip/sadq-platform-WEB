@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winner Banners — SADQ Admin</title>
+<style>
+:root{--p:#1a5632;--pl:#2d7a4f;--pd:#0f3d20;--gold:#c9a227;--bg:#f0f2f5;--card:#fff;--text:#1a1a1a;--muted:#6c757d;--border:#e0e0e0;--danger:#c41e3a;--success:#28a745;--r:12px;--rs:8px;--shadow:0 2px 8px rgba(0,0,0,0.08);--t:0.3s ease;--sw:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#1a5632,#0f3d20);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar__h{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+.sidebar__sub{font-size:0.6875rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.sidebar__link{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.875rem;transition:var(--t);border-left:3px solid transparent}
+.sidebar__link:hover{background:rgba(255,255,255,0.08);color:#fff}.sidebar__link--active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+.sidebar__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar__section{padding:12px 16px 4px;font-size:0.6875rem;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.main{margin-left:var(--sw);padding:16px;min-height:100vh}.main__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}.main__sub{font-size:0.8125rem;color:var(--muted);margin-bottom:20px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:500;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn--primary{background:var(--p);color:#fff}.btn--danger{background:var(--danger);color:#fff}.btn--ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn--small{padding:4px 10px;font-size:0.8125rem}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.section__title{font-size:1rem;font-weight:600;margin-bottom:16px}
+.banner-card{display:flex;gap:12px;padding:16px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;align-items:center}
+.banner-card img{width:60px;height:60px;border-radius:8px;object-fit:cover}
+.banner-card__body{flex:1}.banner-card__name{font-size:0.9375rem;font-weight:600}.banner-card__meta{font-size:0.75rem;color:var(--muted)}
+.badge{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block}
+.badge--gold{background:#fff8e1;color:var(--gold)}.badge--green{background:#e8f5e9;color:var(--success)}.badge--red{background:#ffebee;color:#c62828}
+.empty{text-align:center;padding:32px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input{width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem}
+.form-input:focus{outline:none;border-color:var(--p)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay--active{display:flex}.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:450px;width:100%}
+.modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:110;background:var(--p);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:1rem;cursor:pointer}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar--open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:block}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<button class="menu-toggle" id="mt">☰</button>
+<aside class="sidebar" id="sb">
+<div class="sidebar__h"><a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a><div class="sidebar__sub">Control Center</div></div>
+<nav>
+<div class="sidebar__section">Overview</div>
+<a href="/admin-dashboard.html" class="sidebar__link {DASH_ACTIVE}"><span class="sidebar__icon">📊</span> Dashboard</a>
+<div class="sidebar__section">People</div>
+<a href="/admin-students.html" class="sidebar__link {STUDENTS_ACTIVE}"><span class="sidebar__icon">🎓</span> Students</a>
+<a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+<div class="sidebar__section">Organisation</div>
+<a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+<a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+<a href="/admin-winners.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">🏆</span> Winners</a>
+<div class="sidebar__section">Content</div>
+<a href="/admin-content.html" class="sidebar__link {CONTENT_ACTIVE}"><span class="sidebar__icon">📰</span> Magazine</a>
+<a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+<a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+<a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+<a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+<div class="sidebar__section">Recognition</div>
+<a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+<a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+<div class="sidebar__section">Marketplace</div>
+<a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+<a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+<a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+<div class="sidebar__section">Finance</div>
+<a href="/admin-payments.html" class="sidebar__link {PAYMENTS_ACTIVE}"><span class="sidebar__icon">💳</span> Payments</a>
+<a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+<a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+<div class="sidebar__section">Platform</div>
+<a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+<a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+<a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+<a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+<a href="/admin-settings.html" class="sidebar__link {SETTINGS_ACTIVE}"><span class="sidebar__icon">⚙️</span> Settings</a>
+<a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+<a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+<div class="sidebar__section">Back</div>
+<a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+<a href="#" class="sidebar__link" id="lo"><span class="sidebar__icon">🚪</span> Logout</a>
+</nav>
+</aside>
+<div class="main">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px">
+<div><h1 class="main__title">Winner Banners</h1><p class="main__sub">Control which winners appear on the homepage banner.</p></div>
+<button class="btn btn--primary" onclick="openCreate()">+ Add Banner</button>
+</div>
+<div class="section">
+<div class="section__title">🥇 Active Banners (shown on homepage)</div>
+<div id="loading"><div class="skeleton" style="height:80px;margin-bottom:8px"></div><div class="skeleton" style="height:80px;margin-bottom:8px"></div></div>
+<div id="list"></div>
+<div id="empty" class="empty hidden"><div class="empty__icon">🥇</div><p>No winner banners yet. Add one to feature winners on the homepage.</p></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal"><div class="modal">
+<button onclick="closeModal()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)">×</button>
+<h2 class="modal__title">Add Winner Banner</h2>
+<div class="form-group"><label>Student Name *</label><input class="form-input" id="b-name" placeholder="Student name"></div>
+<div class="form-group"><label>Photo URL</label><input class="form-input" id="b-photo" placeholder="https://..."></div>
+<div class="form-group"><label>Event Name</label><input class="form-input" id="b-event" placeholder="Event"></div>
+<div class="form-group"><label>Achievement</label><input class="form-input" id="b-achievement" placeholder="e.g. First Prize"></div>
+<div class="form-group"><label>Position</label><input class="form-input" id="b-position" placeholder="1st, 2nd, 3rd"></div>
+<div class="form-group"><label>Class</label><input class="form-input" id="b-class" placeholder="Class"></div>
+<div class="form-group"><label>Sub-Wing</label><input class="form-input" id="b-wing" placeholder="Sub-Wing name"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+<button class="btn btn--primary" id="save-btn" onclick="saveBanner()">Add Banner</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import{supabase,requireAuth,signOut} from '/js/supabase-client.js'
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+async function init(){try{const{user,profile}=await requireAuth();if(profile&&!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';return}
+document.getElementById('lo').addEventListener('click',e=>{e.preventDefault();signOut()})
+document.getElementById('mt').addEventListener('click',()=>document.getElementById('sb').classList.toggle('sidebar--open'))
+await load()}catch(e){console.error(e)}}
+async function load(){const l=document.getElementById('loading'),lst=document.getElementById('list'),e=document.getElementById('empty');l.classList.remove('hidden');lst.innerHTML='';e.classList.add('hidden')
+try{const{data,error}=await supabase.from('winner_banners').select('*').eq('is_active',true).order('is_featured',{ascending:false}).order('display_order',{ascending:true}).limit(20)
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+lst.innerHTML=data.map(b=>`<div class="banner-card">${b.student_photo?`<img src="${b.student_photo}" alt="">`:'<div style="width:60px;height:60px;border-radius:8px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:1.5rem">🥇</div>'}<div class="banner-card__body"><div class="banner-card__name">${b.student_name||'—'}</div><div class="banner-card__meta">${b.event_name||''} · ${b.winner_position||''} · ${b.class_name||''} · ${b.sub_wing_name||''}</div></div>${b.is_featured?'<span class="badge badge--gold">⭐ Featured</span>':'<span class="badge badge--green">Active</span>'}<button class="btn btn--ghost btn--small" onclick="toggleFeature('${b.id}',${b.is_featured})">${b.is_featured?'Unfeature':'⭐ Feature'}</button> <button class="btn btn--danger btn--small" onclick="removeBanner('${b.id}')">Remove</button></div>`).join('')
+l.classList.add('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+window.openCreate=()=>document.getElementById('modal').classList.add('modal-overlay--active')
+window.closeModal=()=>{document.getElementById('modal').classList.remove('modal-overlay--active');['b-name','b-photo','b-event','b-achievement','b-position','b-class','b-wing'].forEach(id=>document.getElementById(id).value='')}
+window.saveBanner=async()=>{const n=document.getElementById('b-name').value.trim();if(!n){toast('Name required','error');return}
+const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Adding...'
+try{const{error}=await supabase.from('winner_banners').insert({student_name:n,student_photo:document.getElementById('b-photo').value.trim()||null,event_name:document.getElementById('b-event').value.trim()||null,achievement:document.getElementById('b-achievement').value.trim()||null,winner_position:document.getElementById('b-position').value.trim()||null,class_name:document.getElementById('b-class').value.trim()||null,sub_wing_name:document.getElementById('b-wing').value.trim()||null,is_active:true})
+if(error)throw error;toast('Banner added!');closeModal();await load()}catch(e){toast(e.message,'error')}finally{btn.disabled=false;btn.textContent='Add Banner'}}
+window.toggleFeature=async(id,featured)=>{try{const{error}=await supabase.from('winner_banners').update({is_featured:!featured}).eq('id',id);if(error)throw error;toast(featured?'Unfeatured':'Featured!');await load()}catch(e){toast(e.message,'error')}}
+window.removeBanner=async(id)=>{if(!confirm('Remove this banner from homepage?'))return;try{const{error}=await supabase.from('winner_banners').update({is_active:false}).eq('id',id);if(error)throw error;toast('Banner removed');await load()}catch(e){toast(e.message,'error')}}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

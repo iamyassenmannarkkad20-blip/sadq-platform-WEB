@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments — SADQ Admin</title>
+  <style>
+    :root { --p:#2563EB; --pl:#1D4ED8; --pd:#1D4ED8; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#F9A825; --purple:#2563EB; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sadq-sidebar-w); height: 100vh; background: var(--sadq-primary); overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
+    .sidebar__header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sidebar__sub { font-size: 0.6875rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .sidebar__link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.875rem; transition: var(--sadq-transition); border-left: 3px solid transparent; }
+    .sidebar__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar__link--active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: #F9A825; }
+    .sidebar__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar__section { padding: 12px 16px 4px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+
+    .main { margin-left: var(--sadq-sidebar-w); padding: 16px; min-height: 100vh; }
+    .main__title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .tab { padding: 8px 16px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); background: var(--card,#10152A); cursor: pointer; font-size: 0.875rem; font-weight: 500; white-space: nowrap; transition: var(--sadq-transition); }
+    .tab--active { background: var(--sadq-primary); color: #fff; border-color: var(--sadq-primary); }
+
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+
+    .btn { padding: 6px 12px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 4px; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--small { padding: 4px 8px; font-size: 0.75rem; }
+
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); transition: var(--sadq-transition); }
+    .item-row:hover { box-shadow: var(--sadq-shadow-hover); }
+    .item-row__icon { font-size: 1.125rem; flex-shrink: 0; }
+    .item-row__body { flex: 1; min-width: 0; }
+    .item-row__title { font-size: 0.875rem; font-weight: 500; }
+    .item-row__meta { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .item-row__actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--green { background: rgba(16,185,129,0.12); color: var(--sadq-success); }
+    .badge--orange { background: rgba(245,158,11,0.12); color: #F59E0B; }
+    .badge--red { background: rgba(239,68,68,0.12); color: #F87171; }
+    .badge--blue { background: rgba(59,130,246,0.12); color: #60A5FA; }
+
+    .empty-mini { text-align: center; padding: 32px 16px; color: var(--sadq-text-muted); }
+    .empty-mini__icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.4; }
+    .empty-mini__text { font-size: 0.875rem; }
+
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .hidden { display: none !important; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    .menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 110; background: var(--sadq-primary); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar--open { transform: translateX(0); } .main { margin-left: 0; } .menu-toggle { display: block; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <button class="menu-toggle" id="menu-toggle">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+      <div class="sidebar__sub">Control Center</div>
+    </div>
+        <nav class="sidebar__nav">
+      <div class="sidebar__section">Overview</div>
+      <a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+
+      <div class="sidebar__section">People</div>
+      <a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+      <a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+
+      <div class="sidebar__section">Organisation</div>
+      <a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+      <a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+      <a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+
+      <div class="sidebar__section">Content</div>
+      <a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+      <a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+      <a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+      <a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+      <a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+
+      <div class="sidebar__section">Recognition</div>
+      <a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+      <a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+
+      <div class="sidebar__section">Marketplace</div>
+      <a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+      <a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+      <a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+
+      <div class="sidebar__section">Finance</div>
+      <a href="/admin-payments.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">💳</span> Payments</a>
+      <a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+      <a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+
+      <div class="sidebar__section">Platform</div>
+      <a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+      <a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+      <a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+      <a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+      <a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+      <a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+      <a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+
+      <div class="sidebar__section">Back</div>
+      <a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+      <a href="#" class="sidebar__link" id="logout-btn"><span class="sidebar__icon">🚪</span> Logout</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <h1 class="main__title">Payments & Finance</h1>
+
+    <div class="tabs" id="tabs">
+      <div class="tab tab--active" data-tab="upi">📱 UPI Verification</div>
+      <div class="tab" data-tab="withdrawals">🏦 Withdrawals</div>
+      <div class="tab" data-tab="transactions">💳 Transactions</div>
+      <div class="tab" data-tab="commissions">💰 Commissions</div>
+    </div>
+
+    <div class="section">
+      <div id="loading-state">
+        <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+      </div>
+      <div id="content-list" class="item-list hidden"></div>
+      <div id="empty-state" class="empty-mini hidden">
+        <div class="empty-mini__icon">✅</div>
+        <p class="empty-mini__text">All clear — no pending items.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth, signOut } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let activeTab = 'upi';
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    async function init() {
+      try {
+        const { user, profile } = await requireAuth();
+        if (profile && !['admin', 'super_admin'].includes(profile.role)) {
+          window.location.href = '/dashboard.html'; return;
+        }
+        currentUser = user;
+        document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(); });
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('sidebar--open');
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+            tab.classList.add('tab--active');
+            activeTab = tab.dataset.tab;
+            loadContent();
+          });
+        });
+
+        await loadContent();
+      } catch (error) { console.error('[Admin Payments] Init error:', error); }
+    }
+
+    async function loadContent() {
+      const loading = document.getElementById('loading-state');
+      const list = document.getElementById('content-list');
+      const empty = document.getElementById('empty-state');
+
+      loading.classList.remove('hidden');
+      list.classList.add('hidden');
+      empty.classList.add('hidden');
+
+      try {
+        const items = [];
+
+        if (activeTab === 'upi') {
+          const { data, error } = await supabase
+            .from('manual_upi_payment_submissions')
+            .select('id, amount, utr, upi_id, status, submitted_at, user_id, reference_type')
+            .eq('status', 'pending')
+            .order('submitted_at', { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          if (data) data.forEach(p => items.push({
+            id: p.id, icon: '📱', title: `₹${p.amount || '—'}`, meta: `UTR: ${p.utr || 'N/A'} · ${new Date(p.submitted_at).toLocaleDateString('en-IN')}`,
+            status: p.status, actions: ['approve', 'reject'], table: 'manual_upi_payment_submissions'
+          }));
+        } else if (activeTab === 'withdrawals') {
+          const { data, error } = await supabase
+            .from('withdrawals')
+            .select('id, amount, status, requested_at, user_id')
+            .in('status', ['requested', 'under_review'])
+            .order('requested_at', { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          if (data) data.forEach(w => items.push({
+            id: w.id, icon: '🏦', title: `₹${w.amount || '—'}`, meta: `Withdrawal · ${new Date(w.requested_at).toLocaleDateString('en-IN')}`,
+            status: w.status, actions: ['approve', 'reject', 'process'], table: 'withdrawals'
+          }));
+        } else if (activeTab === 'transactions') {
+          const { data, error } = await supabase
+            .from('payment_transactions')
+            .select('id, amount, status, created_at, payer_id')
+            .order('created_at', { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          if (data) data.forEach(t => items.push({
+            id: t.id, icon: '💳', title: `₹${t.amount || '—'}`, meta: `Transaction · ${new Date(t.created_at).toLocaleDateString('en-IN')}`,
+            status: t.status, actions: [], table: 'payment_transactions'
+          }));
+        } else if (activeTab === 'commissions') {
+          const { data, error } = await supabase
+            .from('freelance_commissions')
+            .select('id, commission_amount, commission_rate, created_at')
+            .order('created_at', { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          if (data) data.forEach(c => items.push({
+            id: c.id, icon: '💰', title: `₹${c.commission_amount || '—'}`, meta: `Rate: ${c.commission_rate || 20}% · ${new Date(c.created_at).toLocaleDateString('en-IN')}`,
+            status: 'earned', actions: [], table: 'freelance_commissions'
+          }));
+        }
+
+        if (!items.length) {
+          loading.classList.add('hidden');
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        list.innerHTML = items.map(i => `
+          <div class="item-row">
+            <div class="item-row__icon">${i.icon}</div>
+            <div class="item-row__body">
+              <div class="item-row__title">${i.title}</div>
+              <div class="item-row__meta">${i.meta}</div>
+            </div>
+            <span class="badge ${badgeClass(i.status)}">${i.status}</span>
+            <div class="item-row__actions">
+              ${i.actions.map(a => `<button class="btn btn--small ${a === 'reject' ? 'btn--danger' : 'btn--primary'}" onclick="doAction('${i.table}','${i.id}','${a}')">${actionLabel(a)}</button>`).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        loading.classList.add('hidden');
+        list.classList.remove('hidden');
+      } catch (error) {
+        console.error('[Admin Payments] Load error:', error.message);
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+        empty.querySelector('.empty-mini__text').textContent = 'Unable to load data.';
+      }
+    }
+
+    function badgeClass(status) {
+      const map = { 'pending': 'badge--orange', 'requested': 'badge--orange', 'under_review': 'badge--blue', 'approved': 'badge--green', 'paid': 'badge--green', 'rejected': 'badge--red', 'processing': 'badge--blue', 'earned': 'badge--green', 'completed': 'badge--green' };
+      return map[status] || 'badge--blue';
+    }
+
+    function actionLabel(a) {
+      const labels = { 'approve': '✓ Approve', 'reject': '✗ Reject', 'process': '🔄 Process' };
+      return labels[a] || a;
+    }
+
+    window.doAction = async function(table, id, action) {
+      const statusMap = { 'approve': 'approved', 'reject': 'rejected', 'process': 'processing' };
+      const newStatus = statusMap[action];
+      if (!newStatus) return;
+
+      try {
+        const updateData = { status: newStatus };
+        if (action === 'approve' || action === 'reject') {
+          updateData.reviewed_by = currentUser.id;
+          updateData.reviewed_at = new Date().toISOString();
+        }
+
+        const { error } = await supabase.from(table).update(updateData).eq('id', id);
+        if (error) throw error;
+        showToast(`${actionLabel(action)} — success!`);
+        await loadContent();
+      } catch (error) {
+        console.error('[Admin Payments] Action error:', error.message);
+        showToast('Unable to perform action. RLS may be blocking.', 'error');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

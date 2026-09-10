@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:600px;margin:0 auto;padding:16px}
+    .page-title{font-size:1.25rem;font-weight:700;margin-bottom:20px}
+
+    /* Sections */
+    .settings-section{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);padding:20px;box-shadow:var(--sadq-shadow);margin-bottom:16px}
+    .settings-section__title{font-size:1rem;font-weight:600;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--sadq-border)}
+    .settings-section__title--danger{color:var(--sadq-danger)}
+
+    /* Form */
+    .form-group{margin-bottom:14px}
+    .form-label{display:block;font-size:.8125rem;font-weight:500;margin-bottom:6px}
+    .form-input{width:100%;padding:10px 12px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;font-family:inherit;transition:var(--sadq-transition)}
+    .form-input:focus{outline:none;border-color:var(--sadq-primary);box-shadow:0 0 0 3px rgba(26,86,50,.1)}
+    .form-hint{font-size:.75rem;color:var(--sadq-text-muted);margin-top:4px}
+    .form-error{font-size:.75rem;color:var(--sadq-danger);margin-top:4px}
+
+    /* Toggle */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sadq-border)}
+    .toggle-row:last-child{border-bottom:none}
+    .toggle-row__label{font-size:.875rem}
+    .toggle-row__desc{font-size:.75rem;color:var(--sadq-text-muted)}
+    .toggle{position:relative;width:44px;height:24px;background:var(--sadq-border);border-radius:12px;cursor:pointer;transition:var(--sadq-transition);flex-shrink:0}
+    .toggle--on{background:var(--sadq-primary)}
+    .toggle__handle{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--sadq-transition)}
+    .toggle--on .toggle__handle{left:22px}
+
+    /* Buttons */
+    .btn{padding:10px 20px;border:none;border-radius:var(--sadq-radius-sm);font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--sadq-transition)}
+    .btn--primary{background:var(--sadq-primary);color:#fff}
+    .btn--primary:hover{background:var(--sadq-primary-light)}
+    .btn--primary:disabled{opacity:.6;cursor:not-allowed}
+    .btn--danger{background:var(--sadq-danger);color:#fff}
+    .btn--danger:hover{opacity:.85}
+    .btn--danger:disabled{opacity:.6;cursor:not-allowed}
+    .btn--full{width:100%}
+
+    /* Privacy select */
+    .form-select{width:100%;padding:10px 12px;border:1px solid var(--sadq-border);border-radius:var(--sadq-radius-sm);font-size:.875rem;background:#fff;font-family:inherit}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--sadq-radius-sm);color:#fff;font-size:.875rem;z-index:300;opacity:0;transform:transformY(10px);transition:var(--sadq-transition);max-width:350px}
+    .toast--show{opacity:1;transform:translateY(0)}
+    .toast--success{background:var(--sadq-success)}
+    .toast--error{background:var(--sadq-danger)}
+
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Guard */
+    .guard{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+    .guard__icon{font-size:3rem;opacity:.3}
+    .guard__text{font-size:.9375rem;color:var(--sadq-text-muted)}
+
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    .danger-zone{border:1px solid var(--sadq-danger);border-radius:var(--sadq-radius);padding:16px;margin-top:8px}
+    .danger-zone__text{font-size:.8125rem;color:var(--sadq-text-muted);margin-bottom:12px}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/login.html" id="logout-btn">Logout</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div id="guard" class="guard hidden">
+      <div class="guard__icon">⚙️</div>
+      <p class="guard-text" id="guard-text">Loading settings...</p>
+      <a href="/login.html" class="btn btn--primary" id="guard-btn" style="display:none">Login</a>
+    </div>
+
+    <div id="main" class="hidden">
+      <h1 class="page-title">Account Settings</h1>
+
+      <!-- Password Section -->
+      <div class="settings-section">
+        <div class="settings-section__title">🔐 Change Password</div>
+        <form id="password-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="current-password">Current Password</label>
+            <input type="password" id="current-password" class="form-input" placeholder="Enter current password" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-pwd">New Password</label>
+            <input type="password" id="new-pwd" class="form-input" placeholder="At least 6 characters" required>
+            <div class="form-hint">Use 6+ characters with a mix of letters, numbers, and symbols.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm-pwd">Confirm New Password</label>
+            <input type="password" id="confirm-pwd" class="form-input" placeholder="Re-enter new password" required>
+          </div>
+          <div class="form-error hidden" id="password-error"></div>
+          <button type="submit" class="btn btn--primary" id="update-password-btn">Update Password</button>
+        </form>
+      </div>
+
+      <!-- Email Section -->
+      <div class="settings-section">
+        <div class="settings-section__title">📧 Email Address</div>
+        <div class="form-group">
+          <label class="form-label">Current Email</label>
+          <input type="email" id="current-email" class="form-input" disabled>
+          <div class="form-hint">To change your email, please contact an administrator.</div>
+        </div>
+      </div>
+
+      <!-- Privacy Section -->
+      <div class="settings-section">
+        <div class="settings-section__title">🔒 Privacy Settings</div>
+        <div class="form-group">
+          <label class="form-label" for="profile-visibility">Profile Visibility</label>
+          <select id="profile-visibility" class="form-select">
+            <option value="public">Public — Anyone can view your profile</option>
+            <option value="members">Members only — Only SADQ members can view</option>
+            <option value="private">Private — Only you can view</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="searchable">Allow in Search</label>
+          <select id="searchable" class="form-select">
+            <option value="true">Yes — Appear in search results</option>
+            <option value="false">No — Hide from search</option>
+          </select>
+        </div>
+        <button class="btn btn--primary" id="save-privacy-btn">Save Privacy Settings</button>
+      </div>
+
+      <!-- Notification Preferences -->
+      <div class="settings-section">
+        <div class="settings-section__title">🔔 Notification Preferences</div>
+        <div class="toggle-row">
+          <div><div class="toggle-row__label">Order Updates</div><div class="toggle-row__desc">Notifications about your freelance orders</div></div>
+          <div class="toggle" id="toggle-orders" onclick="window.toggleNotif('toggle-orders','notif_orders')"><div class="toggle__handle"></div></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-row__label">Event Reminders</div><div class="toggle-row__desc">Reminders for events you registered</div></div>
+          <div class="toggle" id="toggle-events" onclick="window.toggleNotif('toggle-events','notif_events')"><div class="toggle__handle"></div></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-row__label">Messages</div><div class="toggle-row__desc">New message notifications</div></div>
+          <div class="toggle" id="toggle-messages" onclick="window.toggleNotif('toggle-messages','notif_messages')"><div class="toggle__handle"></div></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-row__label">Marketing</div><div class="toggle-row__desc">Newsletters and promotional content</div></div>
+          <div class="toggle" id="toggle-marketing" onclick="window.toggleNotif('toggle-marketing','notif_marketing')"><div class="toggle__handle"></div></div>
+        </div>
+        <button class="btn btn--primary" id="save-notif-btn" style="margin-top:12px">Save Preferences</button>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="settings-section">
+        <div class="settings-section__title settings-section__title--danger">⚠️ Danger Zone</div>
+        <div class="danger-zone">
+          <p class="danger-zone__text">Once you delete your account, there is no going back. All your data will be permanently removed.</p>
+          <button class="btn btn--danger btn--full" id="delete-account-btn">Delete My Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let notifPrefs = { notif_orders: true, notif_events: true, notif_messages: true, notif_marketing: false };
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 4000);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────
+    async function init() {
+      try {
+        const { user } = await getCurrentUser();
+        currentUser = user;
+        if (!user) {
+          document.getElementById('guard-text').textContent = 'Please login to access settings.';
+          document.getElementById('guard-btn').style.display = 'inline-block';
+          document.getElementById('guard').classList.remove('hidden');
+          return;
+        }
+
+        document.getElementById('guard').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('main').classList.add('fade-in');
+
+        // Load email
+        document.getElementById('current-email').value = user.email || '';
+
+        // Load profile settings
+        await loadProfileSettings();
+      } catch (err) {
+        console.error('[Settings] Init error:', err.message);
+        document.getElementById('guard-text').textContent = 'Unable to load settings.';
+      }
+    }
+
+    async function loadProfileSettings() {
+      try {
+        const { data, error } = await supabase.from('profiles')
+          .select('profile_visibility, account_status, notif_orders, notif_events, notif_messages, notif_marketing')
+          .eq('id', currentUser.id).single();
+
+        if (error) throw error;
+        if (!data) return;
+
+        // Set visibility
+        if (data.profile_visibility) {
+          document.getElementById('profile-visibility').value = data.profile_visibility;
+        }
+
+        // Set notification toggles
+        notifPrefs.notif_orders = data.notif_orders !== false;
+        notifPrefs.notif_events = data.notif_events !== false;
+        notifPrefs.notif_messages = data.notif_messages !== false;
+        notifPrefs.notif_marketing = data.notif_marketing === true;
+
+        updateToggles();
+      } catch (err) {
+        console.error('[Settings] Profile load error:', err.message);
+      }
+    }
+
+    function updateToggles() {
+      document.getElementById('toggle-orders').classList.toggle('toggle--on', notifPrefs.notif_orders);
+      document.getElementById('toggle-events').classList.toggle('toggle--on', notifPrefs.notif_events);
+      document.getElementById('toggle-messages').classList.toggle('toggle--on', notifPrefs.notif_messages);
+      document.getElementById('toggle-marketing').classList.toggle('toggle--on', notifPrefs.notif_marketing);
+    }
+
+    window.toggleNotif = function(toggleId, key) {
+      notifPrefs[key] = !notifPrefs[key];
+      document.getElementById(toggleId).classList.toggle('toggle--on', notifPrefs[key]);
+    };
+
+    // ── Update Password ───────────────────────────────────────────────
+    document.getElementById('update-password-btn').addEventListener('click', async () => {
+      const current = document.getElementById('current-password').value;
+      const newPwd = document.getElementById('new-pwd').value;
+      const confirmPwd = document.getElementById('confirm-pwd').value;
+      const btn = document.getElementById('update-password-btn');
+      const errorEl = document.getElementById('password-error');
+
+      if (!current || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields.'; errorEl.classList.remove('hidden'); return; }
+      if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters.'; errorEl.classList.remove('hidden'); return; }
+      if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match.'; errorEl.classList.remove('hidden'); return; }
+
+      errorEl.classList.add('hidden');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Updating...';
+
+      try {
+        // Verify current password by re-authenticating
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: currentUser.email, password: current,
+        });
+
+        if (signInError) {
+          errorEl.textContent = 'Current password is incorrect.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        // Update password
+        const { error: updateError } = await supabase.auth.updateUser({ password: newPwd });
+        if (updateError) throw updateError;
+
+        showToast('Password updated successfully!', 'success');
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-pwd').value = '';
+        document.getElementById('confirm-pwd').value = '';
+      } catch (err) {
+        console.error('[Password] Error:', err.message);
+        errorEl.textContent = err.message || 'Unable to update password.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Update Password';
+      }
+    });
+
+    // ── Save Privacy ──────────────────────────────────────────────────
+    document.getElementById('save-privacy-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('save-privacy-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        const visibility = document.getElementById('profile-visibility').value;
+        const searchable = document.getElementById('searchable').value === 'true';
+
+        const { error } = await supabase.from('profiles')
+          .update({ profile_visibility: visibility, is_searchable: searchable }).eq('id', currentUser.id);
+        if (error) throw error;
+
+        showToast('Privacy settings saved!', 'success');
+      } catch (err) {
+        console.error('[Privacy] Error:', err.message);
+        showToast('Unable to save. Please try again.', 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save Privacy Settings';
+      }
+    });
+
+    // ── Save Notifications ────────────────────────────────────────────
+    document.getElementById('save-notif-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('save-notif-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        const { error } = await supabase.from('profiles').update({
+          notif_orders: notifPrefs.notif_orders,
+          notif_events: notifPrefs.notif_events,
+          notif_messages: notifPrefs.notif_messages,
+          notif_marketing: notifPrefs.notif_marketing,
+        }).eq('id', currentUser.id);
+        if (error) throw error;
+
+        showToast('Notification preferences saved!', 'success');
+      } catch (err) {
+        console.error('[Notif] Error:', err.message);
+        showToast('Unable to save. Please try again.', 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save Preferences';
+      }
+    });
+
+    // ── Delete Account ────────────────────────────────────────────────
+    document.getElementById('delete-account-btn').addEventListener('click', () => {
+      showToast('Account deletion must be handled by an administrator.', 'error');
+    });
+
+    // ── Logout ────────────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabase.auth.signOut();
+      window.location.href = '/login.html';
+    });
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

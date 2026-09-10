@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px;align-items:center}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .header__badge{background:var(--sadq-danger);color:#fff;font-size:.6875rem;font-weight:600;padding:1px 6px;border-radius:10px;margin-left:4px}
+    .container{max-width:600px;margin:0 auto;padding:16px}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .page-title{font-size:1.25rem;font-weight:700}
+    .mark-all-btn{font-size:.8125rem;color:var(--sadq-primary);background:none;border:none;cursor:pointer;text-decoration:none}
+    .mark-all-btn:hover{text-decoration:underline}
+    .filter-bar{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+    .filter-tab{padding:6px 12px;border:1px solid var(--sadq-border);border-radius:16px;background:#fff;cursor:pointer;font-size:.75rem;font-weight:500;white-space:nowrap;transition:var(--sadq-transition)}
+    .filter-tab--active{background:var(--sadq-primary);color:#fff;border-color:var(--sadq-primary)}
+    .notif-list{display:flex;flex-direction:column;gap:8px}
+    .notif-card{display:flex;gap:12px;padding:14px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow);cursor:pointer;transition:var(--sadq-transition);position:relative}
+    .notif-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+    .notif-card--unread{border-left:3px solid var(--sadq-primary)}
+    .notif__icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0;background:#f0f7f0}
+    .notif__icon--order{background:#e3f2fd}
+    .notif__icon--payment{background:#e8f5e9}
+    .notif__icon--message{background:#f3e5f5}
+    .notif__icon--event{background:#fff3e0}
+    .notif__icon--system{background:#fce4ec}
+    .notif__body{flex:1;min-width:0}
+    .notif__title{font-size:.875rem;font-weight:600;margin-bottom:2px}
+    .notif__text{font-size:.8125rem;color:var(--sadq-text-muted);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .notif__time{font-size:.6875rem;color:var(--sadq-text-muted);margin-top:4px}
+    .notif__dot{width:8px;height:8px;border-radius:50%;background:var(--sadq-danger);position:absolute;top:14px;right:14px}
+    .notif__dot--read{display:none}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .empty-state__text{font-size:1rem;margin-bottom:4px}
+    .empty-state__sub{font-size:.8125rem}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius-sm)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .hidden{display:none!important}
+    .login-prompt{text-align:center;padding:80px 16px}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;text-decoration:none;display:inline-block}
+    .btn:hover{background:var(--sadq-primary-light)}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div id="login-prompt" class="login-prompt hidden">
+      <div style="font-size:3rem;margin-bottom:12px;opacity:.3">🔔</div>
+      <p style="font-size:1rem;margin-bottom:8px">Please login to view your notifications.</p>
+      <a href="/login.html" class="btn">Login</a>
+    </div>
+    <div id="main-content" class="hidden">
+      <div class="page-header">
+        <h1 class="page-title">Notifications</h1>
+        <button class="mark-all-btn" id="mark-all-btn">Mark all as read</button>
+      </div>
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-tab filter-tab--active" data-filter="all">All</div>
+        <div class="filter-tab" data-filter="unread">Unread</div>
+        <div class="filter-tab" data-filter="order">Orders</div>
+        <div class="filter-tab" data-filter="payment">Payments</div>
+        <div class="filter-tab" data-filter="message">Messages</div>
+        <div class="filter-tab" data-filter="event">Events</div>
+        <div class="filter-tab" data-filter="system">System</div>
+      </div>
+      <div id="loading">
+        <div class="skeleton" style="height:72px;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:72px;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:72px;margin-bottom:8px"></div>
+      </div>
+      <div id="notif-list" class="notif-list hidden"></div>
+      <div id="empty" class="empty-state hidden">
+        <div class="empty-state__icon">🔔</div>
+        <div class="empty-state__text">No notifications yet.</div>
+        <div class="empty-state__sub">You're all caught up!</div>
+      </div>
+      <div id="error" class="empty-state hidden">
+        <div class="empty-state__icon">⚠️</div>
+        <div class="empty-state__text">Unable to load notifications.</div>
+        <button class="btn" onclick="location.reload()">Retry</button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    let currentUser = null;
+    let activeFilter = 'all';
+    let notifications = [];
+
+    async function init() {
+      try {
+        const { user } = await getCurrentUser();
+        currentUser = user;
+      } catch {}
+
+      if (!currentUser) {
+        document.getElementById('login-prompt').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('main-content').classList.remove('hidden');
+      await loadNotifications();
+
+      // Real-time subscription
+      supabase.channel('notifications')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUser.id}`
+        }, () => loadNotifications()
+        ).subscribe();
+    }
+
+    async function loadNotifications() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('notif-list').classList.add('hidden');
+      document.getElementById('empty').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+
+      try {
+        const { data, error } = await supabase.from('notifications')
+          .select('id, title, body, type, is_read, link_url, created_at')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        notifications = data || [];
+        renderNotifications();
+      } catch (err) {
+        console.error('[Notifications] Error:', err.message);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+      }
+    }
+
+    function renderNotifications() {
+      document.getElementById('loading').classList.add('hidden');
+
+      let filtered = notifications;
+      if (activeFilter === 'unread') filtered = notifications.filter(n => !n.is_read);
+      else if (activeFilter !== 'all') filtered = notifications.filter(n => n.type === activeFilter);
+
+      if (filtered.length === 0) {
+        document.getElementById('empty').classList.remove('hidden');
+        document.getElementById('notif-list').classList.add('hidden');
+        return;
+      }
+
+      const icons = {
+        order: '🛒', payment: '💰', message: '💬',
+        event: '📅', system: '⚙️', default: '🔔'
+      };
+
+      document.getElementById('notif-list').innerHTML = filtered.map(n => `
+        <div class="notif-card fade-in ${!n.is_read ? 'notif-card--unread' : ''}" onclick="window.openNotif('${n.id}', '${n.link_url || ''}', ${!n.is_read})">
+          <div class="notif__icon notif__icon--${n.type || 'system'}">${icons[n.type] || icons.default}</div>
+          <div class="notif__body">
+            <div class="notif__title">${n.title}</div>
+            ${n.body ? `<div class="notif__text">${n.body}</div>` : ''}
+            <div class="notif__time">${timeAgo(n.created_at)}</div>
+          </div>
+          <div class="notif__dot ${n.is_read ? 'notif__dot--read' : ''}"></div>
+        </div>
+      `).join('');
+
+      document.getElementById('notif-list').classList.remove('hidden');
+
+      // Update unread badge count
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+      updateBadge(unreadCount);
+    }
+
+    function updateBadge(count) {
+      let badge = document.querySelector('.header__badge');
+      if (count > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'header__badge';
+          document.querySelector('.header__nav').prepend(badge);
+        }
+        badge.textContent = count > 99 ? '99+' : count;
+      } else if (badge) {
+        badge.remove();
+      }
+    }
+
+    window.openNotif = async function(id, linkUrl, markRead) {
+      if (markRead) {
+        try {
+          await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+          const n = notifications.find(x => x.id === id);
+          if (n) n.is_read = true;
+          renderNotifications();
+        } catch {}
+      }
+      if (linkUrl) window.location.href = linkUrl;
+    };
+
+    document.getElementById('mark-all-btn').addEventListener('click', async () => {
+      try {
+        await supabase.from('notifications').update({ is_read: true })
+          .eq('user_id', currentUser.id).eq('is_read', false);
+        notifications.forEach(n => n.is_read = true);
+        renderNotifications();
+      } catch (err) {
+        console.error('[MarkAll] Error:', err.message);
+      }
+    });
+
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('filter-tab--active'));
+        tab.classList.add('filter-tab--active');
+        activeFilter = tab.dataset.filter;
+        renderNotifications();
+      });
+    });
+
+    function timeAgo(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = Math.floor((now - date) / 1000);
+      if (diff < 60) return 'Just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

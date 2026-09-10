@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service & Freelancing Login — SADQ</title>
+<style>
+:root{--p:#1a5632;--pd:#0f3d20;--gold:#c9a227;--bg:#faf9f6;--danger:#c41e3a;--success:#28a745}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.card{background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.12);overflow:hidden;width:100%;max-width:460px}
+.header{background:linear-gradient(135deg,var(--p) 0%,var(--pd) 100%);padding:32px 24px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50%;right:-30%;width:200px;height:200px;background:radial-gradient(circle,rgba(201,162,39,0.15) 0%,transparent 70%);border-radius:50%}
+.logo{font-size:2rem;font-weight:800;color:#fff;position:relative}.logo span{color:var(--gold)}
+.header p{color:rgba(255,255,255,0.7);font-size:0.8125rem;margin-top:4px;position:relative}
+.body{padding:24px}
+.info-banner{background:#e3f2fd;color:#1565c0;padding:10px 14px;border-radius:8px;font-size:0.75rem;margin-bottom:16px}
+.form-group{margin-bottom:16px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:6px}
+.form-input{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:12px;font-size:0.9375rem;background:#fafafa}
+.form-input:focus{outline:none;border-color:var(--p);background:#fff}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:0.9375rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;transition:all 0.3s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(26,86,50,0.3)}.btn:disabled{opacity:0.6}
+.error{background:#fee;color:var(--danger);padding:10px 14px;border-radius:8px;font-size:0.8125rem;margin-bottom:16px;display:none}
+.links{text-align:center;margin-top:16px;font-size:0.8125rem}.links a{color:var(--p);text-decoration:none}
+.pending-msg{background:#fff8e1;color:#e65100;padding:14px;border-radius:8px;font-size:0.875rem;text-align:center;margin-bottom:14px;display:none}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<div class="card">
+<div class="header"><div class="logo">SAD<span>Q</span></div><p>Services & Freelancing Portal</p></div>
+<div class="body">
+<div class="info-banner">💡 This portal is for approved service providers and freelancers. Admin approval required.</div>
+<div class="error" id="err"></div>
+<div class="pending-msg" id="pending-msg">⏳ Your service access is pending admin approval. Please wait.</div>
+<div class="form-group"><label>Email</label><input class="form-input" id="email" placeholder="you@example.com"></div>
+<div class="form-group"><label>Password</label><input class="form-input" type="password" id="password" placeholder="••••••••"></div>
+<button class="btn" id="btn" onclick="login()">Login to Service Portal →</button>
+<div class="links"><a href="/login.html">← Back to Student/Teacher Login</a><br><a href="/register.html" style="font-size:0.75rem">Don't have an account? Register first</a></div>
+</div>
+</div>
+<script type="module">
+import{supabase} from '/js/supabase-client.js'
+supabase.auth.getSession().then(({data:{session}})=>{if(session){checkServiceAccess(session.user)}})
+async function checkServiceAccess(user){try{const{data,error}=await supabase.from('service_users').select('*').eq('profile_id',user.id).single()
+if(data){if(data.account_status==='approved'){window.location.href='/freelancing.html'}else if(data.account_status==='pending'){document.getElementById('pending-msg').style.display='block'}}}catch(e){/* not a service user */}}
+window.login=async()=>{const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,e=document.getElementById('err'),btn=document.getElementById('btn')
+if(!email||!password){e.textContent='Enter email and password';e.style.display='block';return}
+btn.disabled=true;btn.textContent='Logging in...';e.style.display='none'
+try{const{data,error}=await supabase.auth.signInWithPassword({email,password})
+if(error)throw error
+const{data:svc,error:sErr}=await supabase.from('service_users').select('*').eq('profile_id',data.user.id).single()
+if(sErr||!svc){await supabase.auth.signOut();throw new Error('You do not have service/freelancing access. Apply via admin.')}
+if(svc.account_status==='pending'){await supabase.auth.signOut();document.getElementById('pending-msg').style.display='block';btn.disabled=false;btn.textContent='Login to Service Portal →';return}
+if(svc.account_status==='suspended'){await supabase.auth.signOut();throw new Error('Your service access has been suspended. Contact admin.')}
+window.location.href='/freelancing.html'}catch(err){e.textContent=err.message||'Login failed';e.style.display='block';btn.disabled=false;btn.textContent='Login to Service Portal →'}}
+document.getElementById('password').addEventListener('keypress',e=>{if(e.key==='Enter')login()})
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

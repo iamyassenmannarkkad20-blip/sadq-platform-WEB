@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .header { position: sticky; top: 0; z-index: 100; height: 64px; background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .header__nav { margin-left: auto; display: flex; gap: 4px; }
+    .header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.8125rem; padding: 6px 10px; border-radius: var(--sadq-radius-sm); }
+    .header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .search-section { margin-bottom: 20px; }
+    .search-input { width: 100%; padding: 14px 16px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius); font-size: 1rem; transition: var(--sadq-transition); }
+    .search-input:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(26,86,50,0.1); }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .tab { padding: 8px 14px; border: 1px solid var(--sadq-border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.8125rem; font-weight: 500; white-space: nowrap; transition: var(--sadq-transition); }
+    .tab--active { background: var(--sadq-primary); color: #fff; border-color: var(--sadq-primary); }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .result-card { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 16px; box-shadow: var(--sadq-shadow); transition: var(--sadq-transition); text-decoration: none; color: var(--text, #F8FAFC); }
+    .result-card:hover { box-shadow: var(--sadq-shadow-hover); transform: translateY(-2px); }
+    .result-card__icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .result-card__title { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-card__meta { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .result-card__thumb { width: 100%; height: 120px; object-fit: cover; border-radius: var(--sadq-radius-sm); margin-bottom: 8px; background: var(--sadq-border); }
+    .empty-state { text-align: center; padding: 60px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state__text { font-size: 1rem; margin-bottom: 4px; }
+    .empty-state__sub { font-size: 0.8125rem; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+    .load-more { text-align: center; padding: 20px; }
+    .btn { padding: 10px 20px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; background: var(--sadq-primary); color: #fff; transition: var(--sadq-transition); }
+    .btn:hover { background: var(--sadq-primary-light); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 360px) { .results-grid { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/login.html">Login</a>
+      <a href="/register.html">Register</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="search-section">
+      <input type="text" id="search-input" class="search-input" placeholder="Search students, articles, services, projects, events...">
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab tab--active" data-cat="all">All</div>
+      <div class="tab" data-cat="students">🎓 Students</div>
+      <div class="tab" data-cat="posts">✍️ Articles</div>
+      <div class="tab" data-cat="magazines">📖 Magazines</div>
+      <div class="tab" data-cat="services">🛠️ Services</div>
+      <div class="tab" data-cat="projects">📁 Projects</div>
+      <div class="tab" data-cat="events">📅 Events</div>
+      <div class="tab" data-cat="videos">🎬 Videos</div>
+      <div class="tab" data-cat="books">📚 Library</div>
+    </div>
+
+    <div id="loading">
+      <div class="results-grid">
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+      </div>
+    </div>
+
+    <div id="results" class="results-grid hidden"></div>
+
+    <div id="empty" class="empty-state hidden">
+      <div class="empty-state__icon">🔍</div>
+      <div class="empty-state__text">No results found</div>
+      <div class="empty-state__sub">Try a different search term or category.</div>
+    </div>
+
+    <div class="load-more hidden" id="load-more-wrap">
+      <button class="btn" id="load-more-btn">Load More</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+
+    let activeCat = 'all';
+    let searchTerm = '';
+    let searchTimeout = null;
+    let page = 0;
+    const pageSize = 12;
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchTerm = e.target.value.trim();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { page = 0; search(); }, 400);
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+        tab.classList.add('tab--active');
+        activeCat = tab.dataset.cat;
+        page = 0;
+        search();
+      });
+    });
+
+    document.getElementById('load-more-btn').addEventListener('click', () => {
+      page++;
+      search(true);
+    });
+
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('empty').classList.add('hidden');
+      document.getElementById('load-more-wrap').classList.add('hidden');
+    }
+    function showEmpty() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('empty').classList.remove('hidden');
+      document.getElementById('load-more-wrap').classList.add('hidden');
+    }
+    function showResults() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('empty').classList.add('hidden');
+    }
+
+    async function search(append = false) {
+      if (!append) showLoading();
+
+      const cats = activeCat === 'all'
+        ? ['students', 'posts', 'magazines', 'services', 'projects', 'events', 'videos', 'books']
+        : [activeCat];
+
+      const results = [];
+      const errors = [];
+
+      for (const cat of cats) {
+        try {
+          let items = await fetchCategory(cat, searchTerm, pageSize, page * pageSize);
+          results.push(...items.map(i => ({ ...i, cat })));
+        } catch (e) {
+          errors.push(cat);
+        }
+      }
+
+      if (!append && results.length === 0) {
+        showEmpty();
+        return;
+      }
+
+      const grid = document.getElementById('results');
+
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', results.map(r => renderCard(r)).join(''));
+      } else {
+        grid.innerHTML = results.map(r => renderCard(r)).join('');
+      }
+
+      showResults();
+
+      // Show load more if we got a full page
+      document.getElementById('load-more-wrap').classList.toggle('hidden', results.length < pageSize);
+    }
+
+    async function fetchCategory(cat, term, limit, offset) {
+      let query;
+      const searchFilter = term ? `ilike.%${term}%` : null;
+
+      if (cat === 'students') {
+        query = supabase.from('profiles').select('id, full_name, username, profile_photo_url, course, batch')
+          .eq('account_status', 'active').eq('profile_visibility', 'public')
+          .order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.or(`full_name.ilike.%${term}%,username.ilike.%${term}%`);
+      } else if (cat === 'posts') {
+        query = supabase.from('posts').select('id, title, post_kind, slug, created_at')
+          .eq('status', 'published').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+      } else if (cat === 'magazines') {
+        query = supabase.from('student_magazines').select('id, title, slug, created_at')
+          .eq('status', 'published').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      } else if (cat === 'services') {
+        query = supabase.from('services').select('id, title, price, status')
+          .eq('status', 'published').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      } else if (cat === 'projects') {
+        query = supabase.from('projects').select('id, title, status, created_at')
+          .eq('status', 'published').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      } else if (cat === 'events') {
+        query = supabase.from('events').select('id, title, start_at, location, status')
+          .eq('status', 'published').order('start_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      } else if (cat === 'videos') {
+        query = supabase.from('videos').select('id, title, thumbnail_url, created_at')
+          .eq('status', 'published').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      } else if (cat === 'books') {
+        query = supabase.from('library_books').select('id, title, author, status')
+          .eq('status', 'available').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+        if (term) query = query.ilike('title', `%${term}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+
+    function renderCard(r) {
+      const icons = { students: '🎓', posts: '✍️', magazines: '📖', services: '🛠️', projects: '📁', events: '📅', videos: '🎬', books: '📚' };
+      const links = {
+        students: `/u/${r.username || r.id}`,
+        posts: `/post.html?slug=${r.slug || r.id}`,
+        magazines: `/magazine.html?slug=${r.slug || r.id}`,
+        services: `/service-details.html?id=${r.id}`,
+        projects: `/project-details.html?id=${r.id}`,
+        events: `/event-details.html?id=${r.id}`,
+        videos: `/videos.html?id=${r.id}`,
+        books: `/library.html?id=${r.id}`,
+      };
+
+      let thumb = '';
+      if (r.profile_photo_url) thumb = `<img class="result-card__thumb" src="${r.profile_photo_url}" alt="">`;
+      else if (r.thumbnail_url) thumb = `<img class="result-card__thumb" src="${r.thumbnail_url}" alt="">`;
+
+      let subtitle = '';
+      if (r.cat === 'students') subtitle = `${r.course || ''} ${r.batch || ''}`.trim() || `@${r.username || ''}`;
+      else if (r.cat === 'posts') subtitle = r.post_kind || 'Article';
+      else if (r.cat === 'services') subtitle = r.price ? `₹${r.price}` : 'Free';
+      else if (r.cat === 'events') subtitle = `${r.start_at ? new Date(r.start_at).toLocaleDateString('en-IN') : ''} ${r.location || ''}`.trim();
+      else if (r.cat === 'books') subtitle = r.author || '';
+      else if (r.cat === 'videos') subtitle = new Date(r.created_at).toLocaleDateString('en-IN');
+      else if (r.created_at) subtitle = new Date(r.created_at).toLocaleDateString('en-IN');
+
+      return `
+        <a href="${links[r.cat] || '#'}" class="result-card fade-in">
+          ${thumb}
+          <div class="result-card__icon">${icons[r.cat] || '📌'}</div>
+          <div class="result-card__title">${r.title || r.full_name || 'Untitled'}</div>
+          <div class="result-card__meta">${subtitle}</div>
+        </a>
+      `;
+    }
+
+    // Initial load
+    search();
+
+    // PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sub-Wings Management — SADQ Admin</title>
+<style>
+:root{--p:#1a5632;--pl:#2d7a4f;--bg:#f0f2f5;--card:#fff;--text:#1a1a1a;--muted:#6c757d;--border:#e0e0e0;--danger:#c41e3a;--success:#28a745;--gold:#c9a227;--r:12px;--rs:8px;--shadow:0 2px 8px rgba(0,0,0,0.08);--t:0.3s ease;--sw:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#1a5632,#0f3d20);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar__h{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+.sidebar__sub{font-size:0.6875rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.sidebar__link{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.875rem;transition:var(--t);border-left:3px solid transparent}
+.sidebar__link:hover{background:rgba(255,255,255,0.08);color:#fff}.sidebar__link--active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+.sidebar__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar__section{padding:12px 16px 4px;font-size:0.6875rem;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.main{margin-left:var(--sw);padding:16px;min-height:100vh}.main__title{font-size:1.5rem;font-weight:700;margin-bottom:20px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:500;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn--primary{background:var(--p);color:#fff}.btn--danger{background:var(--danger);color:#fff}.btn--ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn--small{padding:4px 10px;font-size:0.8125rem}.btn:disabled{opacity:0.6}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}.tab{padding:8px 16px;border:1px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:0.875rem;font-weight:500;transition:var(--t)}
+.tab--active{background:var(--p);color:#fff;border-color:var(--p)}
+table{width:100%;border-collapse:collapse;font-size:0.875rem}
+th{text-align:left;padding:10px;border-bottom:2px solid var(--border);font-weight:600;font-size:0.75rem;color:var(--muted);text-transform:uppercase}
+td{padding:10px;border-bottom:1px solid var(--border)}tr:hover{background:#f8f9fa}
+.badge{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block}
+.badge--green{background:#e8f5e9;color:var(--success)}.badge--red{background:#ffebee;color:#c62828}.badge--blue{background:#e3f2fd;color:#1565c0}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input,.form-select{width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem}
+.form-input:focus{outline:none;border-color:var(--p)}
+.form-check{display:flex;align-items:center;gap:6px;margin-bottom:8px}.form-check input{width:auto}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay--active{display:flex}.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+.modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:110;background:var(--p);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:1rem;cursor:pointer}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar--open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:block}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<button class="menu-toggle" id="mt">☰</button>
+<aside class="sidebar" id="sb">
+<div class="sidebar__h"><a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a><div class="sidebar__sub">Control Center</div></div>
+<nav>
+<div class="sidebar__section">Overview</div>
+<a href="/admin-dashboard.html" class="sidebar__link {DASH_ACTIVE}"><span class="sidebar__icon">📊</span> Dashboard</a>
+<div class="sidebar__section">People</div>
+<a href="/admin-students.html" class="sidebar__link {STUDENTS_ACTIVE}"><span class="sidebar__icon">🎓</span> Students</a>
+<a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+<div class="sidebar__section">Organisation</div>
+<a href="/admin-subwings.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+<a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+<a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+<div class="sidebar__section">Content</div>
+<a href="/admin-content.html" class="sidebar__link {CONTENT_ACTIVE}"><span class="sidebar__icon">📰</span> Magazine</a>
+<a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+<a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+<a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+<a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+<div class="sidebar__section">Recognition</div>
+<a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+<a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+<div class="sidebar__section">Marketplace</div>
+<a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+<a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+<a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+<div class="sidebar__section">Finance</div>
+<a href="/admin-payments.html" class="sidebar__link {PAYMENTS_ACTIVE}"><span class="sidebar__icon">💳</span> Payments</a>
+<a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+<a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+<div class="sidebar__section">Platform</div>
+<a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+<a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+<a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+<a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+<a href="/admin-settings.html" class="sidebar__link {SETTINGS_ACTIVE}"><span class="sidebar__icon">⚙️</span> Settings</a>
+<a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+<a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+<div class="sidebar__section">Back</div>
+<a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+<a href="#" class="sidebar__link" id="lo"><span class="sidebar__icon">🚪</span> Logout</a>
+</nav>
+</aside>
+<div class="main">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px">
+<h1 class="main__title">Sub-Wings Management</h1>
+<button class="btn btn--primary" onclick="openCreate()">+ Add Sub-Wing</button>
+</div>
+<div class="tabs">
+<div class="tab tab--active" onclick="filterType('all',this)">All</div>
+<div class="tab" onclick="filterType('sub_wing',this)">Sub-Wings (13)</div>
+<div class="tab" onclick="filterType('class_organisation',this)">Class Organisations (8)</div>
+</div>
+<div class="section">
+<div id="loading"><div class="skeleton" style="height:60px;margin-bottom:8px"></div><div class="skeleton" style="height:60px;margin-bottom:8px"></div><div class="skeleton" style="height:60px"></div></div>
+<table id="tbl" class="hidden"><thead><tr><th>Name</th><th>Type</th><th>Chairman</th><th>Convener</th><th>Login</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table>
+<div id="empty" class="empty hidden"><div class="empty__icon">🏛️</div><p>No sub-wings found.</p></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal"><div class="modal">
+<button onclick="closeModal()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)">×</button>
+<h2 class="modal__title" id="mtitle">Add Sub-Wing</h2>
+<div class="form-group"><label>Name *</label><input class="form-input" id="w-name" placeholder="e.g. Media Wing"></div>
+<div class="form-group"><label>Type</label><select class="form-select" id="w-type"><option value="sub_wing">Sub-Wing</option><option value="class_organisation">Class Organisation</option></select></div>
+<div class="form-group"><label>Description</label><input class="form-input" id="w-desc" placeholder="Brief description"></div>
+<div class="form-group"><label>Chairman Name</label><input class="form-input" id="w-chairman" placeholder="Chairman name"></div>
+<div class="form-group"><label>Convener Name</label><input class="form-input" id="w-convener" placeholder="Convener name"></div>
+<div class="form-group"><label>Login Username</label><input class="form-input" id="w-username" placeholder="login username"></div>
+<div class="form-group"><label>Login Password</label><input class="form-input" id="w-password" placeholder="login password"></div>
+<div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">Permissions:</div>
+<div class="form-check"><input type="checkbox" id="w-notices" checked><label for="w-notices" style="margin:0">Can upload notices</label></div>
+<div class="form-check"><input type="checkbox" id="w-events" checked><label for="w-events" style="margin:0">Can upload events</label></div>
+<div class="form-check"><input type="checkbox" id="w-tasks" checked><label for="w-tasks" style="margin:0">Can upload tasks</label></div>
+<div class="form-check"><input type="checkbox" id="w-edit" checked><label for="w-edit" style="margin:0">Can edit own content</label></div>
+<div class="form-check"><input type="checkbox" id="w-delete"><label for="w-delete" style="margin:0">Can delete own content</label></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+<button class="btn btn--primary" id="save-btn" onclick="saveWing()">Save</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import{supabase,requireAuth,signOut,esc} from '/js/supabase-client.js'
+let cu=null,filter='all',editingId=null
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+async function init(){try{const{user,profile}=await requireAuth();if(profile&&!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';return}cu=user;document.getElementById('lo').addEventListener('click',e=>{e.preventDefault();signOut()});document.getElementById('mt').addEventListener('click',()=>document.getElementById('sb').classList.toggle('sidebar--open'));await load()}catch(e){if(!['Not authenticated','Account is not active'].includes(e?.message))console.error(e)}}
+async function load(){const l=document.getElementById('loading'),t=document.getElementById('tbl'),e=document.getElementById('empty'),tb=document.getElementById('tbody');l.classList.remove('hidden');t.classList.add('hidden');e.classList.add('hidden')
+try{let q=supabase.from('sub_wings').select('*').order('display_order',{ascending:true})
+if(filter!=='all')q=q.eq('wing_type',filter)
+const{data,error}=await q
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+tb.innerHTML=data.map(w=>`<tr><td><strong>${esc(w.name||'—')}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${esc(w.description||'')}</span></td><td><span class="badge ${w.wing_type==='sub_wing'?'badge--blue':'badge--green'}">${w.wing_type==='sub_wing'?'Sub-Wing':'Class Org'}</span></td><td>${esc(w.chairman_name||'—')}</td><td>${esc(w.convener_name||'—')}</td><td>${w.login_enabled?'<span class="badge badge--green">Enabled</span>':'<span class="badge badge--red">Disabled</span>'}</td><td><button class="btn btn--ghost btn--small" onclick="toggleLogin('${w.id}',${w.login_enabled})">${w.login_enabled?'Disable':'Enable'}</button> <button class="btn btn--ghost btn--small" onclick="editWing('${w.id}')">Edit</button></td></tr>`).join('')
+l.classList.add('hidden');t.classList.remove('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+window.filterType=(t,el)=>{filter=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('tab--active'));el.classList.add('tab--active');load()}
+window.openCreate=()=>{editingId=null;document.getElementById('mtitle').textContent='Add Sub-Wing';document.getElementById('modal').classList.add('modal-overlay--active')}
+window.closeModal=()=>{editingId=null;document.getElementById('modal').classList.remove('modal-overlay--active');['w-name','w-desc','w-chairman','w-convener','w-username','w-password'].forEach(id=>document.getElementById(id).value='')}
+window.saveWing=async()=>{const n=document.getElementById('w-name').value.trim(),t=document.getElementById('w-type').value,d=document.getElementById('w-desc').value.trim(),c=document.getElementById('w-chairman').value.trim(),cv=document.getElementById('w-convener').value.trim(),u=document.getElementById('w-username').value.trim(),p=document.getElementById('w-password').value
+if(!n){toast('Name required','error');return}
+const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Saving...'
+try{const payload={name:n,wing_type:t,description:d,chairman_name:c,convener_name:cv,login_username:u||null,can_upload_notices:document.getElementById('w-notices').checked,can_upload_events:document.getElementById('w-events').checked,can_upload_tasks:document.getElementById('w-tasks').checked,can_edit:document.getElementById('w-edit').checked,can_delete:document.getElementById('w-delete').checked};if(p)payload.login_password=p;const{error}=editingId?await supabase.from('sub_wings').update(payload).eq('id',editingId):await supabase.from('sub_wings').insert({...payload,login_password:p||null})
+if(error)throw error;toast('Sub-wing created!');closeModal();await load()}catch(e){toast(e.message,'error')}finally{btn.disabled=false;btn.textContent='Save'}}
+window.toggleLogin=async(id,enabled)=>{try{const{error}=await supabase.from('sub_wings').update({login_enabled:!enabled}).eq('id',id);if(error)throw error;toast(enabled?'Login disabled':'Login enabled');await load()}catch(e){toast(e.message,'error')}}
+window.editWing=async(id)=>{try{const{data,error}=await supabase.from('sub_wings').select('*').eq('id',id).single();if(error)throw error
+editingId=id
+document.getElementById('mtitle').textContent='Edit: '+data.name;document.getElementById('w-name').value=data.name||'';document.getElementById('w-type').value=data.wing_type||'sub_wing';document.getElementById('w-desc').value=data.description||'';document.getElementById('w-chairman').value=data.chairman_name||'';document.getElementById('w-convener').value=data.convener_name||'';document.getElementById('w-username').value=data.login_username||'';document.getElementById('w-password').value=data.login_password||''
+document.getElementById('w-notices').checked=data.can_upload_notices;document.getElementById('w-events').checked=data.can_upload_events;document.getElementById('w-tasks').checked=data.can_upload_tasks;document.getElementById('w-edit').checked=data.can_edit;document.getElementById('w-delete').checked=data.can_delete
+document.getElementById('modal').classList.add('modal-overlay--active')}catch(e){toast(e.message,'error')}}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

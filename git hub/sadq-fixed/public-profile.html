@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SADQ — Public Profile</title>
+  <link rel="stylesheet" href="/css/profile.css">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .sadq-header {
+      position: sticky; top: 0; z-index: 100; height: 64px;
+      background: var(--sadq-primary); display: flex; align-items: center; padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .sadq-header__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sadq-header__nav { margin-left: auto; display: flex; gap: 8px; }
+    .sadq-header__nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: var(--sadq-radius-sm); }
+    .sadq-header__nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .profile-container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+    .cover-section {
+      position: relative; height: 200px; border-radius: var(--sadq-radius);
+      overflow: hidden; background: linear-gradient(135deg, var(--sadq-primary), var(--sadq-primary-light));
+      margin-bottom: -40px;
+    }
+    .cover-section img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-header {
+      position: relative; z-index: 1; display: flex; align-items: flex-end;
+      gap: 16px; padding: 0 16px; margin-bottom: 24px;
+    }
+    .profile-avatar {
+      width: 100px; height: 100px; border-radius: 50%; border: 4px solid #fff;
+      object-fit: cover; background: var(--sadq-border); flex-shrink: 0; box-shadow: var(--sadq-shadow);
+    }
+    .profile-avatar-placeholder {
+      width: 100px; height: 100px; border-radius: 50%; border: 4px solid #fff;
+      background: var(--sadq-border); display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--sadq-text-muted); flex-shrink: 0;
+    }
+    .profile-header__info { flex: 1; padding-bottom: 8px; }
+    .profile-header__name { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .profile-header__username { font-size: 0.875rem; color: var(--sadq-text-muted); }
+    .profile-header__badges { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+    .badge--verified { background: #e8f5e9; color: #28a745; }
+    .badge--student { background: #e3f2fd; color: #1976d2; }
+    .badge--freelancer { background: #fff3e0; color: #e65100; }
+    .profile-header__actions { padding-bottom: 8px; }
+
+    .btn {
+      padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm);
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--ghost { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn--ghost:hover { background: rgba(255,255,255,0.25); }
+    .btn--outline { background: transparent; border: 1px solid var(--sadq-border); color: var(--text, #F8FAFC); }
+
+    .section {
+      background: var(--sadq-card-bg); border-radius: var(--sadq-radius);
+      padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow);
+    }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section__title { font-size: 1.125rem; font-weight: 600; }
+
+    .skills-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag {
+      background: #f0f7f0; color: var(--sadq-primary);
+      padding: 6px 14px; border-radius: 20px; font-size: 0.8125rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .skill-tag__proficiency { font-size: 0.6875rem; color: var(--sadq-text-muted); }
+
+    .work-samples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .work-sample-card {
+      border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm);
+      overflow: hidden; transition: var(--sadq-transition); cursor: pointer;
+    }
+    .work-sample-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .work-sample-card__thumb { width: 100%; height: 120px; object-fit: cover; background: var(--sadq-border); }
+    .work-sample-card__body { padding: 10px; }
+    .work-sample-card__title { font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .work-sample-card__skill { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .gallery-item { aspect-ratio: 1; border-radius: var(--sadq-radius-sm); overflow: hidden; cursor: pointer; }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: var(--sadq-transition); }
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    .achievement-list { display: flex; flex-direction: column; gap: 12px; }
+    .achievement-item { display: flex; gap: 12px; padding: 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); }
+    .achievement-item__icon { width: 40px; height: 40px; background: #fff8e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.25rem; }
+    .achievement-item__body { flex: 1; }
+    .achievement-item__title { font-weight: 500; font-size: 0.9375rem; }
+    .achievement-item__org { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+    .achievement-item__date { font-size: 0.75rem; color: var(--sadq-text-muted); }
+    .achievement-item__official-badge { font-size: 0.6875rem; background: #e8f5e9; color: #28a745; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+
+    .cert-list { display: flex; flex-direction: column; gap: 8px; }
+    .cert-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); }
+    .cert-item__icon { width: 36px; height: 36px; background: #e3f2fd; border-radius: var(--sadq-radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .social-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .social-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm); text-decoration: none;
+      color: var(--text, #F8FAFC); font-size: 0.8125rem; transition: var(--sadq-transition);
+    }
+    .social-link:hover { border-color: var(--sadq-primary); background: #f0f7f0; }
+
+    .empty-state { text-align: center; padding: 24px 16px; color: var(--sadq-text-muted); }
+    .empty-state__icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.5; }
+    .empty-state__text { font-size: 0.875rem; }
+
+    .not-found {
+      text-align: center; padding: 64px 16px;
+    }
+    .not-found__icon { font-size: 3rem; margin-bottom: 16px; }
+    .not-found__title { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+    .not-found__text { color: var(--sadq-text-muted); margin-bottom: 24px; }
+    .not-found__action {
+      display: inline-block; padding: 10px 24px;
+      background: var(--sadq-primary); color: #fff;
+      text-decoration: none; border-radius: var(--sadq-radius-sm);
+      font-weight: 500;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%; animation: skeleton-loading 1.5s infinite;
+      border-radius: var(--sadq-radius-sm);
+    }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 768px) {
+      .profile-header { flex-direction: column; align-items: center; text-align: center; }
+      .profile-avatar, .profile-avatar-placeholder { width: 80px; height: 80px; }
+      .profile-header__badges { justify-content: center; }
+      .work-samples-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 412px) {
+      .profile-container { padding: 8px; }
+      .section { padding: 16px; }
+      .work-samples-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 360px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <header class="sadq-header">
+    <a href="/" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+
+  <!-- Loading state -->
+  <div class="profile-container" id="loading-container">
+    <div class="skeleton" style="height: 200px; border-radius: 12px; margin-bottom: 16px;"></div>
+    <div class="skeleton" style="height: 100px; width: 100px; border-radius: 50%; margin: -50px auto 16px;"></div>
+    <div class="skeleton" style="height: 24px; width: 200px; margin: 0 auto 8px;"></div>
+    <div class="skeleton" style="height: 16px; width: 120px; margin: 0 auto 24px;"></div>
+    <div class="skeleton" style="height: 80px; border-radius: 12px; margin-bottom: 16px;"></div>
+    <div class="skeleton" style="height: 80px; border-radius: 12px; margin-bottom: 16px;"></div>
+  </div>
+
+  <!-- Not found state -->
+  <div class="profile-container hidden" id="not-found-container">
+    <div class="not-found">
+      <div class="not-found__icon">🔍</div>
+      <h1 class="not-found__title">Profile Not Found</h1>
+      <p class="not-found__text">This profile doesn't exist or is private.</p>
+      <a href="/explore.html" class="not-found__action">Explore SADQ</a>
+    </div>
+  </div>
+
+  <!-- Profile content -->
+  <div class="profile-container hidden" id="profile-content">
+
+    <div class="cover-section" id="cover-section">
+      <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--sadq-primary), var(--sadq-primary-light));"></div>
+    </div>
+
+    <div class="profile-header">
+      <div class="profile-avatar-placeholder" id="avatar-placeholder">👤</div>
+      <img class="profile-avatar hidden" id="avatar-img" alt="">
+      <div class="profile-header__info">
+        <div class="profile-header__name" id="display-name">—</div>
+        <div class="profile-header__username" id="display-username"></div>
+        <div class="profile-header__badges" id="badges"></div>
+      </div>
+      <div class="profile-header__actions" id="actions-bar"></div>
+    </div>
+
+    <div class="section fade-in" id="bio-section">
+      <div class="section__header"><h2 class="section__title">About</h2></div>
+      <p id="bio-text" style="color: var(--sadq-text-muted); font-size: 0.9375rem;">No bio available.</p>
+    </div>
+
+    <div class="section fade-in" id="academic-section">
+      <div class="section__header"><h2 class="section__title">Academic Information</h2></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.875rem;">
+        <div><strong>Course:</strong> <span id="info-course">—</span></div>
+        <div><strong>Batch:</strong> <span id="info-batch">—</span></div>
+        <div><strong>Department:</strong> <span id="info-department">—</span></div>
+        <div><strong>Class:</strong> <span id="info-class">—</span></div>
+      </div>
+    </div>
+
+    <div class="section fade-in hidden" id="skills-section">
+      <div class="section__header"><h2 class="section__title">Skills</h2></div>
+      <div class="skills-grid" id="skills-container"></div>
+    </div>
+
+    <div class="section fade-in hidden" id="work-samples-section">
+      <div class="section__header"><h2 class="section__title">Work Samples</h2></div>
+      <div class="work-samples-grid" id="work-samples-container"></div>
+    </div>
+
+    <div class="section fade-in hidden" id="achievements-section">
+      <div class="section__header"><h2 class="section__title">Achievements</h2></div>
+      <div class="achievement-list" id="achievements-container"></div>
+    </div>
+
+    <div class="section fade-in hidden" id="certificates-section">
+      <div class="section__header"><h2 class="section__title">Certificates</h2></div>
+      <div class="cert-list" id="certificates-container"></div>
+    </div>
+
+    <div class="section fade-in hidden" id="gallery-section">
+      <div class="section__header"><h2 class="section__title">Photo Gallery</h2></div>
+      <div class="gallery-grid" id="gallery-container"></div>
+    </div>
+
+    <div class="section fade-in hidden" id="social-section">
+      <div class="section__header"><h2 class="section__title">Links</h2></div>
+      <div class="social-links" id="social-links-container"></div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+
+    async function initPublicProfile() {
+      // Extract username from URL: /u/username or ?username=username
+      let username = null;
+
+      // Check if this is a /u/username route (requires server rewrite)
+      const pathParts = window.location.pathname.split('/');
+      if (pathParts.length >= 3 && pathParts[1] === 'u') {
+        username = decodeURIComponent(pathParts[2]);
+      }
+
+      // Fallback: query parameter
+      if (!username) {
+        const params = new URLSearchParams(window.location.search);
+        username = params.get('username') || params.get('u');
+      }
+
+      if (!username) {
+        showNotFound();
+        return;
+      }
+
+      try {
+        // Fetch the profile by username
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('username', username)
+          .eq('account_status', 'active')
+          .maybeSingle();
+
+        if (error) {
+          console.error('[Public Profile] Query error:', error.message);
+          showNotFound();
+          return;
+        }
+
+        if (!profile) {
+          showNotFound();
+          return;
+        }
+
+        // Check if profile is visible to current viewer
+        const { user: currentUser } = await getCurrentUser();
+        const isOwner = currentUser && currentUser.id === profile.id;
+
+        if (!isOwner) {
+          if (profile.profile_visibility === 'private') {
+            showNotFound();
+            return;
+          }
+          if (profile.profile_visibility === 'members_only' && !currentUser) {
+            showNotFound();
+            return;
+          }
+        }
+
+        // Render profile
+        renderProfile(profile, isOwner, currentUser);
+
+        // Load related data (RLS will enforce visibility)
+        await Promise.all([
+          loadSkills(profile.id),
+          loadWorkSamples(profile.id),
+          loadAchievements(profile.id),
+          loadCertificates(profile.id),
+          loadGallery(profile.id),
+          loadSocialLinks(profile.id),
+        ]);
+
+      } catch (error) {
+        console.error('[Public Profile] Init error:', error);
+        showNotFound();
+      }
+    }
+
+    function showNotFound() {
+      document.getElementById('loading-container').classList.add('hidden');
+      document.getElementById('not-found-container').classList.remove('hidden');
+    }
+
+    function renderProfile(profile, isOwner, currentUser) {
+      document.getElementById('loading-container').classList.add('hidden');
+      document.getElementById('profile-content').classList.remove('hidden');
+
+      // Name
+      document.getElementById('display-name').textContent = profile.full_name || 'SADQ Student';
+
+      // Username
+      document.getElementById('display-username').textContent = profile.username ? `@${profile.username}` : '';
+
+      // Badges
+      const badges = document.getElementById('badges');
+      badges.innerHTML = '';
+      if (profile.is_verified_student) {
+        badges.innerHTML += '<span class="badge badge--verified">✓ Verified Student</span>';
+      }
+      if (profile.role === 'freelancer' || profile.role === 'verified_student') {
+        badges.innerHTML += `<span class="badge badge--student">${profile.role.replace('_', ' ')}</span>`;
+      }
+
+      // Avatar
+      if (profile.profile_photo_url) {
+        document.getElementById('avatar-img').src = profile.profile_photo_url;
+        document.getElementById('avatar-img').classList.remove('hidden');
+        document.getElementById('avatar-placeholder').classList.add('hidden');
+      }
+
+      // Cover
+      if (profile.cover_photo_url) {
+        document.getElementById('cover-section').innerHTML =
+          `<img src="${profile.cover_photo_url}" alt="Cover photo">`;
+      }
+
+      // Bio
+      if (profile.bio) {
+        document.getElementById('bio-text').textContent = profile.bio;
+        document.getElementById('bio-text').style.color = 'var(--sadq-text)';
+      }
+
+      // Academic info
+      if (profile.course) document.getElementById('info-course').textContent = profile.course;
+      if (profile.batch) document.getElementById('info-batch').textContent = profile.batch;
+      if (profile.department) document.getElementById('info-department').textContent = profile.department;
+      if (profile.class) document.getElementById('info-class').textContent = profile.class;
+
+      // Actions bar
+      const actionsBar = document.getElementById('actions-bar');
+      if (isOwner) {
+        actionsBar.innerHTML = `<a href="/student-profile.html" class="btn btn--primary">View My Profile</a>`;
+      }
+
+      // Update page title
+      document.title = `${profile.full_name || profile.username || 'Student'} — SADQ`;
+    }
+
+    async function loadSkills(profileId) {
+      const { data, error } = await supabase
+        .from('student_skills')
+        .select('*')
+        .eq('student_id', profileId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('skills-section').classList.remove('hidden');
+      document.getElementById('skills-container').innerHTML = data.map(skill => `
+        <div class="skill-tag">
+          ${skill.skill_name}
+          ${skill.proficiency ? `<span class="skill-tag__proficiency">(${skill.proficiency})</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadWorkSamples(profileId) {
+      const { data, error } = await supabase
+        .from('student_work_samples')
+        .select('*')
+        .eq('student_id', profileId)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('work-samples-section').classList.remove('hidden');
+      document.getElementById('work-samples-container').innerHTML = data.map(sample => `
+        <div class="work-sample-card" onclick="window.location.href='/work-sample-details.html?id=${sample.id}'">
+          ${sample.thumbnail_url
+            ? `<img class="work-sample-card__thumb" src="${sample.thumbnail_url}" alt="${sample.title}" loading="lazy">`
+            : `<div class="work-sample-card__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--sadq-text-muted);">📄</div>`
+          }
+          <div class="work-sample-card__body">
+            <div class="work-sample-card__title">${sample.title}</div>
+            ${sample.skill_name ? `<div class="work-sample-card__skill">${sample.skill_name}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadAchievements(profileId) {
+      const { data, error } = await supabase
+        .from('student_achievements')
+        .select('*')
+        .eq('student_id', profileId)
+        .order('achievement_date', { ascending: false, nullsFirst: false })
+        .limit(10);
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('achievements-section').classList.remove('hidden');
+      document.getElementById('achievements-container').innerHTML = data.map(ach => `
+        <div class="achievement-item">
+          <div class="achievement-item__icon">${ach.is_official ? '🏅' : '⭐'}</div>
+          <div class="achievement-item__body">
+            <div class="achievement-item__title">
+              ${ach.title}
+              ${ach.is_official ? '<span class="achievement-item__official-badge">Verified</span>' : ''}
+            </div>
+            ${ach.organization ? `<div class="achievement-item__org">${ach.organization}</div>` : ''}
+            ${ach.achievement_date ? `<div class="achievement-item__date">${new Date(ach.achievement_date).toLocaleDateString('en-IN')}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadCertificates(profileId) {
+      const { data, error } = await supabase
+        .from('student_external_certificates')
+        .select('*')
+        .eq('student_id', profileId)
+        .order('issue_date', { ascending: false, nullsFirst: false })
+        .limit(10);
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('certificates-section').classList.remove('hidden');
+      document.getElementById('certificates-container').innerHTML = data.map(cert => `
+        <div class="cert-item">
+          <div class="cert-item__icon">📄</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 500; font-size: 0.875rem;">${cert.title}</div>
+            ${cert.issuing_organization ? `<div style="font-size: 0.8125rem; color: var(--sadq-text-muted);">${cert.issuing_organization}</div>` : ''}
+          </div>
+          ${cert.credential_url ? `<a href="${cert.credential_url}" target="_blank" class="btn btn--outline" style="padding: 4px 10px; font-size: 0.8125rem;">Verify</a>` : ''}
+          ${cert.certificate_file_url ? `<a href="${cert.certificate_file_url}" target="_blank" class="btn btn--outline" style="padding: 4px 10px; font-size: 0.8125rem;">View</a>` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadGallery(profileId) {
+      const { data, error } = await supabase
+        .from('student_gallery')
+        .select('*')
+        .eq('student_id', profileId)
+        .eq('is_hidden', false)
+        .order('sort_order', { ascending: true })
+        .limit(12);
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('gallery-section').classList.remove('hidden');
+      document.getElementById('gallery-container').innerHTML = data.map(photo => `
+        <div class="gallery-item" onclick="window.open('${photo.image_url}', '_blank')">
+          <img src="${photo.thumbnail_url || photo.image_url}" alt="${photo.caption || ''}" loading="lazy">
+        </div>
+      `).join('');
+    }
+
+    async function loadSocialLinks(profileId) {
+      const { data, error } = await supabase
+        .from('profile_social_links')
+        .select('*')
+        .eq('student_id', profileId)
+        .order('sort_order', { ascending: true });
+
+      if (error || !data || data.length === 0) return;
+
+      document.getElementById('social-section').classList.remove('hidden');
+      document.getElementById('social-links-container').innerHTML = data.map(link => `
+        <a href="${link.url}" target="_blank" rel="noopener" class="social-link">
+          ${link.is_professional ? '💼' : '🔗'} ${link.label || link.platform}
+        </a>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', initPublicProfile);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

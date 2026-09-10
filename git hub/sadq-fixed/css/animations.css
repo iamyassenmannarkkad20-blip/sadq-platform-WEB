@@ -1,0 +1,125 @@
+/* ═══════════════════════════════════════════════════════════════
+   SADQ — PREMIUM ANIMATIONS v2
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Reveal Animations ── */
+.reveal-up{opacity:0;transform:translateY(40px);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal-up.visible{opacity:1;transform:translateY(0)}
+
+.reveal-fade{opacity:0;transition:opacity 1s ease}
+.reveal-fade.visible{opacity:1}
+
+.reveal-scale{opacity:0;transform:scale(0.85);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal-scale.visible{opacity:1;transform:scale(1)}
+
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal-left.visible{opacity:1;transform:translateX(0)}
+
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal-right.visible{opacity:1;transform:translateX(0)}
+
+.reveal-blur{opacity:0;filter:blur(15px);transition:opacity 1s ease,filter 1s ease}
+.reveal-blur.visible{opacity:1;filter:blur(0)}
+
+/* ── Stagger Groups ── */
+.stagger-group .stagger-item{opacity:0;transform:translateY(30px);transition:opacity 0.6s cubic-bezier(0.16,1,0.3,1),transform 0.6s cubic-bezier(0.16,1,0.3,1)}
+.stagger-group.visible .stagger-item{opacity:1;transform:translateY(0)}
+.stagger-group.visible .stagger-item:nth-child(1){transition-delay:0.05s}
+.stagger-group.visible .stagger-item:nth-child(2){transition-delay:0.1s}
+.stagger-group.visible .stagger-item:nth-child(3){transition-delay:0.15s}
+.stagger-group.visible .stagger-item:nth-child(4){transition-delay:0.2s}
+.stagger-group.visible .stagger-item:nth-child(5){transition-delay:0.25s}
+.stagger-group.visible .stagger-item:nth-child(6){transition-delay:0.3s}
+.stagger-group.visible .stagger-item:nth-child(7){transition-delay:0.35s}
+.stagger-group.visible .stagger-item:nth-child(8){transition-delay:0.4s}
+.stagger-group.visible .stagger-item:nth-child(9){transition-delay:0.45s}
+.stagger-group.visible .stagger-item:nth-child(10){transition-delay:0.5s}
+.stagger-group.visible .stagger-item:nth-child(11){transition-delay:0.55s}
+.stagger-group.visible .stagger-item:nth-child(12){transition-delay:0.6s}
+
+/* ── Parallax ── */
+.parallax{will-change:transform;transition:transform 0.1s linear}
+.parallax-slow{will-change:transform;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1)}
+
+/* ── Float Animation ── */
+.float{animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+
+.float-slow{animation:float 10s ease-in-out infinite}
+.float-fast{animation:float 4s ease-in-out infinite}
+
+/* ── Glow Pulse ── */
+.glow-pulse{animation:glow-pulse 3s ease-in-out infinite}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(37,99,235,0.2)}50%{box-shadow:0 0 40px rgba(37,99,235,0.5),0 0 60px rgba(59,130,246,0.2)}}
+
+.glow-gold{animation:glow-gold 3s ease-in-out infinite}
+@keyframes glow-gold{0%,100%{box-shadow:0 0 15px rgba(212,175,55,0.2)}50%{box-shadow:0 0 30px rgba(212,175,55,0.4)}}
+
+/* ── Shimmer Sweep ── */
+.shimmer-sweep{position:relative;overflow:hidden}
+.shimmer-sweep::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);animation:sweep 3s ease-in-out infinite}
+@keyframes sweep{0%{left:-100%}50%{left:100%}100%{left:100%}}
+
+/* ── Rotate Slow ── */
+.rotate-slow{animation:rotate 20s linear infinite}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── Bounce In ── */
+.bounce-in{animation:bounce-in 0.6s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes bounce-in{0%{opacity:0;transform:scale(0.3)}100%{opacity:1;transform:scale(1)}}
+
+/* ── Slide In ── */
+.slide-in-right{animation:slide-in-right 0.5s cubic-bezier(0.16,1,0.3,1)}
+@keyframes slide-in-right{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+.slide-in-up{animation:slide-in-up 0.5s cubic-bezier(0.16,1,0.3,1)}
+@keyframes slide-in-up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Count Up ── */
+.count-up{animation:count-up 1s ease-out}
+@keyframes count-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Gradient Border Animated ── */
+.gradient-border{position:relative;border-radius:var(--radius-lg);background:var(--bg-card)}
+.gradient-border::before{content:'';position:absolute;inset:-2px;border-radius:var(--radius-lg);background:var(--gradient-aurora);background-size:300% 300%;z-index:-1;animation:gradient-rotate 4s linear infinite}
+@keyframes gradient-rotate{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+
+/* ── Hover Lift ── */
+.hover-lift{transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),box-shadow 0.4s ease}
+.hover-lift:hover{transform:translateY(-8px);box-shadow:var(--shadow-xl),var(--shadow-glow-purple)}
+
+/* ── Scale In ── */
+.scale-in{animation:scale-in 0.4s cubic-bezier(0.16,1,0.3,1)}
+@keyframes scale-in{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+
+/* ── Pulse Dot ── */
+.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+
+/* ── Text Shimmer ── */
+.text-shimmer{background:linear-gradient(90deg,var(--text-muted) 0%,var(--text-primary) 50%,var(--text-muted) 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 3s linear infinite}
+@keyframes text-shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+
+/* ── Scroll Horizontal ── */
+.slide-horizontal{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.slide-horizontal>*{scroll-snap-align:start;flex-shrink:0}
+.slide-horizontal::-webkit-scrollbar{height:4px}
+
+/* ── Card Glow on Scroll ── */
+.glow-on-visible{transition:box-shadow 0.8s ease}
+.glow-on-visible.visible{box-shadow:var(--shadow-md),0 0 20px rgba(37,99,235,0.15)}
+
+/* ── Tilt Effect (CSS only fallback) ── */
+.tilt-card{transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);transform-style:preserve-3d}
+.tilt-card:hover{transform:perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px)}
+
+/* ── Aurora Text ── */
+.aurora-text{background:var(--gradient-aurora);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:aurora-text 5s linear infinite}
+@keyframes aurora-text{0%{background-position:0% center}100%{background-position:200% center}}
+
+/* ── Ring Spinner ── */
+.ring-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Reduced Motion ── */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}

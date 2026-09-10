@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:800px;margin:0 auto;padding:16px}
+    .back-link{color:var(--sadq-primary);text-decoration:none;font-size:.875rem;margin-bottom:16px;display:inline-flex;align-items:center;gap:4px}
+    .back-link:hover{text-decoration:underline}
+    .service__header{background:var(--sadq-card-bg);border-radius:var(--sadq-radius);overflow:hidden;box-shadow:var(--sadq-shadow);margin-bottom:20px}
+    .service__thumb{width:100%;height:240px;object-fit:cover;display:block;background:var(--sadq-border)}
+    .service__thumb-placeholder{width:100%;height:240px;background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));display:flex;align-items:center;justify-content:center;font-size:4rem;color:rgba(255,255,255,.5)}
+    .service__body{padding:24px}
+    .service__title{font-size:1.5rem;font-weight:700;margin-bottom:8px}
+    .service__badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    .badge{font-size:.6875rem;padding:3px 10px;border-radius:10px;font-weight:500}
+    .badge--category{background:#f0f7f0;color:var(--sadq-primary)}
+    .badge--translation{background:#e3f2fd;color:#1565c0}
+    .badge--featured{background:#fff8e1;color:var(--sadq-accent)}
+    .service__price{font-size:2rem;font-weight:700;color:var(--sadq-primary);margin-bottom:16px}
+    .service__desc{font-size:1rem;line-height:1.8;color:var(--text,#F8FAFC);margin-bottom:20px}
+    .service__desc p{margin-bottom:12px}
+    .provider-card{display:flex;align-items:center;gap:12px;padding:16px;background:#f8f9fa;border-radius:var(--sadq-radius-sm);margin-bottom:20px}
+    .provider__avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;background:var(--sadq-border)}
+    .provider__avatar-placeholder{width:48px;height:48px;border-radius:50%;background:var(--sadq-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+    .provider__name{font-size:.9375rem;font-weight:500}
+    .provider__sub{font-size:.75rem;color:var(--sadq-text-muted)}
+    .lang-pair{display:flex;align-items:center;gap:8px;padding:12px;background:#f8f9fa;border-radius:var(--sadq-radius-sm);margin-bottom:16px}
+    .lang-pair__from,.lang-pair__to{font-size:.875rem;font-weight:500;padding:4px 10px;border-radius:6px;background:#e3f2fd;color:#1565c0}
+    .lang-pair__arrow{color:var(--sadq-text-muted)}
+    .action-bar{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;transition:var(--sadq-transition)}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .reviews{margin-top:32px}
+    .reviews__title{font-size:1.125rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .reviews__rating{font-size:.875rem;color:var(--sadq-accent)}
+    .review{padding:16px 0;border-bottom:1px solid var(--sadq-border)}
+    .review__header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .review__author{display:flex;align-items:center;gap:8px}
+    .review__avatar{width:28px;height:28px;border-radius:50%;background:var(--sadq-border)}
+    .review__name{font-size:.8125rem;font-weight:500}
+    .review__stars{color:var(--sadq-accent);font-size:.875rem}
+    .review__text{font-size:.875rem;color:var(--text,#F8FAFC)}
+    .review__time{font-size:.6875rem;color:var(--sadq-text-muted)}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.service__thumb,.service__thumb-placeholder{height:180px}.service__body{padding:16px}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/freelancing.html">Marketplace</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+  <div class="container">
+    <a href="/freelancing.html" class="back-link">← Back to Marketplace</a>
+    <div id="loading">
+      <div class="skeleton" style="height:240px;margin-bottom:20px"></div>
+      <div class="skeleton" style="height:28px;width:60%;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:32px;width:30%;margin-bottom:16px"></div>
+      <div class="skeleton" style="height:16px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:16px;width:80%"></div>
+    </div>
+    <div id="content" class="hidden fade-in"></div>
+    <div id="error" class="empty-state hidden">
+      <div class="empty-state__icon">🛠️</div>
+      <p>Unable to load this service. Please try again.</p>
+      <a href="/freelancing.html" style="color:var(--sadq-primary);text-decoration:none;font-size:.875rem">Back to Marketplace</a>
+    </div>
+  </div>
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+    const params = new URLSearchParams(window.location.search);
+    const serviceId = params.get('id');
+    const isTranslation = params.get('type') === 'translation';
+    let currentUser = null;
+    let service = null;
+
+    async function init() {
+      try { const { user } = await getCurrentUser(); currentUser = user; } catch {}
+      if (!serviceId) { showError(); return; }
+      try {
+        const table = isTranslation ? 'translation_services' : 'services';
+        const select = isTranslation
+          ? 'id, title, description, price, source_language, target_language, status, created_at, freelancer_id, profiles!translation_services_freelancer_id_fkey(full_name, username, profile_photo_url)'
+          : 'id, title, description, price, category, status, created_at, provider_id, profiles!services_provider_id_fkey(full_name, username, profile_photo_url)';
+
+        const { data, error } = await supabase.from(table).select(select).eq('id', serviceId).eq('status', 'published').single();
+        if (error) throw error;
+        if (!data) { showError(); return; }
+        service = data;
+        document.title = `${data.title} — SADQ`;
+        renderService(data);
+        await loadReviews();
+      } catch (err) {
+        console.error('[ServiceDetails] Error:', err.message);
+        showError();
+      }
+    }
+
+    function renderService(s) {
+      const provider = s.profiles || {};
+      const providerId = isTranslation ? s.freelancer_id : s.provider_id;
+      document.getElementById('content').innerHTML = `
+        <div class="service__header">
+          ${s.thumbnail_url || s.featured_image_url
+            ? `<img class="service__thumb" src="${s.thumbnail_url || s.featured_image_url}" alt="${s.title}">`
+            : `<div class="service__thumb-placeholder">${isTranslation ? '🌐' : '🛠️'}</div>`}
+        </div>
+        <div class="service__body">
+          <h1 class="service__title">${s.title}</h1>
+          <div class="service__badges">
+            ${isTranslation ? '<span class="badge badge--translation">Translation</span>' : ''}
+            ${s.category ? `<span class="badge badge--category">${s.category}</span>` : ''}
+          </div>
+          <div class="service__price">${s.price ? '₹' + s.price : 'Free'}</div>
+          ${isTranslation && s.source_language ? `
+            <div class="lang-pair">
+              <span class="lang-pair__from">${s.source_language}</span>
+              <span class="lang-pair__arrow">→</span>
+              <span class="lang-pair__to">${s.target_language}</span>
+            </div>` : ''}
+          <div class="service__desc">${s.description || ''}</div>
+          <div class="provider-card">
+            ${provider.profile_photo_url
+              ? `<img class="provider__avatar" src="${provider.profile_photo_url}" alt="">`
+              : `<div class="provider__avatar-placeholder">${(provider.full_name || '?').charAt(0)}</div>`}
+            <div>
+              <div class="provider__name">${provider.full_name || 'Anonymous'}</div>
+              <div class="provider__sub">@${provider.username || ''}</div>
+            </div>
+            <a href="/u/${provider.username || providerId}" style="margin-left:auto;font-size:.75rem;color:var(--sadq-primary);text-decoration:none">View Profile →</a>
+          </div>
+          <div class="action-bar">
+            ${currentUser
+              ? `<button class="btn" onclick="window.orderService()">Order Now</button>`
+              : `<a href="/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}" class="btn">Login to Order</a>`}
+            <button class="btn btn--outline" onclick="window.shareService()">🔗 Share</button>
+          </div>
+          <div class="reviews" id="reviews-section">
+            <div class="reviews__title">Reviews <span class="reviews__rating" id="avg-rating"></span></div>
+            <div id="reviews-list"></div>
+          </div>
+        </div>
+      `;
+      document.getElementById('content').classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    window.orderService = async function() {
+      try {
+        const orderData = {
+          service_id: service.id,
+          buyer_id: currentUser.id,
+          provider_id: isTranslation ? service.freelancer_id : service.provider_id,
+          status: 'pending',
+          total_amount: service.price || 0,
+        };
+        const { error } = await supabase.from('freelance_orders').insert(orderData);
+        if (error) throw error;
+        alert('Order placed! The provider will be notified.');
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        console.error('[Order] Error:', err.message);
+        alert('Unable to place order. Please try again.');
+      }
+    };
+
+    window.shareService = function() {
+      if (navigator.share) { navigator.share({ title: service.title, url: window.location.href }).catch(() => {}); }
+      else { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+    };
+
+    async function loadReviews() {
+      try {
+        const { data, error } = await supabase.from('service_reviews')
+          .select('id, rating, content, created_at, reviewer_id, profiles!service_reviews_reviewer_id_fkey(full_name, username, profile_photo_url)')
+          .eq('service_id', service.id)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const list = document.getElementById('reviews-list');
+        const avgEl = document.getElementById('avg-rating');
+
+        if (!data || data.length === 0) {
+          list.innerHTML = '<p style="font-size:.8125rem;color:var(--sadq-text-muted);padding:8px 0">No reviews yet.</p>';
+          return;
+        }
+
+        const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+        avgEl.textContent = `★ ${avg.toFixed(1)} (${data.length})`;
+
+        list.innerHTML = data.map(r => {
+          const author = r.profiles || {};
+          return `
+            <div class="review">
+              <div class="review__header">
+                <div class="review__author">
+                  ${author.profile_photo_url
+                    ? `<img class="review__avatar" src="${author.profile_photo_url}" alt="">`
+                    : `<div class="review__avatar" style="display:flex;align-items:center;justify-content:center;background:var(--sadq-primary);color:#fff;font-size:.625rem;font-weight:600">${(author.full_name || '?').charAt(0)}</div>`}
+                  <span class="review__name">${author.full_name || 'Anonymous'}</span>
+                </div>
+                <span class="review__stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+              </div>
+              <div class="review__text">${r.content || ''}</div>
+              <div class="review__time">${new Date(r.created_at).toLocaleDateString('en-IN')}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('[Reviews] Error:', err.message);
+      }
+    }
+
+    function showError() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

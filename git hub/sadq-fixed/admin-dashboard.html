@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center — SADQ</title>
+  <style>
+    :root { --p:#2563EB; --pl:#1D4ED8; --pd:#1D4ED8; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#F9A825; --purple:#2563EB; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+    /* Sidebar */
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sadq-sidebar-w); height: 100vh; background: var(--sadq-primary); overflow-y: auto; overflow-x: hidden; z-index: 100; transition: transform 0.3s ease; }
+    .sidebar__header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sidebar__sub { font-size: 0.6875rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .sidebar__nav { padding: 8px 0; }
+    .sidebar__link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.875rem; transition: var(--sadq-transition); border-left: 3px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar__link--active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--sadq-accent); }
+    .sidebar__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar__section { padding: 12px 16px 4px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Main */
+    .main { margin-left: var(--sadq-sidebar-w); padding: 16px; min-height: 100vh; }
+    .main__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .main__title { font-size: 1.5rem; font-weight: 700; }
+    .main__sub { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 16px; box-shadow: var(--sadq-shadow); transition: var(--sadq-transition); }
+    .stat-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .stat-card__icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .stat-card__value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+    .stat-card__label { font-size: 0.75rem; color: var(--sadq-text-muted); margin-top: 4px; }
+    .stat-card--accent { border-left: 3px solid var(--sadq-accent); }
+    .stat-card--success { border-left: 3px solid var(--sadq-success); }
+    .stat-card--warning { border-left: 3px solid var(--sadq-warning); }
+    .stat-card--danger { border-left: 3px solid var(--sadq-danger); }
+    .stat-card--info { border-left: 3px solid var(--sadq-info); }
+
+    /* Section */
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+    .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section__title { font-size: 1rem; font-weight: 600; }
+    .section__link { font-size: 0.8125rem; color: var(--sadq-primary); text-decoration: none; font-weight: 500; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); text-decoration: none; color: var(--text, #F8FAFC); transition: var(--sadq-transition); }
+    .item-row:hover { box-shadow: var(--sadq-shadow-hover); }
+    .item-row__icon { font-size: 1.125rem; flex-shrink: 0; }
+    .item-row__body { flex: 1; min-width: 0; }
+    .item-row__title { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-row__meta { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--green { background: rgba(16,185,129,0.12); color: var(--sadq-success); }
+    .badge--orange { background: rgba(245,158,11,0.12); color: #F59E0B; }
+    .badge--red { background: rgba(239,68,68,0.12); color: #F87171; }
+    .badge--blue { background: rgba(59,130,246,0.12); color: #60A5FA; }
+
+    .empty-mini { text-align: center; padding: 24px 16px; color: var(--sadq-text-muted); }
+    .empty-mini__text { font-size: 0.8125rem; }
+
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
+
+    .menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 110; background: var(--sadq-primary); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar--open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-toggle { display: block; }
+      .two-col { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 412px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <button class="menu-toggle" id="menu-toggle">☰</button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+      <div class="sidebar__sub">Control Center</div>
+    </div>
+        <nav class="sidebar__nav">
+      <div class="sidebar__section">Overview</div>
+      <a href="/admin-dashboard.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">📊</span> Dashboard</a>
+
+      <div class="sidebar__section">People</div>
+      <a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+      <a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+
+      <div class="sidebar__section">Organisation</div>
+      <a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+      <a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+      <a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+
+      <div class="sidebar__section">Content</div>
+      <a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+      <a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+      <a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+      <a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+      <a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+
+      <div class="sidebar__section">Recognition</div>
+      <a href="/admin-classes.html" class="sidebar__link"><span class="sidebar__icon">🏫</span> Class Sangadana</a>
+      <a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+      <a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+
+      <div class="sidebar__section">Marketplace</div>
+      <a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+      <a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+      <a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+
+      <div class="sidebar__section">Finance</div>
+      <a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+      <a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+      <a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+
+      <div class="sidebar__section">Platform</div>
+      <a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+      <a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+      <a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+      <a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+      <a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+      <a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+      <a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+
+      <div class="sidebar__section">Back</div>
+      <a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+      <a href="#" class="sidebar__link" id="logout-btn"><span class="sidebar__icon">🚪</span> Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="main__header">
+      <div>
+        <h1 class="main__title">Dashboard</h1>
+        <div class="main__sub" id="admin-name">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Analytics Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card stat-card--accent">
+        <div class="stat-card__icon">🎓</div>
+        <div class="stat-card__value" id="stat-students">—</div>
+        <div class="stat-card__label">Total Students</div>
+      </div>
+      <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">✅</div>
+        <div class="stat-card__value" id="stat-active">—</div>
+        <div class="stat-card__label">Active Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">🌐</div>
+        <div class="stat-card__value" id="stat-public-profiles">—</div>
+        <div class="stat-card__label">Public Profiles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📰</div>
+        <div class="stat-card__value" id="stat-publications">—</div>
+        <div class="stat-card__label">Publications</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📖</div>
+        <div class="stat-card__value" id="stat-magazines">—</div>
+        <div class="stat-card__label">Magazine Issues</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">🎬</div>
+        <div class="stat-card__value" id="stat-videos">—</div>
+        <div class="stat-card__label">Videos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📝</div>
+        <div class="stat-card__value" id="stat-notes">—</div>
+        <div class="stat-card__label">Notes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📚</div>
+        <div class="stat-card__value" id="stat-library">—</div>
+        <div class="stat-card__label">Library Books</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📁</div>
+        <div class="stat-card__value" id="stat-projects">—</div>
+        <div class="stat-card__label">Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">🛠️</div>
+        <div class="stat-card__value" id="stat-services">—</div>
+        <div class="stat-card__label">Services</div>
+      </div>
+      <div class="stat-card stat-card--info">
+        <div class="stat-card__icon">📦</div>
+        <div class="stat-card__value" id="stat-orders">—</div>
+        <div class="stat-card__label">Freelance Orders</div>
+      </div>
+      <div class="stat-card stat-card--warning">
+        <div class="stat-card__icon">📱</div>
+        <div class="stat-card__value" id="stat-pending-upi">—</div>
+        <div class="stat-card__label">Pending UPI</div>
+      </div>
+      <div class="stat-card stat-card--warning">
+        <div class="stat-card__icon">🏦</div>
+        <div class="stat-card__value" id="stat-pending-withdrawals">—</div>
+        <div class="stat-card__label">Pending Withdrawals</div>
+      </div>
+      <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value" id="stat-commission">—</div>
+        <div class="stat-card__label">SADQ Commission</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📜</div>
+        <div class="stat-card__value" id="stat-certs">—</div>
+        <div class="stat-card__label">Certificates Issued</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">📅</div>
+        <div class="stat-card__value" id="stat-events">—</div>
+        <div class="stat-card__label">Events</div>
+      </div>
+    </div>
+
+    <!-- Two Column: Pending Content + Pending Payments -->
+    <div class="two-col">
+      <!-- Pending Content Approvals -->
+      <div class="section fade-in">
+        <div class="section__header">
+          <h2 class="section__title">Pending Content Approvals</h2>
+          <a href="/admin-content.html" class="section__link">Manage</a>
+        </div>
+        <div id="pending-content">
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;"></div>
+        </div>
+      </div>
+
+      <!-- Pending UPI Payments -->
+      <div class="section fade-in">
+        <div class="section__header">
+          <h2 class="section__title">Pending UPI Verifications</h2>
+          <a href="/admin-payments.html#upi" class="section__link">Manage</a>
+        </div>
+        <div id="pending-upi">
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Pending Withdrawal Requests</h2>
+        <a href="/admin-payments.html#withdrawals" class="section__link">Manage</a>
+      </div>
+      <div id="pending-withdrawals">
+        <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:50px;"></div>
+      </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Recent Reports</h2>
+        <a href="/admin-content.html#reports" class="section__link">Manage</a>
+      </div>
+      <div id="reports-list">
+        <div class="skeleton" style="height:50px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase, requireAuth, signOut } from '/js/supabase-client.js';
+
+    let currentUser = null;
+
+    async function init() {
+      try {
+        const { user, profile } = await requireAuth();
+
+        // Verify admin role
+        if (profile && !['admin', 'super_admin'].includes(profile.role)) {
+          window.location.href = '/dashboard.html';
+          return;
+        }
+
+        currentUser = user;
+        document.getElementById('admin-name').textContent = `Welcome, ${profile.full_name || user.email}`;
+        document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(); });
+
+        // Mobile sidebar toggle
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('sidebar--open');
+        });
+
+        // Load all data in parallel
+        await Promise.all([
+          loadStats(),
+          loadPendingContent(),
+          loadPendingUPI(),
+          loadPendingWithdrawals(),
+          loadReports(),
+        ]);
+
+      } catch (error) {
+        if (!['Not authenticated', 'Account is not active'].includes(error?.message)) console.error('[Admin Dashboard] Init error:', error);
+      }
+    }
+
+    // ── Load Stats ───────────────────────────────────────────────────
+    async function loadStats() {
+      const stats = [
+        { table: 'profiles', el: 'stat-students', col: 'id', countHead: true },
+        { table: 'profiles', el: 'stat-active', col: 'id', countHead: true, filter: { account_status: 'active' } },
+        { table: 'profiles', el: 'stat-public-profiles', col: 'id', countHead: true, filter: { profile_visibility: 'public', account_status: 'active' } },
+        { table: 'posts', el: 'stat-publications', col: 'id', countHead: true },
+        { table: 'official_magazines', el: 'stat-magazines', col: 'id', countHead: true },
+        { table: 'videos', el: 'stat-videos', col: 'id', countHead: true },
+        { table: 'notes', el: 'stat-notes', col: 'id', countHead: true },
+        { table: 'library_books', el: 'stat-library', col: 'id', countHead: true },
+        { table: 'projects', el: 'stat-projects', col: 'id', countHead: true },
+        { table: 'services', el: 'stat-services', col: 'id', countHead: true },
+        { table: 'freelance_orders', el: 'stat-orders', col: 'id', countHead: true },
+        { table: 'manual_upi_payment_submissions', el: 'stat-pending-upi', col: 'id', countHead: true, filter: { status: 'pending' } },
+        { table: 'withdrawals', el: 'stat-pending-withdrawals', col: 'id', countHead: true, filter: { status: 'requested' } },
+        { table: 'issued_certificates', el: 'stat-certs', col: 'id', countHead: true },
+        { table: 'events', el: 'stat-events', col: 'id', countHead: true },
+      ];
+
+      for (const s of stats) {
+        try {
+          let q = supabase.from(s.table).select(s.col, { count: 'exact', head: true });
+          if (s.filter) {
+            for (const [k, v] of Object.entries(s.filter)) {
+              q = q.eq(k, v);
+            }
+          }
+          const { count, error } = await q;
+          document.getElementById(s.el).textContent = (error || count == null) ? '0' : count;
+        } catch {
+          document.getElementById(s.el).textContent = '0';
+        }
+      }
+
+      // Commission: sum of commission_amount from freelance_commissions
+      try {
+        const { data, error } = await supabase
+          .from('freelance_commissions')
+          .select('commission_amount');
+        if (!error && data) {
+          const total = data.reduce((sum, r) => sum + (parseFloat(r.commission_amount) || 0), 0);
+          document.getElementById('stat-commission').textContent = `₹${total.toLocaleString('en-IN')}`;
+        } else {
+          document.getElementById('stat-commission').textContent = '₹0';
+        }
+      } catch {
+        document.getElementById('stat-commission').textContent = '₹0';
+      }
+    }
+
+    // ── Pending Content Approvals ───────────────────────────────────
+    async function loadPendingContent() {
+      try {
+        const { data: posts, error: pErr } = await supabase
+          .from('posts')
+          .select('id, title, post_kind, author_id, created_at')
+          .eq('status', 'review')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        const { data: mags, error: mErr } = await supabase
+          .from('student_magazines')
+          .select('id, title, author_id, created_at')
+          .eq('status', 'review')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        const container = document.getElementById('pending-content');
+        const items = [];
+
+        if (posts && posts.length > 0) {
+          posts.forEach(p => items.push({
+            icon: '✍️', title: p.title || 'Untitled', meta: `${p.post_kind || 'Post'} · ${new Date(p.created_at).toLocaleDateString('en-IN')}`,
+            link: `/admin-content.html#post-${p.id}`, badge: 'Chinthakal'
+          }));
+        }
+        if (mags && mags.length > 0) {
+          mags.forEach(m => items.push({
+            icon: '📖', title: m.title || 'Untitled', meta: `Student Magazine · ${new Date(m.created_at).toLocaleDateString('en-IN')}`,
+            link: `/admin-content.html#mag-${m.id}`, badge: 'Magazine'
+          }));
+        }
+
+        if (items.length === 0) {
+          container.innerHTML = '<div class="empty-mini"><p class="empty-mini__text">No content pending approval.</p></div>';
+          return;
+        }
+
+        container.innerHTML = '<div class="item-list">' + items.map(i => `
+          <a href="${i.link}" class="item-row fade-in">
+            <div class="item-row__icon">${i.icon}</div>
+            <div class="item-row__body"><div class="item-row__title">${i.title}</div><div class="item-row__meta">${i.meta}</div></div>
+            <span class="badge badge--orange">${i.badge}</span>
+          </a>
+        `).join('') + '</div>';
+      } catch {
+        document.getElementById('pending-content').innerHTML = '<div class="empty-mini"><p class="empty-mini__text">Unable to load.</p></div>';
+      }
+    }
+
+    // ── Pending UPI ──────────────────────────────────────────────────
+    async function loadPendingUPI() {
+      try {
+        const { data, error } = await supabase
+          .from('manual_upi_payment_submissions')
+          .select('id, amount, utr, status, submitted_at, user_id')
+          .eq('status', 'pending')
+          .order('submitted_at', { ascending: false })
+          .limit(5);
+
+        const container = document.getElementById('pending-upi');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="empty-mini"><p class="empty-mini__text">No pending UPI verifications.</p></div>';
+          return;
+        }
+
+        container.innerHTML = '<div class="item-list">' + data.map(p => `
+          <a href="/admin-payments.html#upi-${p.id}" class="item-row fade-in">
+            <div class="item-row__icon">📱</div>
+            <div class="item-row__body">
+              <div class="item-row__title">₹${p.amount || '—'} · UTR: ${p.utr || 'N/A'}</div>
+              <div class="item-row__meta">${new Date(p.submitted_at).toLocaleDateString('en-IN')}</div>
+            </div>
+            <span class="badge badge--orange">Pending</span>
+          </a>
+        `).join('') + '</div>';
+      } catch {
+        document.getElementById('pending-upi').innerHTML = '<div class="empty-mini"><p class="empty-mini__text">Unable to load.</p></div>';
+      }
+    }
+
+    // ── Pending Withdrawals ─────────────────────────────────────────
+    async function loadPendingWithdrawals() {
+      try {
+        const { data, error } = await supabase
+          .from('withdrawals')
+          .select('id, amount, status, requested_at, user_id')
+          .eq('status', 'requested')
+          .order('requested_at', { ascending: false })
+          .limit(5);
+
+        const container = document.getElementById('pending-withdrawals');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="empty-mini"><p class="empty-mini__text">No pending withdrawal requests.</p></div>';
+          return;
+        }
+
+        container.innerHTML = '<div class="item-list">' + data.map(w => `
+          <a href="/admin-payments.html#withdrawal-${w.id}" class="item-row fade-in">
+            <div class="item-row__icon">🏦</div>
+            <div class="item-row__body">
+              <div class="item-row__title">₹${w.amount || '—'}</div>
+              <div class="item-row__meta">${new Date(w.requested_at).toLocaleDateString('en-IN')}</div>
+            </div>
+            <span class="badge badge--orange">Requested</span>
+          </a>
+        `).join('') + '</div>';
+      } catch {
+        document.getElementById('pending-withdrawals').innerHTML = '<div class="empty-mini"><p class="empty-mini__text">Unable to load.</p></div>';
+      }
+    }
+
+    // ── Reports ─────────────────────────────────────────────────────
+    async function loadReports() {
+      try {
+        const { data, error } = await supabase
+          .from('reports')
+          .select('id, reason, status, created_at, reporter_id')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        const container = document.getElementById('reports-list');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="empty-mini"><p class="empty-mini__text">No reports.</p></div>';
+          return;
+        }
+
+        container.innerHTML = '<div class="item-list">' + data.map(r => `
+          <a href="/admin-content.html#report-${r.id}" class="item-row fade-in">
+            <div class="item-row__icon">🚩</div>
+            <div class="item-row__body">
+              <div class="item-row__title">${r.reason || 'Report'}</div>
+              <div class="item-row__meta">${new Date(r.created_at).toLocaleDateString('en-IN')}</div>
+            </div>
+            <span class="badge ${r.status === 'pending' ? 'badge--orange' : 'badge--green'}">${r.status}</span>
+          </a>
+        `).join('') + '</div>';
+      } catch {
+        document.getElementById('reports-list').innerHTML = '<div class="empty-mini"><p class="empty-mini__text">Unable to load.</p></div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

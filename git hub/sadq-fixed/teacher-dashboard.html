@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard — SADQ</title>
+<style>
+:root{--p:#1a5632;--pl:#2d7a4f;--pd:#0f3d20;--gold:#c9a227;--bg:#f0f2f5;--card:#fff;--text:#1a1a1a;--muted:#6c757d;--border:#e0e0e0;--danger:#c41e3a;--success:#28a745;--r:12px;--rs:8px;--shadow:0 2px 8px rgba(0,0,0,0.08);--t:0.3s ease}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:linear-gradient(135deg,var(--p),var(--pd));padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.header__logo{font-size:1.25rem;font-weight:700;color:#fff}.header__logo span{color:var(--gold)}
+.header__name{color:rgba(255,255,255,0.8);font-size:0.875rem}
+.header__btn{background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8125rem}
+.container{max-width:900px;margin:0 auto;padding:16px}
+.welcome{background:linear-gradient(135deg,var(--p) 0%,var(--pd) 100%);border-radius:var(--r);padding:24px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.welcome::before{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;background:radial-gradient(circle,rgba(201,162,39,0.15) 0%,transparent 70%);border-radius:50%}
+.welcome h1{font-size:1.5rem;position:relative}.welcome p{color:rgba(255,255,255,0.7);font-size:0.875rem;margin-top:4px;position:relative}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.stat__value{font-size:1.5rem;font-weight:700}.stat__label{font-size:0.75rem;color:var(--muted);margin-top:4px}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.section__title{font-size:1rem;font-weight:600;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.list-item{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px}
+.list-item__body{flex:1;min-width:0}.list-item__title{font-size:0.875rem;font-weight:500}.list-item__meta{font-size:0.75rem;color:var(--muted)}
+.badge{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block}
+.badge--green{background:#e8f5e9;color:var(--success)}.badge--blue{background:#e3f2fd;color:#1565c0}.badge--orange{background:#fff3e0;color:#e65100}
+.empty{text-align:center;padding:32px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+@media(max-width:600px){.header{flex-direction:column;gap:8px;text-align:center}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<div class="header">
+<div><div class="header__logo">SAD<span>Q</span></div><div class="header__name" id="t-name">Loading...</div></div>
+<button class="header__btn" onclick="logout()">Logout</button>
+</div>
+<div class="container">
+<div class="welcome"><h1>👨‍🏫 Teacher Dashboard</h1><p id="t-info">Welcome to your teacher portal</p></div>
+<div class="stats">
+<div class="stat"><div class="stat__value" id="s-students">—</div><div class="stat__label">Total Students</div></div>
+<div class="stat"><div class="stat__value" id="s-posts">—</div><div class="stat__label">Publications</div></div>
+<div class="stat"><div class="stat__value" id="s-events">—</div><div class="stat__label">Events</div></div>
+</div>
+<div class="section">
+<div class="section__title">📢 Recent Notices from Sub-Wings</div>
+<div id="loading1"><div class="skeleton" style="height:50px;margin-bottom:8px"></div><div class="skeleton" style="height:50px"></div></div>
+<div id="notices"></div>
+<div id="empty1" class="empty hidden"><div class="empty__icon">📢</div><p>No notices yet.</p></div>
+</div>
+<div class="section">
+<div class="section__title">🏆 Recent Achievements</div>
+<div id="loading2"><div class="skeleton" style="height:50px;margin-bottom:8px"></div><div class="skeleton" style="height:50px"></div></div>
+<div id="achievements"></div>
+<div id="empty2" class="empty hidden"><div class="empty__icon">🏆</div><p>No achievements yet.</p></div>
+</div>
+</div>
+<script type="module">
+import { supabase, verifyTeacherSession } from '/js/supabase-client.js?v=20260910'
+ (async()=>{
+const session=localStorage.getItem('teacher_session')
+let teacher=null
+try { teacher=session ? JSON.parse(session) : null } catch (e) { teacher=null }
+if(!teacher?.id || (teacher._exp && teacher._exp < Date.now())) {
+  localStorage.removeItem('teacher_session'); window.location.href='/login.html'; return
+}
+try {
+  const verified=await verifyTeacherSession(teacher.id)
+  if(!verified){localStorage.removeItem('teacher_session');window.location.href='/login.html';return}
+  teacher={...teacher,...verified}
+  localStorage.setItem('teacher_session',JSON.stringify(teacher))
+} catch (e) {
+  localStorage.removeItem('teacher_session'); window.location.href='/login.html'; return
+}
+document.getElementById('t-name').textContent=`${teacher.full_name} (${teacher.username})`
+document.getElementById('t-info').textContent=`Subject: ${teacher.subject||'—'} · Class/Org: ${teacher.class_organisation||'—'}`
+window.logout=()=>{localStorage.removeItem('teacher_session');window.location.href='/login.html'}
+async function loadStats(){try{const{count:c1}=await supabase.from('profiles').select('id',{count:'exact',head:true});document.getElementById('s-students').textContent=c1||0
+const{count:c2}=await supabase.from('posts').select('id',{count:'exact',head:true});document.getElementById('s-posts').textContent=c2||0
+const{count:c3}=await supabase.from('events').select('id',{count:'exact',head:true});document.getElementById('s-events').textContent=c3||0}catch(e){}}
+async function loadNotices(){const l=document.getElementById('loading1'),c=document.getElementById('notices'),e=document.getElementById('empty1')
+try{const{data,error}=await supabase.rpc('get_published_wing_content',{p_limit:5})
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+const icons={'notice':'📢','event':'📅','task':'✅','activity':'🎬'}
+c.innerHTML=data.map(n=>`<div class="list-item"><div style="font-size:1.5rem">${icons[n.content_type]||'📄'}</div><div class="list-item__body"><div class="list-item__title">${n.title||'Untitled'}</div><div class="list-item__meta">${n.wing_name||''} · ${new Date(n.created_at).toLocaleDateString('en-IN')}</div>${n.description?`<div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${n.description.substring(0,80)}</div>`:''}</div></div>`).join('')
+l.classList.add('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+async function loadAch(){const l=document.getElementById('loading2'),c=document.getElementById('achievements'),e=document.getElementById('empty2')
+try{const{data,error}=await supabase.rpc('get_approved_achievements',{p_limit:5})
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+c.innerHTML=data.map(a=>`<div class="list-item"><div style="font-size:1.5rem">🏆</div><div class="list-item__body"><div class="list-item__title">${a.achievement_title||'—'}</div><div class="list-item__meta">${a.class_name||''} · ${a.achievement_type||''} · ${a.points||0} pts</div></div>${a.main_committee_approved?'<span class="badge badge--green">Committee ✓</span>':'<span class="badge badge--blue">Approved</span>'}</div>`).join('')
+l.classList.add('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+Promise.all([loadStats(),loadNotices(),loadAch()])
+})();
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

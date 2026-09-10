@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Class Sangadana — SADQ</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/animations.css">
+<style>
+body{min-height:100vh}.page{max-width:1180px;margin:0 auto;padding:28px 20px}.page__header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}.grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(420px,1.2fr);gap:20px}.section{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.section h2{font-size:1rem;margin:0 0 16px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}.row:last-child{border-bottom:0}.row__body{min-width:0}.row__title{font-weight:600;font-size:.875rem}.row__meta{font-size:.75rem;color:var(--text-muted);margin-top:2px}.row--active{background:rgba(37,99,235,.08);margin:0 -10px;padding:11px 10px;border-radius:8px}.field{margin-bottom:12px}.field label{display:block;font-size:.78rem;font-weight:600;margin-bottom:5px}.field input,.field select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:inherit;font:inherit}.members{max-height:440px;overflow:auto}.member{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.82rem}.member input{width:17px;height:17px}.muted{color:var(--text-muted);font-size:.8rem}.error{color:#ef4444;font-size:.8rem;margin-bottom:12px}.success{color:#10b981;font-size:.8rem;margin-bottom:12px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="page__header"><div><h1 class="main__title">Class Sangadana</h1><p class="main__sub" id="admin-name">Loading...</p></div><a class="btn btn--ghost" href="/admin-dashboard.html">Back to Admin</a></header>
+  <div id="feedback"></div>
+  <div class="grid">
+    <section class="section">
+      <h2>Create Class</h2>
+      <form id="class-form">
+        <div class="field"><label for="teacher">Teacher</label><select id="teacher" required><option value="">Loading teachers...</option></select></div>
+        <div class="field"><label for="class-name">Class name</label><input id="class-name" required maxlength="120"></div>
+        <div class="field"><label for="organisation">Organisation</label><input id="organisation" maxlength="120"></div>
+        <button class="btn btn--primary" type="submit">Create class</button>
+      </form>
+      <h2 style="margin-top:24px">Classes</h2>
+      <div id="class-list"><div class="muted">Loading classes...</div></div>
+    </section>
+    <section class="section">
+      <h2 id="members-title">Select a class</h2>
+      <p class="muted" id="members-help">Choose a class to manage its student memberships.</p>
+      <div id="members-list" class="members"></div>
+      <button class="btn btn--primary" id="save-members" style="margin-top:16px;display:none">Save memberships</button>
+    </section>
+  </div>
+</div>
+<script type="module">
+import { supabase, requireRole, signOut, esc } from '/js/supabase-client.js?v=20260910';
+
+(async()=>{
+let auth;
+try{auth=await requireRole(['admin','super_admin'])}catch(e){return}
+const { profile } = auth;
+const state={classes:[],students:[],teachers:[],selected:null,members:new Set()};
+document.getElementById('admin-name').textContent=`Welcome, ${profile.full_name||'Admin'}`;
+const feedback=document.getElementById('feedback');
+function message(text,type='error'){feedback.className=type;feedback.textContent=text;setTimeout(()=>{feedback.textContent='';feedback.className=''},3500)}
+async function load(){
+  const [classes,teachers,students]=await Promise.all([
+    supabase.from('teacher_classes').select('id,teacher_id,class_name,class_organisation,is_active,created_at').order('class_name'),
+    supabase.from('teachers').select('id,full_name,username,account_status').eq('account_status','active').order('full_name'),
+    supabase.from('profiles').select('id,full_name,username,account_status').eq('role','student').eq('account_status','active').order('full_name')
+  ]);
+  const failure=[classes,teachers,students].find(result=>result.error);
+  if(failure)throw failure.error;
+  state.classes=classes.data||[];state.teachers=teachers.data||[];state.students=students.data||[];
+  renderTeachers();renderClasses();
+}
+function renderTeachers(){document.getElementById('teacher').innerHTML='<option value="">Select teacher</option>'+state.teachers.map(t=>`<option value="${t.id}">${esc(t.full_name||t.username)}</option>`).join('')}
+function renderClasses(){const list=document.getElementById('class-list');if(!state.classes.length){list.innerHTML='<div class="muted">No classes configured yet.</div>';return}list.innerHTML=state.classes.map(c=>{const teacher=state.teachers.find(t=>t.id===c.teacher_id);return `<button type="button" class="row ${state.selected?.id===c.id?'row--active':''}" data-class="${c.id}" style="width:100%;border:0;color:inherit;text-align:left;background:transparent;cursor:pointer"><span class="row__body"><span class="row__title">${esc(c.class_name)}</span><span class="row__meta">${esc(c.class_organisation||'No organisation')} · ${esc(teacher?.full_name||'Unknown teacher')}</span></span><span class="muted">${c.is_active?'Active':'Inactive'}</span></button>`}).join('');list.querySelectorAll('[data-class]').forEach(button=>button.addEventListener('click',()=>selectClass(button.dataset.class)))}
+async function selectClass(id){state.selected=state.classes.find(c=>c.id===id)||null;if(!state.selected)return;renderClasses();document.getElementById('members-title').textContent=`Members: ${state.selected.class_name}`;document.getElementById('members-help').textContent='Select active students assigned to this class.';const{data,error}=await supabase.from('class_memberships').select('student_id').eq('teacher_class_id',id);if(error){message(error.message);return}state.members=new Set((data||[]).map(row=>row.student_id));document.getElementById('members-list').innerHTML=state.students.length?state.students.map(student=>`<label class="member"><input type="checkbox" value="${student.id}" ${state.members.has(student.id)?'checked':''}><span>${esc(student.full_name||student.username||'Student')}</span></label>`).join(''):'<div class="muted">No active students found.</div>';document.getElementById('save-members').style.display='inline-flex'}
+document.getElementById('class-form').addEventListener('submit',async event=>{event.preventDefault();const button=event.target.querySelector('button');button.disabled=true;try{const{data,error}=await supabase.from('teacher_classes').insert({teacher_id:document.getElementById('teacher').value,class_name:document.getElementById('class-name').value.trim(),class_organisation:document.getElementById('organisation').value.trim()||null}).select('id').single();if(error)throw error;event.target.reset();message('Class created.','success');await load();await selectClass(data.id)}catch(error){message(error.message)}finally{button.disabled=false}});
+document.getElementById('save-members').addEventListener('click',async()=>{if(!state.selected)return;const button=document.getElementById('save-members');button.disabled=true;try{const checked=new Set([...document.querySelectorAll('#members-list input:checked')].map(input=>input.value));const existing=await supabase.from('class_memberships').select('id,student_id').eq('teacher_class_id',state.selected.id);if(existing.error)throw existing.error;const remove=(existing.data||[]).filter(row=>!checked.has(row.student_id)).map(row=>row.id);if(remove.length){const{error}=await supabase.from('class_memberships').delete().in('id',remove);if(error)throw error}const add=[...checked].filter(studentId=>!(existing.data||[]).some(row=>row.student_id===studentId)).map(student_id=>({student_id,teacher_class_id:state.selected.id}));if(add.length){const{error}=await supabase.from('class_memberships').insert(add);if(error)throw error}message('Memberships saved.','success');await selectClass(state.selected.id)}catch(error){message(error.message)}finally{button.disabled=false}});
+load().catch(error=>message(error.message));
+})();
+</script>
+<script src="/js/sadq-common.js"></script>
+<script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+  <script src="/js/smooth-scroll.js"></script>
+</body>
+</html>

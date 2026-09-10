@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Students — SADQ Admin</title>
+  <style>
+    :root { --p:#2563EB; --pl:#1D4ED8; --pd:#1D4ED8; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#F9A825; --purple:#2563EB; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg, #050816); color: var(--text, #F8FAFC); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sadq-sidebar-w); height: 100vh; background: linear-gradient(180deg, #2563EB 0%, #0F172A 100%); overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
+    .sidebar__header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar__logo { font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .sidebar__sub { font-size: 0.6875rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .sidebar__nav { padding: 8px 0; }
+    .sidebar__link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.875rem; transition: var(--sadq-transition); border-left: 3px solid transparent; }
+    .sidebar__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar__link--active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--sadq-gold); }
+    .sidebar__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar__section { padding: 12px 16px 4px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .main { margin-left: var(--sadq-sidebar-w); padding: 16px; min-height: 100vh; }
+    .main__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .main__title { font-size: 1.5rem; font-weight: 700; }
+    .main__sub { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+
+    .btn { padding: 8px 16px; border: none; border-radius: var(--sadq-radius-sm); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: var(--sadq-transition); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--danger { background: var(--sadq-red); color: #fff; }
+    .btn--danger:hover { background: #a01830; }
+    .btn--ghost { background: transparent; color: var(--sadq-text-muted); border: 1px solid var(--sadq-border); }
+    .btn--ghost:hover { background: #f8f9fa; }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .section { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sadq-shadow); }
+
+    .stats-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .stat-mini { background: var(--sadq-card-bg); border-radius: var(--sadq-radius); padding: 12px 16px; box-shadow: var(--sadq-shadow); flex: 1; min-width: 120px; }
+    .stat-mini__value { font-size: 1.5rem; font-weight: 700; }
+    .stat-mini__label { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    .search-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; }
+    .search-input:focus { outline: none; border-color: var(--sadq-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .filter-select { padding: 10px 12px; border: 1px solid var(--sadq-border); border-radius: var(--sadq-radius-sm); font-size: 0.875rem; background: var(--card,#10152A); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--sadq-border); font-weight: 600; font-size: 0.75rem; color: var(--sadq-text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+    td { padding: 12px; border-bottom: 1px solid var(--sadq-border); vertical-align: middle; }
+    tr:hover { background: #f8f9fa; }
+
+    .avatar-sm { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 8px; }
+    .avatar-placeholder-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--sadq-border); display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 8px; font-size: 0.875rem; }
+
+    .badge { font-size: 0.6875rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-block; }
+    .badge--green { background: rgba(16,185,129,0.12); color: var(--sadq-success); }
+    .badge--red { background: rgba(239,68,68,0.12); color: #F87171; }
+    .badge--blue { background: rgba(59,130,246,0.12); color: #60A5FA; }
+    .badge--orange { background: rgba(245,158,11,0.12); color: #F59E0B; }
+    .badge--gold { background: rgba(59,130,246,0.12); color: #F9A825; }
+
+    .empty-mini { text-align: center; padding: 40px 16px; color: var(--sadq-text-muted); }
+    .empty-mini__icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.4; }
+    .empty-mini__text { font-size: 0.875rem; margin-bottom: 12px; }
+
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%); background-size: 200% 100%; animation: sk 1.5s infinite; border-radius: var(--sadq-radius-sm); }
+    @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .hidden { display: none !important; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay--active { display: flex; }
+    .modal { background: var(--card,#10152A); border-radius: var(--sadq-radius); padding: 24px; max-width: 400px; width: 100%; }
+    .modal__title { font-size: 1.125rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--sadq-text-muted); }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--sadq-radius-sm); color: #fff; font-size: 0.875rem; z-index: 300; opacity: 0; transform: translateY(10px); transition: var(--sadq-transition); max-width: 350px; }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-red); }
+
+    .action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+
+    .menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 110; background: var(--sadq-primary); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar--open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-toggle { display: block; }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <button class="menu-toggle" id="menu-toggle">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a>
+      <div class="sidebar__sub">Control Center</div>
+    </div>
+        <nav class="sidebar__nav">
+      <div class="sidebar__section">Overview</div>
+      <a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+
+      <div class="sidebar__section">People</div>
+      <a href="/admin-students.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">🎓</span> Students</a>
+      <a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+
+      <div class="sidebar__section">Organisation</div>
+      <a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+      <a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+      <a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+
+      <div class="sidebar__section">Content</div>
+      <a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+      <a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+      <a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+      <a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+      <a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+
+      <div class="sidebar__section">Recognition</div>
+      <a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+      <a href="/admin-achievements.html" class="sidebar__link "><span class="sidebar__icon">🏅</span> Achievements</a>
+
+      <div class="sidebar__section">Marketplace</div>
+      <a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+      <a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+      <a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+
+      <div class="sidebar__section">Finance</div>
+      <a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+      <a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+      <a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+
+      <div class="sidebar__section">Platform</div>
+      <a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+      <a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+      <a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+      <a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+      <a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+      <a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+      <a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+
+      <div class="sidebar__section">Back</div>
+      <a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+      <a href="#" class="sidebar__link" id="logout-btn"><span class="sidebar__icon">🚪</span> Logout</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="main__header">
+      <div>
+        <h1 class="main__title">Manage Students</h1>
+        <div class="main__sub" id="admin-name">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-row">
+      <div class="stat-mini">
+        <div class="stat-mini__value" id="stat-total">—</div>
+        <div class="stat-mini__label">Total Students</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini__value" id="stat-active">—</div>
+        <div class="stat-mini__label">Active</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini__value" id="stat-suspended">—</div>
+        <div class="stat-mini__label">Suspended</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="search-bar">
+        <input type="text" id="search-input" class="search-input" placeholder="Search by name, username...">
+        <select id="filter-role" class="filter-select">
+          <option value="">All Roles</option>
+          <option value="student">Student</option>
+          <option value="verified_student">Verified Student</option>
+          <option value="freelancer">Freelancer</option>
+          <option value="client">Client</option>
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+          <option value="super_admin">Super Admin</option>
+        </select>
+        <select id="filter-status" class="filter-select">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <div id="loading-state">
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:50px;"></div>
+        </div>
+
+        <table id="students-table" class="hidden">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody"></tbody>
+        </table>
+
+        <div id="empty-state" class="empty-mini hidden">
+          <div class="empty-mini__icon">🎓</div>
+          <p class="empty-mini__text">No students found.</p>
+        </div>
+
+        <div id="error-state" class="empty-mini hidden">
+          <div class="empty-mini__icon">⚠️</div>
+          <p class="empty-mini__text">Unable to load students. Please try again.</p>
+          <button class="btn btn--primary btn--small" id="retry-btn">Retry</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; color: var(--sadq-text-muted);" id="result-count"></span>
+        <div>
+          <button class="btn btn--ghost btn--small" id="prev-btn" disabled>← Prev</button>
+          <button class="btn btn--ghost btn--small" id="next-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Modal -->
+  <div class="modal-overlay" id="action-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal()">×</button>
+      <h2 class="modal__title" id="action-title">Action</h2>
+      <p style="margin-bottom: 20px; color: var(--sadq-text-muted);" id="action-desc"></p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn--danger" id="confirm-action-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { supabase, requireAuth, signOut } from '/js/supabase-client.js';
+
+    let currentUser = null;
+    let currentAdminRole = null;
+    let currentPage = 0;
+    const pageSize = 20;
+    let searchTimeout = null;
+    let pendingAction = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast toast--${type} toast--show`;
+      setTimeout(() => t.classList.remove('toast--show'), 3000);
+    }
+
+    async function init() {
+      try {
+        const { user, profile } = await requireAuth();
+        if (profile && !['admin', 'super_admin'].includes(profile.role)) {
+          window.location.href = '/dashboard.html';
+          return;
+        }
+        currentUser = user;
+        currentAdminRole = profile.role;
+        document.getElementById('admin-name').textContent = `Welcome, ${profile.full_name || user.email}`;
+        document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(); });
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('sidebar--open');
+        });
+
+        document.getElementById('search-input').addEventListener('input', () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => { currentPage = 0; loadStudents(); }, 400);
+        });
+        document.getElementById('filter-role').addEventListener('change', () => { currentPage = 0; loadStudents(); });
+        document.getElementById('filter-status').addEventListener('change', () => { currentPage = 0; loadStudents(); });
+        document.getElementById('prev-btn').addEventListener('click', () => { if (currentPage > 0) { currentPage--; loadStudents(); } });
+        document.getElementById('next-btn').addEventListener('click', () => { currentPage++; loadStudents(); });
+
+        await Promise.all([loadStudents(), loadQuickStats()]);
+      } catch (error) {
+        console.error('[Admin Students] Init error:', error);
+      }
+    }
+
+    async function loadQuickStats() {
+      try {
+        const { count: total } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+        document.getElementById('stat-total').textContent = total || 0;
+
+        const { count: active } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('account_status', 'active');
+        document.getElementById('stat-active').textContent = active || 0;
+
+        const { count: suspended } = await supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('account_status', 'suspended');
+        document.getElementById('stat-suspended').textContent = suspended || 0;
+      } catch (e) {
+        console.error('[Admin Students] Stats error:', e.message);
+      }
+    }
+
+    async function loadStudents() {
+      const loading = document.getElementById('loading-state');
+      const table = document.getElementById('students-table');
+      const empty = document.getElementById('empty-state');
+      const errorState = document.getElementById('error-state');
+      const tbody = document.getElementById('students-tbody');
+
+      loading.classList.remove('hidden');
+      table.classList.add('hidden');
+      empty.classList.add('hidden');
+      errorState.classList.add('hidden');
+
+      try {
+        const search = document.getElementById('search-input').value.trim();
+        const roleFilter = document.getElementById('filter-role').value;
+        const statusFilter = document.getElementById('filter-status').value;
+
+        let query = supabase
+          .from('profiles')
+          .select('id, full_name, username, role, account_status, profile_photo_url, created_at', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1);
+
+        if (roleFilter) query = query.eq('role', roleFilter);
+        if (statusFilter) query = query.eq('account_status', statusFilter);
+
+        if (search) {
+          query = query.or(`full_name.ilike.%${search}%,username.ilike.%${search}%`);
+        }
+
+        const { data, count, error } = await query;
+
+        if (error) throw error;
+
+        document.getElementById('result-count').textContent = `${count || 0} students`;
+
+        if (!data || data.length === 0) {
+          loading.classList.add('hidden');
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        tbody.innerHTML = data.map(s => {
+          const safeName = (s.full_name || 'Unknown').replace(/'/g, "\\'");
+          const isSelf = s.id === currentUser.id;
+          return `
+          <tr>
+            <td>
+              ${s.profile_photo_url
+                ? `<img src="${s.profile_photo_url}" class="avatar-sm" alt="">`
+                : `<span class="avatar-placeholder-sm">👤</span>`
+              }
+              ${s.full_name || 'Unknown'}
+              ${isSelf ? '<span style="font-size:0.625rem;color:var(--sadq-gold);margin-left:4px;">(You)</span>' : ''}
+            </td>
+            <td><span class="badge ${roleBadge(s.role)}">${s.role || 'student'}</span></td>
+            <td><span class="badge ${statusBadge(s.account_status)}">${s.account_status || 'active'}</span></td>
+            <td>${s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN') : '—'}</td>
+            <td>
+              <div class="action-btns">
+                ${s.account_status === 'active'
+                  ? `<button class="btn btn--ghost btn--small" style="color:var(--sadq-red);" onclick="actionSuspend('${s.id}','${safeName}')" ${isSelf ? 'disabled' : ''}>Suspend</button> <button class="btn btn--ghost btn--small" style="color:var(--sadq-red);" onclick="actionBan('${s.id}','${safeName}')" ${isSelf ? 'disabled' : ''}>Ban</button>`
+                  : `<button class="btn btn--ghost btn--small" style="color:var(--sadq-success);" onclick="actionRestore('${s.id}','${safeName}')" ${isSelf ? 'disabled' : ''}>Restore</button>`
+                }
+                <button class="btn btn--ghost btn--small" onclick="actionRole('${s.id}','${safeName}','${s.role}')" ${isSelf ? 'disabled' : ''}>Role</button>
+                <button class="btn btn--danger btn--small" onclick="actionDelete('${s.id}','${safeName}')" ${isSelf ? 'disabled' : ''}>Delete</button>
+              </div>
+            </td>
+          </tr>
+        `}).join('');
+
+        loading.classList.add('hidden');
+        table.classList.remove('hidden');
+
+        document.getElementById('prev-btn').disabled = currentPage === 0;
+        document.getElementById('next-btn').disabled = (currentPage + 1) * pageSize >= (count || 0);
+
+      } catch (error) {
+        console.error('[Admin Students] Load error:', error.message);
+        loading.classList.add('hidden');
+        errorState.classList.remove('hidden');
+      }
+    }
+
+    function roleBadge(role) {
+      const map = { 'super_admin': 'badge--gold', 'admin': 'badge--gold', 'verified_student': 'badge--blue', 'freelancer': 'badge--orange', 'client': 'badge--blue', 'staff': 'badge--blue' };
+      return map[role] || 'badge--green';
+    }
+
+    function statusBadge(status) {
+      const map = { 'active': 'badge--green', 'suspended': 'badge--orange', 'disabled': 'badge--red', 'banned': 'badge--red' };
+      return map[status] || 'badge--green';
+    }
+
+    // ── Actions (using RPC for elevated operations) ────────────────
+    window.actionSuspend = function(id, name) {
+      pendingAction = { type: 'suspend', id, name };
+      document.getElementById('action-title').textContent = 'Suspend Student';
+      document.getElementById('action-desc').textContent = `Suspend "${name}"? They will lose access to the platform immediately.`;
+      document.getElementById('confirm-action-btn').textContent = 'Suspend';
+      document.getElementById('confirm-action-btn').className = 'btn btn--danger';
+      document.getElementById('action-modal').classList.add('modal-overlay--active');
+    };
+
+    window.actionRestore = function(id, name) {
+      pendingAction = { type: 'restore', id, name };
+      document.getElementById('action-title').textContent = 'Restore Student';
+      document.getElementById('action-desc').textContent = `Restore "${name}"? They will regain access to the platform.`;
+      document.getElementById('confirm-action-btn').textContent = 'Restore';
+      document.getElementById('confirm-action-btn').className = 'btn btn--primary';
+      document.getElementById('action-modal').classList.add('modal-overlay--active');
+    };
+
+    window.actionBan = function(id, name) {
+      pendingAction = { type: 'ban', id, name };
+      document.getElementById('action-title').textContent = 'Ban Student';
+      document.getElementById('action-desc').textContent = `Ban "${name}"? This will block account access.`;
+      document.getElementById('confirm-action-btn').textContent = 'Ban';
+      document.getElementById('confirm-action-btn').className = 'btn btn--danger';
+      document.getElementById('action-modal').classList.add('modal-overlay--active');
+    };
+
+    window.actionDelete = function(id, name) {
+      pendingAction = { type: 'delete', id, name };
+      document.getElementById('action-title').textContent = '⚠️ Delete Student';
+      document.getElementById('action-desc').innerHTML = `Permanently delete "${name}"? This will remove their account and all data. This cannot be undone.`;
+      document.getElementById('confirm-action-btn').textContent = 'Delete Permanently';
+      document.getElementById('confirm-action-btn').className = 'btn btn--danger';
+      document.getElementById('action-modal').classList.add('modal-overlay--active');
+    };
+
+    window.actionRole = function(id, name, currentRole) {
+      pendingAction = { type: 'role', id, name, currentRole };
+      document.getElementById('action-title').textContent = 'Change Role';
+      document.getElementById('action-desc').innerHTML = `
+        Change role for "${name}". Current: <strong>${currentRole}</strong><br><br>
+        <select id="new-role-select" class="filter-select" style="width:100%;">
+          <option value="student" ${currentRole === 'student' ? 'selected' : ''}>Student</option>
+          ${currentAdminRole === 'super_admin' ? `<option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Admin</option><option value="super_admin" ${currentRole === 'super_admin' ? 'selected' : ''}>Super Admin</option>` : ''}
+        </select>
+      `;
+      document.getElementById('confirm-action-btn').textContent = 'Change Role';
+      document.getElementById('confirm-action-btn').className = 'btn btn--primary';
+      document.getElementById('action-modal').classList.add('modal-overlay--active');
+    };
+
+    window.closeModal = function() {
+      document.getElementById('action-modal').classList.remove('modal-overlay--active');
+      pendingAction = null;
+    };
+
+    document.getElementById('confirm-action-btn').addEventListener('click', async () => {
+      if (!pendingAction) return;
+      const btn = document.getElementById('confirm-action-btn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      try {
+        if (pendingAction.type === 'suspend') {
+          const { error } = await supabase.rpc('admin_update_status', {
+            p_user_id: pendingAction.id,
+            p_status: 'suspended'
+          });
+          if (error) throw error;
+          showToast(`"${pendingAction.name}" has been suspended.`);
+
+        } else if (pendingAction.type === 'ban') {
+          const { error } = await supabase.rpc('admin_update_status', {
+            p_user_id: pendingAction.id,
+            p_status: 'banned'
+          });
+          if (error) throw error;
+          showToast(`"${pendingAction.name}" has been banned.`);
+
+        } else if (pendingAction.type === 'restore') {
+          const { error } = await supabase.rpc('admin_update_status', {
+            p_user_id: pendingAction.id,
+            p_status: 'active'
+          });
+          if (error) throw error;
+          showToast(`"${pendingAction.name}" has been restored.`);
+
+        } else if (pendingAction.type === 'delete') {
+          const { error } = await supabase.rpc('admin_delete_user', {
+            p_user_id: pendingAction.id
+          });
+          if (error) throw error;
+          showToast(`"${pendingAction.name}" has been permanently deleted.`);
+
+        } else if (pendingAction.type === 'role') {
+          const newRole = document.getElementById('new-role-select').value;
+          const { error } = await supabase.rpc('admin_update_role', {
+            p_user_id: pendingAction.id,
+            p_role: newRole
+          });
+          if (error) throw error;
+          showToast(`Role changed to ${newRole} for "${pendingAction.name}".`);
+        }
+
+        closeModal();
+        await Promise.all([loadStudents(), loadQuickStats()]);
+      } catch (error) {
+        console.error('[Admin Students] Action error:', error.message);
+        showToast(`Error: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', loadStudents);
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

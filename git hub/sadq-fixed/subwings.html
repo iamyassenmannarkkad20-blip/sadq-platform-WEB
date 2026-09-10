@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sub-Wings — SADQ</title>
+<link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/animations.css">
+<style>.page{max-width:1100px;margin:auto;padding:32px 20px}.hero{text-align:center;margin-bottom:28px}.hero h1{margin-bottom:8px}.hero p{color:var(--text-muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.wing{display:block;padding:20px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--card-bg);color:inherit;text-decoration:none}.wing:hover{border-color:var(--blue);transform:translateY(-2px)}.wing__title{font-weight:700;margin-bottom:6px}.wing__meta,.wing__desc{font-size:.8rem;color:var(--text-muted)}.state{text-align:center;padding:50px 20px;color:var(--text-muted)}.error{color:#ef4444}</style>
+</head>
+<body><main class="page"><div class="hero"><h1>Sub-Wings</h1><p>Explore SADQ's active wings and their published activities.</p></div><div id="state" class="state">Loading sub-wings...</div><div id="grid" class="grid"></div></main>
+<script type="module">
+import { supabase, esc } from '/js/supabase-client.js?v=20260910';
+const state=document.getElementById('state'),grid=document.getElementById('grid');
+try{const{data,error}=await supabase.from('sub_wings').select('id,name,wing_type,description,chairman_name,convener_name,display_order').eq('account_status','active').order('display_order');if(error)throw error;if(!data?.length){state.textContent='No active sub-wings are available yet.'}else{state.classList.add('hidden');grid.innerHTML=data.map(wing=>`<a class="wing" href="/subwing-details.html?id=${wing.id}"><div class="wing__title">🏛️ ${esc(wing.name)}</div><div class="wing__meta">${esc(wing.wing_type==='sub_wing'?'Sub-Wing':'Class Organisation')}</div><div class="wing__desc">${esc(wing.description||'Published SADQ activities and updates.')}</div></a>`).join('')}}catch(error){state.className='state error';state.textContent='Unable to load sub-wings right now.';console.error('[SubWings]',error.message)}
+</script><script src="/js/interactions.js"></script></body></html>

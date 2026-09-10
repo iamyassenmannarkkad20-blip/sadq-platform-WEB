@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sub-Wing Dashboard — SADQ</title>
+<style>
+:root{--p:#1a5632;--pl:#2d7a4f;--pd:#0f3d20;--gold:#c9a227;--bg:#f0f2f5;--card:#fff;--text:#1a1a1a;--muted:#6c757d;--border:#e0e0e0;--danger:#c41e3a;--success:#28a745;--r:12px;--rs:8px;--shadow:0 2px 8px rgba(0,0,0,0.08);--t:0.3s ease}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:linear-gradient(135deg,var(--p),var(--pd));padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.header__logo{font-size:1.25rem;font-weight:700;color:#fff}.header__logo span{color:var(--gold)}
+.header__name{color:rgba(255,255,255,0.8);font-size:0.875rem}
+.header__btn{background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8125rem}
+.container{max-width:900px;margin:0 auto;padding:16px}
+.main__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}.main__sub{font-size:0.8125rem;color:var(--muted);margin-bottom:20px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:500;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn--primary{background:var(--p);color:#fff}.btn--danger{background:var(--danger);color:#fff}.btn--ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn--small{padding:4px 10px;font-size:0.8125rem}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.section__title{font-size:1rem;font-weight:600;margin-bottom:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}.tab{padding:8px 16px;border:1px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:0.875rem;font-weight:500;transition:var(--t)}
+.tab--active{background:var(--p);color:#fff;border-color:var(--p)}
+.item-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px}
+.item-row__body{flex:1;min-width:0}.item-row__title{font-size:0.875rem;font-weight:500}.item-row__meta{font-size:0.75rem;color:var(--muted)}
+.badge{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block}
+.badge--green{background:#e8f5e9;color:var(--success)}.badge--orange{background:#fff3e0;color:#e65100}.badge--blue{background:#e3f2fd;color:#1565c0}
+.empty{text-align:center;padding:32px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input,.form-textarea,.form-select{width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem;font-family:inherit}
+.form-input:focus{outline:none;border-color:var(--p)}.form-textarea{min-height:80px;resize:vertical}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay--active{display:flex}.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+.modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+@media(max-width:600px){.header{flex-direction:column;gap:8px}}
+</style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<div class="header">
+<div><div class="header__logo">SAD<span>Q</span></div><div class="header__name" id="wing-name">Loading...</div></div>
+<button class="header__btn" onclick="logout()">Logout</button>
+</div>
+<div class="container">
+<h1 class="main__title">Sub-Wing Dashboard</h1>
+<p class="main__sub" id="wing-info">Manage your wing's notices, events, and tasks.</p>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<div class="section__title" style="margin:0">Our Content</div>
+<button class="btn btn--primary" id="add-btn" onclick="openCreate()">+ Upload Content</button>
+</div>
+
+<div class="tabs">
+<div class="tab tab--active" onclick="filterTab('all',this)">All</div>
+<div class="tab" onclick="filterTab('notice',this)">📢 Notices</div>
+<div class="tab" onclick="filterTab('event',this)">📅 Events</div>
+<div class="tab" onclick="filterTab('task',this)">✅ Tasks</div>
+</div>
+
+<div class="section">
+<div id="loading"><div class="skeleton" style="height:50px;margin-bottom:8px"></div><div class="skeleton" style="height:50px;margin-bottom:8px"></div></div>
+<div id="list"></div>
+<div id="empty" class="empty hidden"><div class="empty__icon">📭</div><p>No content yet. Click "Upload Content" to add.</p></div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal"><div class="modal">
+<button onclick="closeModal()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)">×</button>
+<h2 class="modal__title">Upload Content</h2>
+<div class="form-group"><label>Type *</label><select class="form-select" id="c-type"><option value="notice">📢 Notice</option><option value="event">📅 Event</option><option value="task">✅ Task</option><option value="activity">🎬 Activity</option></select></div>
+<div class="form-group"><label>Title *</label><input class="form-input" id="c-title" placeholder="Title"></div>
+<div class="form-group"><label>Description</label><textarea class="form-textarea" id="c-desc" placeholder="Details..."></textarea></div>
+<div class="form-group"><label>Image URL</label><input class="form-input" id="c-image" placeholder="https://... (optional)"></div>
+<div class="form-group"><label>Event Date (for events)</label><input class="form-input" type="datetime-local" id="c-date"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+<button class="btn btn--primary" id="save-btn" onclick="saveContent()">Publish</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { supabase, verifySubwingSession } from '/js/supabase-client.js?v=20260910'
+ (async()=>{
+let wing=null,filt='all'
+const session=localStorage.getItem('subwing_session')
+if(!session){window.location.href='/subwing-login.html';return}
+try { wing=JSON.parse(session) } catch (e) { wing=null }
+if(!wing?.id){localStorage.removeItem('subwing_session');window.location.href='/subwing-login.html';return}
+try {
+  const verified=await verifySubwingSession(wing.id)
+  if(!verified){localStorage.removeItem('subwing_session');window.location.href='/subwing-login.html';return}
+  wing={...wing,...verified}
+  localStorage.setItem('subwing_session',JSON.stringify(wing))
+} catch (e) {
+  localStorage.removeItem('subwing_session');window.location.href='/subwing-login.html';return
+}
+document.getElementById('wing-name').textContent=`${wing.name} (${wing.wing_type==='sub_wing'?'Sub-Wing':'Class Org'})`
+
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+window.logout=()=>{localStorage.removeItem('subwing_session');window.location.href='/subwing-login.html'}
+
+async function load(){const l=document.getElementById('loading'),lst=document.getElementById('list'),e=document.getElementById('empty');l.classList.remove('hidden');lst.innerHTML='';e.classList.add('hidden')
+try{let q=supabase.from('sub_wing_content').select('*').eq('sub_wing_id',wing.id).order('created_at',{ascending:false}).limit(30)
+if(filt!=='all')q=q.eq('content_type',filt)
+const{data,error}=await q
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+const icons={'notice':'📢','event':'📅','task':'✅','activity':'🎬'}
+lst.innerHTML=data.map(c=>`<div class="item-row"><div style="font-size:1.5rem">${icons[c.content_type]||'📄'}</div><div class="item-row__body"><div class="item-row__title">${c.title||'Untitled'}</div><div class="item-row__meta">${c.content_type} · ${new Date(c.created_at).toLocaleDateString('en-IN')}${c.event_date?` · ${new Date(c.event_date).toLocaleDateString('en-IN')}`:''}</div>${c.description?`<div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${c.description.substring(0,100)}</div>`:''}</div><span class="badge ${c.status==='published'?'badge--green':'badge--orange'}">${c.status}</span><button class="btn btn--danger btn--small" onclick="delContent('${c.id}')">Delete</button></div>`).join('')
+l.classList.add('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+
+window.filterTab=(t,el)=>{filt=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('tab--active'));el.classList.add('tab--active');load()}
+window.openCreate=()=>document.getElementById('modal').classList.add('modal-overlay--active')
+window.closeModal=()=>{document.getElementById('modal').classList.remove('modal-overlay--active');['c-title','c-desc','c-image','c-date'].forEach(id=>document.getElementById(id).value='');document.getElementById('c-type').value='notice'}
+window.saveContent=async()=>{const t=document.getElementById('c-title').value.trim(),ty=document.getElementById('c-type').value
+if(!t){toast('Title required','error');return}
+const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Publishing...'
+try{const{error}=await supabase.from('sub_wing_content').insert({sub_wing_id:wing.id,content_type:ty,title:t,description:document.getElementById('c-desc').value.trim()||null,image_url:document.getElementById('c-image').value.trim()||null,event_date:document.getElementById('c-date').value||null,status:'published',created_by:wing.name})
+if(error)throw error;toast('Content published!');closeModal();await load()}catch(e){toast(e.message,'error')}finally{btn.disabled=false;btn.textContent='Publish'}}
+window.delContent=async(id)=>{if(!confirm('Delete this content?'))return;try{const{error}=await supabase.from('sub_wing_content').delete().eq('id',id);if(error)throw error;toast('Deleted');await load()}catch(e){toast(e.message,'error')}}
+document.addEventListener('DOMContentLoaded',load)
+})();
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

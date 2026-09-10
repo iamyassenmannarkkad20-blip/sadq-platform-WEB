@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SADQ Student Profile — Manage your digital identity">
+  <title>My Profile — SADQ</title>
+
+  <!-- Supabase Client -->
+  <script type="module">
+    // Import and expose supabase globally for this page
+    import { supabase, requireAuth, getCurrentUser, signOut } from '/js/supabase-client.js';
+    import { MediaService } from '/js/media-service.js';
+
+    window.SADQ = { supabase, requireAuth, getCurrentUser, signOut, MediaService };
+
+    // Initialize the page once DOM is ready
+    document.addEventListener('DOMContentLoaded', initProfilePage);
+  </script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/profile.css">
+
+  <style>
+    /* ═══ DESIGN SYSTEM ═══ */
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg, #050816);
+      color: var(--text, #F8FAFC);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══ HEADER ═══ */
+    .sadq-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--sadq-header-h);
+      background: var(--sadq-primary);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .sadq-header__logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+    .sadq-header__nav {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .sadq-header__nav a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.875rem;
+      padding: 8px 12px;
+      border-radius: var(--sadq-radius-sm);
+      transition: var(--sadq-transition);
+    }
+    .sadq-header__nav a:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* ═══ LAYOUT ═══ */
+    .profile-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* ═══ COVER PHOTO ═══ */
+    .cover-section {
+      position: relative;
+      height: 200px;
+      border-radius: var(--sadq-radius);
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--sadq-primary), var(--sadq-primary-light));
+      margin-bottom: -40px;
+    }
+    .cover-section img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .cover-section__upload {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .cover-section__placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.875rem;
+    }
+
+    /* ═══ PROFILE HEADER ═══ */
+    .profile-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      padding: 0 16px;
+      margin-bottom: 24px;
+    }
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      object-fit: cover;
+      background: var(--sadq-border);
+      flex-shrink: 0;
+      box-shadow: var(--sadq-shadow);
+    }
+    .profile-avatar-placeholder {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: var(--sadq-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: var(--sadq-text-muted);
+      flex-shrink: 0;
+    }
+    .profile-header__info {
+      flex: 1;
+      padding-bottom: 8px;
+    }
+    .profile-header__name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .profile-header__username {
+      font-size: 0.875rem;
+      color: var(--sadq-text-muted);
+    }
+    .profile-header__badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .badge--verified { background: #e8f5e9; color: var(--sadq-success); }
+    .badge--student { background: #e3f2fd; color: #1976d2; }
+    .badge--freelancer { background: #fff3e0; color: #e65100; }
+
+    /* ═══ COMPLETION BAR ═══ */
+    .completion-bar {
+      background: var(--sadq-card-bg);
+      border-radius: var(--sadq-radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--sadq-shadow);
+    }
+    .completion-bar__label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .completion-bar__track {
+      height: 8px;
+      background: var(--sadq-border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .completion-bar__fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sadq-primary), var(--sadq-success));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    /* ═══ SECTIONS ═══ */
+    .section {
+      background: var(--sadq-card-bg);
+      border-radius: var(--sadq-radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--sadq-shadow);
+    }
+    .section__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section__title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+    .section__action {
+      font-size: 0.875rem;
+      color: var(--sadq-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* ═══ SKILLS ═══ */
+    .skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .skill-tag {
+      background: #f0f7f0;
+      color: var(--sadq-primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8125rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .skill-tag__proficiency {
+      font-size: 0.6875rem;
+      color: var(--sadq-text-muted);
+    }
+
+    /* ═══ WORK SAMPLES ═══ */
+    .work-samples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .work-sample-card {
+      border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm);
+      overflow: hidden;
+      transition: var(--sadq-transition);
+      cursor: pointer;
+    }
+    .work-sample-card:hover { box-shadow: var(--sadq-shadow-hover); }
+    .work-sample-card__thumb {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: var(--sadq-border);
+    }
+    .work-sample-card__body { padding: 10px; }
+    .work-sample-card__title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .work-sample-card__skill {
+      font-size: 0.75rem;
+      color: var(--sadq-text-muted);
+    }
+
+    /* ═══ GALLERY ═══ */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .gallery-item {
+      aspect-ratio: 1;
+      border-radius: var(--sadq-radius-sm);
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: var(--sadq-transition);
+    }
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    /* ═══ ACHIEVEMENTS ═══ */
+    .achievement-list { display: flex; flex-direction: column; gap: 12px; }
+    .achievement-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm);
+    }
+    .achievement-item__icon {
+      width: 40px;
+      height: 40px;
+      background: #fff8e1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.25rem;
+    }
+    .achievement-item__body { flex: 1; }
+    .achievement-item__title { font-weight: 500; font-size: 0.9375rem; }
+    .achievement-item__org { font-size: 0.8125rem; color: var(--sadq-text-muted); }
+    .achievement-item__date { font-size: 0.75rem; color: var(--sadq-text-muted); }
+
+    /* ═══ CERTIFICATES ═══ */
+    .cert-list { display: flex; flex-direction: column; gap: 8px; }
+    .cert-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm);
+    }
+    .cert-item__icon {
+      width: 36px;
+      height: 36px;
+      background: #e3f2fd;
+      border-radius: var(--sadq-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ═══ EMPTY STATES ═══ */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--sadq-text-muted);
+    }
+    .empty-state__icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.5; }
+    .empty-state__text { font-size: 0.875rem; margin-bottom: 12px; }
+    .empty-state__action {
+      display: inline-block;
+      padding: 8px 20px;
+      background: var(--sadq-primary);
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--sadq-radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--sadq-transition);
+    }
+    .empty-state__action:hover { background: var(--sadq-primary-light); }
+
+    /* ═══ BUTTONS ═══ */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--sadq-radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--sadq-transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn--primary { background: var(--sadq-primary); color: #fff; }
+    .btn--primary:hover { background: var(--sadq-primary-light); }
+    .btn--ghost { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn--ghost:hover { background: rgba(255,255,255,0.25); }
+    .btn--danger { background: var(--sadq-danger); color: #fff; }
+    .btn--small { padding: 4px 10px; font-size: 0.8125rem; }
+
+    /* ═══ UPLOAD ZONE ═══ */
+    .upload-zone {
+      border: 2px dashed var(--sadq-border);
+      border-radius: var(--sadq-radius-sm);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--sadq-transition);
+    }
+    .upload-zone:hover {
+      border-color: var(--sadq-primary);
+      background: #f0f7f0;
+    }
+    .upload-zone--dragover {
+      border-color: var(--sadq-primary);
+      background: #e8f5e9;
+    }
+    .upload-zone__text { font-size: 0.875rem; color: var(--sadq-text-muted); }
+
+    /* ═══ PROGRESS BAR ═══ */
+    .progress-bar {
+      height: 4px;
+      background: var(--sadq-border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar__fill {
+      height: 100%;
+      background: var(--sadq-primary);
+      transition: width 0.3s ease;
+    }
+
+    /* ═══ MODAL ═══ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay--active { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: var(--sadq-radius);
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal__title { font-size: 1.25rem; font-weight: 600; margin-bottom: 16px; }
+    .modal__close {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--sadq-text-muted);
+    }
+
+    /* ═══ FORM ═══ */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--sadq-border);
+      border-radius: var(--sadq-radius-sm);
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: var(--sadq-transition);
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--sadq-primary);
+      box-shadow: 0 0 0 3px rgba(26, 86, 50, 0.1);
+    }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-error {
+      font-size: 0.8125rem;
+      color: var(--sadq-danger);
+      margin-top: 4px;
+    }
+
+    /* ═══ TOAST ═══ */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: var(--sadq-radius-sm);
+      color: #fff;
+      font-size: 0.875rem;
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: var(--sadq-transition);
+    }
+    .toast--show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--sadq-success); }
+    .toast--error { background: var(--sadq-danger); }
+
+    /* ═══ LOADING ═══ */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: var(--sadq-radius-sm);
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .profile-avatar, .profile-avatar-placeholder {
+        width: 80px; height: 80px;
+      }
+      .profile-header__badges { justify-content: center; }
+      .work-samples-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 412px) {
+      .profile-container { padding: 8px; }
+      .section { padding: 16px; }
+      .work-samples-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 360px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ═══ ANIMATIONS ═══ */
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.1s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.2s; }
+    .stagger > *:nth-child(5) { animation-delay: 0.25s; }
+
+    /* ═══ HIDDEN ═══ */
+    .hidden { display: none !important; }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="sadq-header">
+    <a href="/dashboard.html" class="sadq-header__logo">SADQ</a>
+    <nav class="sadq-header__nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/student-profile.html" class="active">My Profile</a>
+      <a href="/settings.html">Settings</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </nav>
+  </header>
+
+  <!-- ═══ PROFILE CONTAINER ═══ -->
+  <div class="profile-container">
+
+    <!-- Cover Photo -->
+    <div class="cover-section" id="cover-section">
+      <div class="cover-section__placeholder" id="cover-placeholder">
+        No cover photo yet
+      </div>
+      <div class="cover-section__upload">
+        <button class="btn btn--ghost btn--small" id="upload-cover-btn">
+          Change Cover
+        </button>
+        <input type="file" id="cover-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+      </div>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar-placeholder" id="avatar-placeholder">👤</div>
+      <img class="profile-avatar hidden" id="avatar-img" alt="Profile photo">
+      <div class="profile-header__info">
+        <div class="profile-header__name" id="display-name">Loading...</div>
+        <div class="profile-header__username" id="display-username"></div>
+        <div class="profile-header__badges" id="badges"></div>
+      </div>
+      <button class="btn btn--primary" onclick="window.location.href='/profile-edit.html'">
+        Edit Profile
+      </button>
+    </div>
+
+    <!-- Profile Completion -->
+    <div class="completion-bar">
+      <div class="completion-bar__label">
+        <span>Profile Completion</span>
+        <span id="completion-percent">0%</span>
+      </div>
+      <div class="completion-bar__track">
+        <div class="completion-bar__fill" id="completion-fill"></div>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <div class="section fade-in" id="bio-section">
+      <div class="section__header">
+        <h2 class="section__title">About</h2>
+      </div>
+      <p id="bio-text" style="color: var(--sadq-text-muted); font-size: 0.9375rem;">
+        No bio added yet.
+      </p>
+    </div>
+
+    <!-- Academic Info -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Academic Information</h2>
+      </div>
+      <div id="academic-info" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.875rem;">
+        <div><strong>Course:</strong> <span id="info-course">—</span></div>
+        <div><strong>Batch:</strong> <span id="info-batch">—</span></div>
+        <div><strong>Department:</strong> <span id="info-department">—</span></div>
+        <div><strong>Class:</strong> <span id="info-class">—</span></div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Skills</h2>
+        <a href="/profile-skills.html" class="section__action">Manage</a>
+      </div>
+      <div id="skills-container">
+        <div class="empty-state">
+          <div class="empty-state__icon">💼</div>
+          <p class="empty-state__text">No skills added yet.</p>
+          <a href="/profile-skills.html" class="empty-state__action">Add Skill</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Work Samples -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Work Samples</h2>
+        <a href="/profile-work-samples.html" class="section__action">Manage</a>
+      </div>
+      <div id="work-samples-container">
+        <div class="empty-state">
+          <div class="empty-state__icon">📂</div>
+          <p class="empty-state__text">No work samples yet.</p>
+          <a href="/profile-work-samples.html" class="empty-state__action">Add Work Sample</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Achievements</h2>
+        <a href="/profile-achievements.html" class="section__action">Manage</a>
+      </div>
+      <div id="achievements-container">
+        <div class="empty-state">
+          <div class="empty-state__icon">🏆</div>
+          <p class="empty-state__text">No achievements added yet.</p>
+          <a href="/profile-achievements.html" class="empty-state__action">Add Achievement</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certificates -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Certificates</h2>
+        <a href="/profile-certificates.html" class="section__action">Manage</a>
+      </div>
+      <div id="certificates-container">
+        <div class="empty-state">
+          <div class="empty-state__icon">📜</div>
+          <p class="empty-state__text">No certificates added yet.</p>
+          <a href="/profile-certificates.html" class="empty-state__action">Upload Certificate</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="section fade-in">
+      <div class="section__header">
+        <h2 class="section__title">Photo Gallery</h2>
+        <a href="/profile-gallery.html" class="section__action">Manage</a>
+      </div>
+      <div id="gallery-container">
+        <div class="empty-state">
+          <div class="empty-state__icon">📷</div>
+          <p class="empty-state__text">No photos in gallery yet.</p>
+          <a href="/profile-gallery.html" class="empty-state__action">Upload Photo</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ AVATAR UPLOAD MODAL ═══ -->
+  <div class="modal-overlay" id="avatar-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal('avatar-modal')">×</button>
+      <h2 class="modal__title">Upload Profile Photo</h2>
+      <div class="upload-zone" id="avatar-upload-zone">
+        <p class="upload-zone__text">Click to select or drag an image here</p>
+        <p class="upload-zone__text" style="margin-top: 8px; font-size: 0.75rem;">
+          JPG, PNG, WEBP · Max 10MB
+        </p>
+        <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+      </div>
+      <div class="progress-bar hidden" id="avatar-progress-bar">
+        <div class="progress-bar__fill" id="avatar-progress-fill" style="width: 0%;"></div>
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn" style="background: var(--sadq-border); color: var(--text, #F8FAFC);" onclick="closeModal('avatar-modal')">Cancel</button>
+        <button class="btn btn--primary" id="avatar-upload-confirm">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TOAST ═══ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══ PAGE LOGIC ═══ -->
+  <script>
+    // Expose globally for inline handlers
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('modal-overlay--active');
+    }
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast--${type} toast--show`;
+      setTimeout(() => toast.classList.remove('toast--show'), 3000);
+    }
+
+    async function initProfilePage() {
+      try {
+        const { supabase, requireAuth, getCurrentUser, signOut, MediaService } = window.SADQ;
+
+        // Require authentication
+        const { user, profile } = await requireAuth();
+
+        // ── Logout handler ──
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+          e.preventDefault();
+          signOut();
+        });
+
+        // ── Load profile data ──
+        await loadProfileData(user, profile);
+
+        // ── Load related data ──
+        await Promise.all([
+          loadSkills(user.id),
+          loadWorkSamples(user.id),
+          loadAchievements(user.id),
+          loadCertificates(user.id),
+          loadGallery(user.id),
+          loadProfileCompletion(user.id),
+        ]);
+
+        // ── Avatar upload ──
+        setupAvatarUpload();
+
+        // ── Cover upload ──
+        setupCoverUpload();
+
+      } catch (error) {
+        console.error('[SADQ Profile] Init error:', error);
+        if (error.message !== 'Not authenticated' && error.message !== 'Account suspended' && error.message !== 'Insufficient permissions') {
+          showToast('Unable to load profile. Please try again.', 'error');
+        }
+      }
+    }
+
+    // ── Load Profile Data ──────────────────────────────────────────
+    async function loadProfileData(user, profile) {
+      const { supabase } = window.SADQ;
+
+      // If profile wasn't passed, fetch it
+      if (!profile || !profile.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        profile = data;
+      }
+
+      // Display name
+      document.getElementById('display-name').textContent =
+        profile.full_name || user.email || 'Student';
+
+      // Username
+      document.getElementById('display-username').textContent =
+        profile.username ? `@${profile.username}` : '';
+
+      // Badges
+      const badges = document.getElementById('badges');
+      badges.innerHTML = '';
+      if (profile.is_verified_student) {
+        badges.innerHTML += '<span class="badge badge--verified">✓ Verified Student</span>';
+      }
+      if (profile.role) {
+        badges.innerHTML += `<span class="badge badge--student">${profile.role}</span>`;
+      }
+
+      // Profile photo
+      if (profile.profile_photo_url) {
+        document.getElementById('avatar-img').src = profile.profile_photo_url;
+        document.getElementById('avatar-img').classList.remove('hidden');
+        document.getElementById('avatar-placeholder').classList.add('hidden');
+      }
+
+      // Cover photo
+      if (profile.cover_photo_url) {
+        const coverSection = document.getElementById('cover-section');
+        coverSection.innerHTML = `
+          <img src="${profile.cover_photo_url}" alt="Cover photo">
+          <div class="cover-section__upload">
+            <button class="btn btn--ghost btn--small" id="upload-cover-btn">Change Cover</button>
+            <input type="file" id="cover-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+          </div>
+        `;
+        setupCoverUpload();
+      }
+
+      // Bio
+      if (profile.bio) {
+        document.getElementById('bio-text').textContent = profile.bio;
+        document.getElementById('bio-text').style.color = 'var(--sadq-text)';
+      }
+
+      // Academic info
+      if (profile.course) document.getElementById('info-course').textContent = profile.course;
+      if (profile.batch) document.getElementById('info-batch').textContent = profile.batch;
+      if (profile.department) document.getElementById('info-department').textContent = profile.department;
+      if (profile.class) document.getElementById('info-class').textContent = profile.class;
+    }
+
+    // ── Load Skills ────────────────────────────────────────────────
+    async function loadSkills(userId) {
+      const { supabase } = window.SADQ;
+      const { data, error } = await supabase
+        .from('student_skills')
+        .select('*')
+        .eq('student_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[Skills] Load error:', error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+
+      const container = document.getElementById('skills-container');
+      container.innerHTML = '<div class="skills-grid">' +
+        data.map(skill => `
+          <div class="skill-tag">
+            ${skill.skill_name}
+            ${skill.proficiency ? `<span class="skill-tag__proficiency">(${skill.proficiency})</span>` : ''}
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // ── Load Work Samples ──────────────────────────────────────────
+    async function loadWorkSamples(userId) {
+      const { supabase } = window.SADQ;
+      const { data, error } = await supabase
+        .from('student_work_samples')
+        .select('*')
+        .eq('student_id', userId)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error) {
+        console.error('[Work Samples] Load error:', error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+
+      const container = document.getElementById('work-samples-container');
+      container.innerHTML = '<div class="work-samples-grid">' +
+        data.map(sample => `
+          <div class="work-sample-card" onclick="window.location.href='/work-sample-details.html?id=${sample.id}'">
+            ${sample.thumbnail_url
+              ? `<img class="work-sample-card__thumb" src="${sample.thumbnail_url}" alt="${sample.title}">`
+              : `<div class="work-sample-card__thumb" style="display:flex;align-items:center;justify-content:center;background:var(--sadq-border);color:var(--sadq-text-muted);">📄</div>`
+            }
+            <div class="work-sample-card__body">
+              <div class="work-sample-card__title">${sample.title}</div>
+              ${sample.skill_name ? `<div class="work-sample-card__skill">${sample.skill_name}</div>` : ''}
+            </div>
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // ── Load Achievements ──────────────────────────────────────────
+    async function loadAchievements(userId) {
+      const { supabase } = window.SADQ;
+      const { data, error } = await supabase
+        .from('student_achievements')
+        .select('*')
+        .eq('student_id', userId)
+        .order('achievement_date', { ascending: false, nullsFirst: false })
+        .limit(5);
+
+      if (error) {
+        console.error('[Achievements] Load error:', error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+
+      const container = document.getElementById('achievements-container');
+      container.innerHTML = '<div class="achievement-list">' +
+        data.map(ach => `
+          <div class="achievement-item">
+            <div class="achievement-item__icon">${ach.is_official ? '🏅' : '⭐'}</div>
+            <div class="achievement-item__body">
+              <div class="achievement-item__title">${ach.title}</div>
+              ${ach.organization ? `<div class="achievement-item__org">${ach.organization}</div>` : ''}
+              ${ach.achievement_date ? `<div class="achievement-item__date">${new Date(ach.achievement_date).toLocaleDateString('en-IN')}</div>` : ''}
+            </div>
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // ── Load Certificates ──────────────────────────────────────────
+    async function loadCertificates(userId) {
+      const { supabase } = window.SADQ;
+      const { data, error } = await supabase
+        .from('student_external_certificates')
+        .select('*')
+        .eq('student_id', userId)
+        .order('issue_date', { ascending: false, nullsFirst: false })
+        .limit(5);
+
+      if (error) {
+        console.error('[Certificates] Load error:', error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+
+      const container = document.getElementById('certificates-container');
+      container.innerHTML = '<div class="cert-list">' +
+        data.map(cert => `
+          <div class="cert-item">
+            <div class="cert-item__icon">📄</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 500; font-size: 0.875rem;">${cert.title}</div>
+              ${cert.issuing_organization ? `<div style="font-size: 0.8125rem; color: var(--sadq-text-muted);">${cert.issuing_organization}</div>` : ''}
+            </div>
+            ${cert.certificate_file_url ? `<a href="${cert.certificate_file_url}" target="_blank" class="btn btn--small" style="background: var(--sadq-border);">View</a>` : ''}
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // ── Load Gallery ────────────────────────────────────────────────
+    async function loadGallery(userId) {
+      const { supabase } = window.SADQ;
+      const { data, error } = await supabase
+        .from('student_gallery')
+        .select('*')
+        .eq('student_id', userId)
+        .eq('is_hidden', false)
+        .order('sort_order', { ascending: true })
+        .limit(12);
+
+      if (error) {
+        console.error('[Gallery] Load error:', error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+
+      const container = document.getElementById('gallery-container');
+      container.innerHTML = '<div class="gallery-grid">' +
+        data.map(photo => `
+          <div class="gallery-item" onclick="window.open('${photo.image_url}', '_blank')">
+            <img src="${photo.thumbnail_url || photo.image_url}" alt="${photo.caption || ''}" loading="lazy">
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // ── Load Profile Completion ────────────────────────────────────
+    async function loadProfileCompletion(userId) {
+      const { supabase } = window.SADQ;
+
+      // Call the RPC function
+      const { data, error } = await supabase
+        .rpc('get_profile_completion', { p_student_id: userId });
+
+      if (error) {
+        console.error('[Completion] Error:', error.message);
+        return;
+      }
+
+      const percent = data || 0;
+      document.getElementById('completion-percent').textContent = `${percent}%`;
+      document.getElementById('completion-fill').style.width = `${percent}%`;
+    }
+
+    // ── Avatar Upload ──────────────────────────────────────────────
+    function setupAvatarUpload() {
+      const { MediaService, supabase } = window.SADQ;
+
+      const placeholder = document.getElementById('avatar-placeholder');
+      const modal = document.getElementById('avatar-modal');
+      const uploadZone = document.getElementById('avatar-upload-zone');
+      const fileInput = document.getElementById('avatar-file-input');
+      const confirmBtn = document.getElementById('avatar-upload-confirm');
+      const progressBar = document.getElementById('avatar-progress-bar');
+      const progressFill = document.getElementById('avatar-progress-fill');
+
+      let selectedFile = null;
+
+      // Open modal when clicking avatar
+      if (placeholder) {
+        placeholder.addEventListener('click', () => {
+          modal.classList.add('modal-overlay--active');
+        });
+      }
+
+      // Click to select file
+      uploadZone.addEventListener('click', () => fileInput.click());
+
+      // File selected
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          selectedFile = e.target.files[0];
+          uploadZone.querySelector('p').textContent = selectedFile.name;
+        }
+      });
+
+      // Drag and drop
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('upload-zone--dragover');
+      });
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('upload-zone--dragover');
+      });
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('upload-zone--dragover');
+        if (e.dataTransfer.files.length > 0) {
+          selectedFile = e.dataTransfer.files[0];
+          uploadZone.querySelector('p').textContent = selectedFile.name;
+        }
+      });
+
+      // Upload confirm
+      confirmBtn.addEventListener('click', async () => {
+        if (!selectedFile) {
+          showToast('Please select a file first.', 'error');
+          return;
+        }
+
+        try {
+          progressBar.classList.remove('hidden');
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Uploading...';
+
+          const result = await MediaService.uploadProfilePhoto(selectedFile, (percent) => {
+            progressFill.style.width = `${percent}%`;
+          });
+
+          // Update profile with new photo URL
+          const { error } = await supabase
+            .from('profiles')
+            .update({ profile_photo_url: result.url })
+            .eq('id', (await window.SADQ.getCurrentUser()).user.id);
+
+          if (error) throw error;
+
+          // Update UI
+          const img = document.getElementById('avatar-img');
+          img.src = result.url;
+          img.classList.remove('hidden');
+          document.getElementById('avatar-placeholder').classList.add('hidden');
+
+          showToast('Profile photo updated successfully!', 'success');
+          closeModal('avatar-modal');
+
+          // Reset
+          selectedFile = null;
+          fileInput.value = '';
+          progressBar.classList.add('hidden');
+          progressFill.style.width = '0%';
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Upload';
+
+        } catch (error) {
+          console.error('[Avatar Upload] Error:', error);
+          showToast(error.message || 'Unable to upload image. Please try again.', 'error');
+          progressBar.classList.add('hidden');
+          progressFill.style.width = '0%';
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Upload';
+        }
+      });
+    }
+
+    // ── Cover Upload ───────────────────────────────────────────────
+    function setupCoverUpload() {
+      const { MediaService, supabase } = window.SADQ;
+
+      const uploadBtn = document.getElementById('upload-cover-btn');
+      const fileInput = document.getElementById('cover-input');
+
+      if (!uploadBtn || !fileInput) return;
+
+      uploadBtn.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async (e) => {
+        if (e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        try {
+          uploadBtn.textContent = 'Uploading...';
+          uploadBtn.disabled = true;
+
+          const result = await MediaService.uploadCoverPhoto(file, (percent) => {
+            uploadBtn.textContent = `Uploading ${percent}%`;
+          });
+
+          const { error } = await supabase
+            .from('profiles')
+            .update({ cover_photo_url: result.url })
+            .eq('id', (await window.SADQ.getCurrentUser()).user.id);
+
+          if (error) throw error;
+
+          // Reload to show new cover
+          window.location.reload();
+
+        } catch (error) {
+          console.error('[Cover Upload] Error:', error);
+          showToast(error.message || 'Unable to upload cover image. Please try again.', 'error');
+          uploadBtn.textContent = 'Change Cover';
+          uploadBtn.disabled = false;
+        }
+      });
+    }
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

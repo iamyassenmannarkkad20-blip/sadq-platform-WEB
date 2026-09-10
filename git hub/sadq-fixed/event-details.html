@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event — SADQ</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a5632">
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg,#050816);color:var(--text,#F8FAFC);line-height:1.6;-webkit-font-smoothing:antialiased}
+    .header{position:sticky;top:0;z-index:100;height:64px;background:var(--sadq-primary);display:flex;align-items:center;padding:0 16px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .header__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+    .header__nav{margin-left:auto;display:flex;gap:4px}
+    .header__nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.8125rem;padding:6px 10px;border-radius:var(--sadq-radius-sm)}
+    .header__nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .container{max-width:760px;margin:0 auto;padding:16px}
+    .back-link{color:var(--sadq-primary);text-decoration:none;font-size:.875rem;margin-bottom:16px;display:inline-flex;align-items:center;gap:4px}
+    .back-link:hover{text-decoration:underline}
+    .event__hero{border-radius:var(--sadq-radius);overflow:hidden;margin-bottom:20px;position:relative}
+    .event__hero-img{width:100%;height:280px;object-fit:cover;display:block}
+    .event__hero-placeholder{width:100%;height:280px;background:linear-gradient(135deg,var(--sadq-primary),var(--sadq-primary-light));display:flex;align-items:center;justify-content:center;font-size:4rem;color:rgba(255,255,255,.5)}
+    .event__date-badge{position:absolute;top:16px;right:16px;background:#fff;border-radius:var(--sadq-radius-sm);padding:8px 12px;text-align:center;box-shadow:var(--sadq-shadow)}
+    .event__date-day{font-size:1.5rem;font-weight:700;color:var(--sadq-primary);line-height:1}
+    .event__date-month{font-size:.75rem;color:var(--sadq-text-muted);text-transform:uppercase}
+    .event__title{font-size:1.75rem;font-weight:700;line-height:1.3;margin-bottom:12px}
+    .event__info-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:20px}
+    .info-item{display:flex;align-items:start;gap:10px;padding:12px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow)}
+    .info-item__icon{font-size:1.25rem;flex-shrink:0}
+    .info-item__label{font-size:.6875rem;color:var(--sadq-text-muted);text-transform:uppercase;letter-spacing:.5px}
+    .info-item__value{font-size:.875rem;font-weight:500}
+    .event__content{font-size:1rem;line-height:1.8;color:var(--text,#F8FAFC)}
+    .event__content p{margin-bottom:14px}
+    .event__organizer{display:flex;align-items:center;gap:10px;padding:16px;background:var(--sadq-card-bg);border-radius:var(--sadq-radius-sm);box-shadow:var(--sadq-shadow);margin-top:20px}
+    .organizer__avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--sadq-border)}
+    .organizer__name{font-size:.875rem;font-weight:500}
+    .organizer__sub{font-size:.75rem;color:var(--sadq-text-muted)}
+    .rsvp-section{margin-top:24px;display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:12px 24px;border:none;border-radius:var(--sadq-radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;background:var(--sadq-primary);color:#fff;transition:var(--sadq-transition)}
+    .btn:hover{background:var(--sadq-primary-light)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn--outline{background:transparent;color:var(--sadq-primary);border:1px solid var(--sadq-primary)}
+    .btn--outline:hover{background:#f0f7f0}
+    .btn--registered{background:var(--sadq-primary);opacity:.7}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--sadq-radius)}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .empty-state{text-align:center;padding:60px 16px;color:var(--sadq-text-muted)}
+    .empty-state__icon{font-size:3rem;margin-bottom:12px;opacity:.3}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.event__title{font-size:1.375rem}.event__hero-img,.event__hero-placeholder{height:200px}}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <header class="header">
+    <a href="/" class="header__logo">SADQ</a>
+    <nav class="header__nav">
+      <a href="/explore.html">Explore</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <a href="/explore.html" class="back-link">← Back to Explore</a>
+    <div id="loading">
+      <div class="skeleton" style="height:280px;margin-bottom:20px"></div>
+      <div class="skeleton" style="height:28px;width:70%;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:60px;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:16px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:16px;width:80%"></div>
+    </div>
+    <div id="content" class="hidden fade-in"></div>
+    <div id="error" class="empty-state hidden">
+      <div class="empty-state__icon">📅</div>
+      <p>Unable to load this event. Please try again.</p>
+      <a href="/explore.html" style="color:var(--sadq-primary);text-decoration:none;font-size:.875rem">Go to Explore</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase, getCurrentUser } from '/js/supabase-client.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('id');
+    let currentUser = null;
+    let event = null;
+    let isRegistered = false;
+
+    async function init() {
+      try { const { user } = await getCurrentUser(); currentUser = user; } catch {}
+      if (!eventId) { showError(); return; }
+      try {
+        const { data, error } = await supabase.from('events')
+          .select('*')
+          .eq('id', eventId)
+          .eq('status', 'published')
+          .single();
+        if (error) throw error;
+        if (!data) { showError(); return; }
+        event = data;
+        document.title = `${data.title} — SADQ`;
+        renderEvent(data);
+        if (currentUser) await checkRegistration();
+      } catch (err) {
+        console.error('[EventDetails] Error:', err.message);
+        showError();
+      }
+    }
+
+    function renderEvent(e) {
+      const startDate = new Date(e.start_at);
+      const dateStr = startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+      const timeStr = startDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      const endStr = e.end_at ? new Date(e.end_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+
+      document.getElementById('content').innerHTML = `
+        <div class="event__hero">
+          ${e.featured_image_url
+            ? `<img class="event__hero-img" src="${e.featured_image_url}" alt="${e.title}">`
+            : `<div class="event__hero-placeholder">📅</div>`}
+          <div class="event__date-badge">
+            <div class="event__date-day">${startDate.getDate()}</div>
+            <div class="event__date-month">${startDate.toLocaleString('en-IN',{month:'short'})}</div>
+          </div>
+        </div>
+        <h1 class="event__title">${e.title}</h1>
+        <div class="event__info-grid">
+          <div class="info-item"><span class="info-item__icon">📅</span><div><div class="info-item__label">Date</div><div class="info-item__value">${dateStr}${endStr ? ' – ' + endStr : ''}</div></div></div>
+          <div class="info-item"><span class="info-item__icon">🕐</span><div><div class="info-item__label">Time</div><div class="info-item__value">${timeStr}</div></div></div>
+          ${e.location ? `<div class="info-item"><span class="info-item__icon">📍</span><div><div class="info-item__label">Location</div><div class="info-item__value">${e.location}</div></div></div>` : ''}
+          ${e.is_online ? `<div class="info-item"><span class="info-item__icon">💻</span><div><div class="info-item__label">Mode</div><div class="info-item__value">Online Event</div></div></div>` : ''}
+          ${e.max_attendees ? `<div class="info-item"><span class="info-item__icon">👥</span><div><div class="info-item__label">Capacity</div><div class="info-item__value">${e.max_attendees} attendees</div></div></div>` : ''}
+          ${e.registration_fee ? `<div class="info-item"><span class="info-item__icon">💰</span><div><div class="info-item__label">Fee</div><div class="info-item__value">₹${e.registration_fee}</div></div></div>` : ''}
+        </div>
+        <div class="event__content">${e.description || ''}</div>
+        ${e.organizer_name ? `
+          <div class="event__organizer">
+            <div class="organizer__avatar" style="display:flex;align-items:center;justify-content:center;background:var(--sadq-primary);color:#fff;font-weight:600">${e.organizer_name.charAt(0)}</div>
+            <div><div class="organizer__name">${e.organizer_name}</div><div class="organizer__sub">Organizer</div></div>
+          </div>` : ''}
+        <div class="rsvp-section">
+          ${currentUser
+            ? `<button class="btn" id="rsvp-btn" onclick="window.toggleRSVP()">Register Now</button>`
+            : `<a href="/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}" class="btn">Login to Register</a>`}
+          <button class="btn btn--outline" onclick="window.shareEvent()">🔗 Share</button>
+        </div>
+      `;
+      document.getElementById('content').classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    async function checkRegistration() {
+      try {
+        const { data } = await supabase.from('event_registrations')
+          .select('id').eq('event_id', event.id).eq('user_id', currentUser.id).maybeSingle();
+        isRegistered = !!data;
+        updateRSVPButton();
+      } catch {}
+    }
+
+    function updateRSVPButton() {
+      const btn = document.getElementById('rsvp-btn');
+      if (!btn) return;
+      btn.textContent = isRegistered ? '✓ Registered' : 'Register Now';
+      btn.classList.toggle('btn--registered', isRegistered);
+    }
+
+    window.toggleRSVP = async function() {
+      const btn = document.getElementById('rsvp-btn');
+      btn.disabled = true;
+      try {
+        if (isRegistered) {
+          await supabase.from('event_registrations').delete()
+            .eq('event_id', event.id).eq('user_id', currentUser.id);
+          isRegistered = false;
+        } else {
+          await supabase.from('event_registrations').insert({ event_id: event.id, user_id: currentUser.id });
+          isRegistered = true;
+        }
+        updateRSVPButton();
+      } catch (err) {
+        console.error('[RSVP] Error:', err.message);
+        alert('Unable to update registration. Please try again.');
+      } finally { btn.disabled = false; }
+    };
+
+    window.shareEvent = function() {
+      if (navigator.share) { navigator.share({ title: event.title, url: window.location.href }).catch(() => {}); }
+      else { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+    };
+
+    function showError() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+
+    init();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

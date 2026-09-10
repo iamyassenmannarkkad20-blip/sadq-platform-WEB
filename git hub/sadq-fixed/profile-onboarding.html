@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Profile — SADQ</title>
+  <style>
+    :root { --p:#8B5CF6; --pl:#7C3AED; --pd:#0f3d20; --bg:#050816; --bg2:#090D1F; --card:#10152A; --text:#F8FAFC; --muted:#94A3B8; --border:rgba(255,255,255,0.08); --danger:#EF4444; --success:#10B981; --gold:#D4AF37; --purple:#8B5CF6; --blue:#3B82F6; --r:14px; --rs:8px; --shadow:0 4px 20px rgba(0,0,0,0.4); --t:0.3s ease; --sw:240px; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg,#050816); min-height:100vh; padding:16px; display:flex; align-items:center; justify-content:center; }
+    .onboard-card { background:#fff; border-radius:24px; box-shadow:0 20px 60px rgba(0,0,0,0.12); width:100%; max-width:540px; overflow:hidden; }
+    .ob-header { background:linear-gradient(135deg,var(--sadq-green) 0%,var(--sadq-green-dark) 100%); padding:28px 24px; text-align:center; }
+    .ob-header h1 { color:#fff; font-size:1.5rem; }
+    .ob-header p { color:rgba(255,255,255,0.7); font-size:0.8125rem; margin-top:4px; }
+    .ob-body { padding:24px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.8125rem; font-weight:600; color:#333; margin-bottom:5px; }
+    .form-input, .form-select, .form-textarea { width:100%; padding:11px 14px; border:2px solid #e0e0e0; border-radius:12px; font-size:0.9375rem; transition:border 0.3s; background:#fafafa; font-family:inherit; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline:none; border-color:var(--sadq-green); background:#fff; }
+    .form-textarea { min-height:80px; resize:vertical; }
+    .btn-submit { width:100%; padding:14px; border:none; border-radius:12px; font-size:0.9375rem; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--sadq-green) 0%,var(--sadq-green-dark) 100%); color:#fff; }
+    .btn-submit:disabled { opacity:0.6; }
+    .step-indicator { display:flex; justify-content:center; gap:8px; margin-bottom:20px; }
+    .step-dot { width:8px; height:8px; border-radius:50%; background:#ddd; }
+    .step-dot.active { background:var(--sadq-green); }
+    .error-msg { background:#fee; color:var(--sadq-red); padding:10px 14px; border-radius:8px; font-size:0.8125rem; margin-bottom:14px; display:none; }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+  <div class="onboard-card">
+    <div class="ob-header">
+      <h1>🎯 Complete Your Profile</h1>
+      <p>Tell us about yourself to get started</p>
+    </div>
+
+    <div class="ob-body">
+      <div class="step-indicator">
+        <div class="step-dot active"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot active"></div>
+      </div>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <div class="form-group">
+        <label>Which class are you in? *</label>
+        <select class="form-select" id="class-name">
+          <option value="">Select your class</option>
+          <option value="Class 8">Class 8</option>
+          <option value="Class 9">Class 9</option>
+          <option value="Class 10">Class 10</option>
+          <option value="Class 11">Class 11</option>
+          <option value="Class 12">Class 12</option>
+          <option value="College">College / Higher Studies</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Class / Organisation Name *</label>
+        <input type="text" class="form-input" id="org-name" placeholder="e.g. Darul Quran Islamic Academy">
+      </div>
+
+      <div class="form-group">
+        <label>What is your organisation?</label>
+        <input type="text" class="form-input" id="organisation" placeholder="e.g. SADQ - Pazhur Unit">
+      </div>
+
+      <div class="form-group">
+        <label>What is the goal of your organisation?</label>
+        <textarea class="form-textarea" id="org-goal" placeholder="Briefly describe the aim or mission..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Favourite Subject</label>
+        <input type="text" class="form-input" id="fav-subject" placeholder="e.g. Quran, Hadith, Arabic...">
+      </div>
+
+      <div class="form-group">
+        <label>Hobbies / Interests</label>
+        <input type="text" class="form-input" id="hobbies" placeholder="e.g. Reading, Sports, Calligraphy...">
+      </div>
+
+      <button class="btn-submit" id="submit-btn" onclick="saveProfile()">Save & Continue to Dashboard →</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase, requireAuth } from '/js/supabase-client.js';
+
+    let currentUser = null;
+
+    async function init() {
+      try {
+        const { user, profile } = await requireAuth();
+        currentUser = user;
+
+        // Check if already completed
+        try {
+          const { data: extra } = await supabase
+            .from('student_profiles_extra')
+            .select('profile_completed')
+            .eq('student_id', user.id)
+            .single();
+
+          if (extra && extra.profile_completed) {
+            window.location.href = '/dashboard.html';
+            return;
+          }
+        } catch (e) { /* table might not exist */ }
+
+      } catch (e) {
+        window.location.href = '/login.html';
+      }
+    }
+
+    init();
+
+    window.saveProfile = async function() {
+      const className = document.getElementById('class-name').value;
+      const orgName = document.getElementById('org-name').value.trim();
+      const organisation = document.getElementById('organisation').value.trim();
+      const orgGoal = document.getElementById('org-goal').value.trim();
+      const favSubject = document.getElementById('fav-subject').value.trim();
+      const hobbies = document.getElementById('hobbies').value.trim();
+      const errEl = document.getElementById('error-msg');
+      const btn = document.getElementById('submit-btn');
+
+      errEl.style.display = 'none';
+
+      if (!className || !orgName) {
+        errEl.textContent = 'Please fill required fields (Class and Organisation Name).';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        // Upsert to student_profiles_extra
+        const { error } = await supabase
+          .from('student_profiles_extra')
+          .upsert({
+            student_id: currentUser.id,
+            class_name: className,
+            class_organisation: orgName,
+            organisation_name: organisation,
+            organisation_goal: orgGoal,
+            favourite_subject: favSubject,
+            hobbies: hobbies,
+            profile_completed: true,
+            completed_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+
+        window.location.href = '/dashboard.html';
+
+      } catch (error) {
+        errEl.textContent = error.message || 'Failed to save. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Save & Continue to Dashboard →';
+      }
+    };
+  </script>
+
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>

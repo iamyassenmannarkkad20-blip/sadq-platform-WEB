@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Achievements — SADQ Admin</title>
+<style>
+:root{--p:#2563EB;--pl:#1D4ED8;--bg:#050816;--card:#10152A;--text:#F8FAFC;--muted:#94A3B8;--border:rgba(255,255,255,0.08);--danger:#EF4444;--success:#10B981;--gold:#F9A825;--r:12px;--rs:8px;--shadow:0 4px 20px rgba(0,0,0,0.4);--t:0.3s ease;--sw:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#2563EB,#0F172A);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar__h{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar__logo{font-size:1.25rem;font-weight:700;color:#fff;text-decoration:none}
+.sidebar__sub{font-size:0.6875rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.sidebar__link{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.875rem;transition:var(--t);border-left:3px solid transparent}
+.sidebar__link:hover{background:rgba(255,255,255,0.08);color:#fff}.sidebar__link--active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+.sidebar__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar__section{padding:12px 16px 4px;font-size:0.6875rem;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.main{margin-left:var(--sw);padding:16px;min-height:100vh}.main__title{font-size:1.5rem;font-weight:700;margin-bottom:4px}.main__sub{font-size:0.8125rem;color:var(--muted);margin-bottom:20px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rs);font-size:0.875rem;font-weight:500;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn--primary{background:var(--blue);color:#fff}.btn--danger{background:var(--danger);color:#fff}.btn--ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn--success{background:var(--success);color:#fff}
+.btn--small{padding:4px 10px;font-size:0.8125rem}.btn:disabled{opacity:0.6}
+.section{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.section__title{font-size:1rem;font-weight:600;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:0.875rem}
+th{text-align:left;padding:10px;border-bottom:2px solid var(--border);font-weight:600;font-size:0.75rem;color:var(--muted);text-transform:uppercase}
+td{padding:10px;border-bottom:1px solid var(--border)}tr:hover{background:rgba(37,99,235,0.06)}
+.badge{font-size:0.6875rem;padding:2px 8px;border-radius:10px;font-weight:500;display:inline-block}
+.badge--green{background:rgba(16,185,129,0.12);color:var(--success)}.badge--red{background:rgba(239,68,68,0.12);color:#F87171}.badge--orange{background:rgba(245,158,11,0.12);color:#F59E0B}.badge--blue{background:rgba(59,130,246,0.12);color:#60A5FA}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}.empty__icon{font-size:2rem;margin-bottom:8px;opacity:0.4}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.06) 25%,rgba(255,255,255,0.12) 50%,rgba(255,255,255,0.06) 75%);background-size:200% 100%;animation:sk 1.5s infinite;border-radius:var(--rs)}@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hidden{display:none!important}
+.form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px}
+.form-input,.form-select{width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--rs);font-size:0.875rem}
+.form-input:focus{outline:none;border-color:var(--blue)}
+.form-row{display:flex;gap:12px;flex-wrap:wrap}.form-row .form-group{flex:1;min-width:150px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay--active{display:flex}.modal{background:var(--card,#10152A);border-radius:var(--r);padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+.modal__title{font-size:1.125rem;font-weight:600;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);color:#fff;font-size:0.875rem;z-index:300;opacity:0;transform:translateY(10px);transition:var(--t);max-width:350px}
+.toast--show{opacity:1;transform:translateY(0)}.toast--success{background:var(--success)}.toast--error{background:var(--danger)}
+.menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:110;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:1rem;cursor:pointer}
+.stats-row{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat-mini{background:var(--card);border-radius:var(--r);padding:12px 16px;box-shadow:var(--shadow);flex:1;min-width:120px}
+.stat-mini__value{font-size:1.5rem;font-weight:700}.stat-mini__label{font-size:0.75rem;color:var(--muted)}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar--open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:block}}
+.table-wrap{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch;}
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+<button class="menu-toggle" id="mt">☰</button>
+<aside class="sidebar" id="sb">
+<div class="sidebar__h"><a href="/admin-dashboard.html" class="sidebar__logo">SADQ Admin</a><div class="sidebar__sub">Control Center</div></div>
+<nav>
+<div class="sidebar__section">Overview</div>
+<a href="/admin-dashboard.html" class="sidebar__link "><span class="sidebar__icon">📊</span> Dashboard</a>
+<div class="sidebar__section">People</div>
+<a href="/admin-students.html" class="sidebar__link "><span class="sidebar__icon">🎓</span> Students</a>
+<a href="/admin-teachers.html" class="sidebar__link "><span class="sidebar__icon">👨‍🏫</span> Teachers</a>
+<div class="sidebar__section">Organisation</div>
+<a href="/admin-subwings.html" class="sidebar__link "><span class="sidebar__icon">🏛️</span> Sub-Wings</a>
+<a href="/admin-events.html" class="sidebar__link "><span class="sidebar__icon">📅</span> Events</a>
+<a href="/admin-winners.html" class="sidebar__link "><span class="sidebar__icon">🏆</span> Winners</a>
+<div class="sidebar__section">Content</div>
+<a href="/admin-content.html" class="sidebar__link "><span class="sidebar__icon">📰</span> Magazine</a>
+<a href="/admin-content.html#chinthakal" class="sidebar__link"><span class="sidebar__icon">💭</span> Chinthakal</a>
+<a href="/admin-content.html#videos" class="sidebar__link"><span class="sidebar__icon">🎬</span> Videos</a>
+<a href="/admin-content.html#notes" class="sidebar__link"><span class="sidebar__icon">📝</span> Notes</a>
+<a href="/admin-content.html#library" class="sidebar__link"><span class="sidebar__icon">📚</span> Library</a>
+<div class="sidebar__section">Recognition</div>
+<a href="/admin-certificates.html" class="sidebar__link "><span class="sidebar__icon">📜</span> Certificates</a>
+<a href="/admin-achievements.html" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">🏅</span> Achievements</a>
+<div class="sidebar__section">Marketplace</div>
+<a href="/admin-freelancing.html" class="sidebar__link "><span class="sidebar__icon">🛠️</span> Freelancing</a>
+<a href="/admin-freelancing.html#translation" class="sidebar__link"><span class="sidebar__icon">🌐</span> Translation</a>
+<a href="/admin-freelancing.html#orders" class="sidebar__link"><span class="sidebar__icon">📦</span> Orders</a>
+<div class="sidebar__section">Finance</div>
+<a href="/admin-payments.html" class="sidebar__link "><span class="sidebar__icon">💳</span> Payments</a>
+<a href="/admin-payments.html#upi" class="sidebar__link"><span class="sidebar__icon">📱</span> UPI Verification</a>
+<a href="/admin-payments.html#withdrawals" class="sidebar__link"><span class="sidebar__icon">🏦</span> Withdrawals</a>
+<div class="sidebar__section">Platform</div>
+<a href="/admin-content.html#projects" class="sidebar__link"><span class="sidebar__icon">📁</span> Projects</a>
+<a href="/admin-content.html#jobs" class="sidebar__link"><span class="sidebar__icon">💼</span> Jobs</a>
+<a href="/admin-content.html#marketplace" class="sidebar__link"><span class="sidebar__icon">🛒</span> Marketplace</a>
+<a href="/admin-content.html#reports" class="sidebar__link"><span class="sidebar__icon">🚩</span> Reports</a>
+<a href="/admin-settings.html" class="sidebar__link "><span class="sidebar__icon">⚙️</span> Settings</a>
+<a href="/admin-website.html" class="sidebar__link "><span class="sidebar__icon">🌐</span> Website Editor</a>
+<a href="/admin-content.html#audit" class="sidebar__link"><span class="sidebar__icon">📋</span> Audit Logs</a>
+<div class="sidebar__section">Back</div>
+<a href="/dashboard.html" class="sidebar__link"><span class="sidebar__icon">🏠</span> Student View</a>
+<a href="#" class="sidebar__link" id="lo"><span class="sidebar__icon">🚪</span> Logout</a>
+</nav>
+</aside>
+<div class="main">
+<h1 class="main__title">Class Achievements</h1>
+<p class="main__sub">Track and approve class-wise achievements. Main Committee approval for top classes.</p>
+
+<div class="stats-row">
+<div class="stat-mini"><div class="stat-mini__value" id="s-pending">—</div><div class="stat-mini__label">Pending</div></div>
+<div class="stat-mini"><div class="stat-mini__value" id="s-approved">—</div><div class="stat-mini__label">Approved</div></div>
+<div class="stat-mini"><div class="stat-mini__value" id="s-total-points">—</div><div class="stat-mini__label">Total Points</div></div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<div class="section__title" style="margin:0">All Achievements</div>
+<button class="btn btn--primary" onclick="openCreate()">+ Add Achievement</button>
+</div>
+
+<div class="section">
+<div id="loading"><div class="skeleton" style="height:50px;margin-bottom:8px"></div><div class="skeleton" style="height:50px;margin-bottom:8px"></div><div class="skeleton" style="height:50px"></div></div>
+<div class="table-wrap" style="overflow-x:auto;width:100%;"><table id="tbl" class="hidden"><thead><tr><th>Class</th><th>Achievement</th><th>Type</th><th>Points</th><th>Status</th><th>Committee</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div id="empty" class="empty hidden"><div class="empty__icon">🏆</div><p>No achievements recorded yet.</p></div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal"><div class="modal">
+<button onclick="closeModal()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)">×</button>
+<h2 class="modal__title">Add Achievement</h2>
+<div class="form-row">
+<div class="form-group"><label>Class Name *</label><input class="form-input" id="a-class" placeholder="e.g. Class 10-A"></div>
+<div class="form-group"><label>Organisation</label><input class="form-input" id="a-org" placeholder="Class org"></div>
+</div>
+<div class="form-group"><label>Achievement Title *</label><input class="form-input" id="a-title" placeholder="e.g. First in Quran Competition"></div>
+<div class="form-group"><label>Description</label><input class="form-input" id="a-desc" placeholder="Details..."></div>
+<div class="form-row">
+<div class="form-group"><label>Type</label><select class="form-select" id="a-type"><option value="academic">Academic</option><option value="sports">Sports</option><option value="cultural">Cultural</option><option value="service">Service</option><option value="general">General</option></select></div>
+<div class="form-group"><label>Points</label><input class="form-input" type="number" id="a-points" value="10" min="0"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Event Name</label><input class="form-input" id="a-event" placeholder="Event"></div>
+<div class="form-group"><label>Event Date</label><input class="form-input" type="date" id="a-date"></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+<button class="btn btn--ghost" onclick="closeModal()">Cancel</button>
+<button class="btn btn--primary" id="save-btn" onclick="saveAch()">Save</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import{supabase,requireAuth,signOut} from '/js/supabase-client.js'
+let cu=null
+function toast(m,t='success'){const e=document.getElementById('toast');e.textContent=m;e.className=`toast toast--${t} toast--show`;setTimeout(()=>e.classList.remove('toast--show'),3000)}
+async function init(){try{const{user,profile}=await requireAuth();if(!profile||!['admin','super_admin'].includes(profile.role)){window.location.href='/dashboard.html';return}cu=user;document.getElementById('lo').addEventListener('click',e=>{e.preventDefault();signOut()});document.getElementById('mt').addEventListener('click',()=>document.getElementById('sb').classList.toggle('sidebar--open'));await Promise.all([load(),loadStats()])}catch(e){console.error(e)}}
+async function loadStats(){try{const{count:p}=await supabase.from('class_achievements').select('id',{count:'exact',head:true}).eq('status','pending');document.getElementById('s-pending').textContent=p||0
+const{count:a}=await supabase.from('class_achievements').select('id',{count:'exact',head:true}).eq('status','approved');document.getElementById('s-approved').textContent=a||0
+const{data:pts}=await supabase.from('class_achievements').select('points').eq('status','approved');const tp=(pts||[]).reduce((s,r)=>s+(r.points||0),0);document.getElementById('s-total-points').textContent=tp}catch(e){}}
+async function load(){const l=document.getElementById('loading'),t=document.getElementById('tbl'),e=document.getElementById('empty'),tb=document.getElementById('tbody');l.classList.remove('hidden');t.classList.add('hidden');e.classList.add('hidden')
+try{const{data,error}=await supabase.from('class_achievements').select('*').order('created_at',{ascending:false}).limit(50)
+if(error)throw error
+if(!data||!data.length){l.classList.add('hidden');e.classList.remove('hidden');return}
+tb.innerHTML=data.map(a=>`<tr><td><strong>${a.class_name||'—'}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${a.class_organisation||''}</span></td><td>${a.achievement_title||'—'}${a.achievement_description?`<br><span style="font-size:0.75rem;color:var(--muted)">${a.achievement_description.substring(0,60)}</span>`:''}</td><td><span class="badge badge--blue">${a.achievement_type||'general'}</span></td><td>${a.points||0}</td><td><span class="badge ${a.status==='approved'?'badge--green':a.status==='rejected'?'badge--red':'badge--orange'}">${a.status}</span></td><td>${a.main_committee_approved?'<span class="badge badge--green">✓ Approved</span>':'<span class="badge badge--orange">Pending</span>'}</td><td>${a.status==='pending'?`<button class="btn btn--success btn--small" onclick="approveAch('${a.id}')">Approve</button> <button class="btn btn--danger btn--small" onclick="rejectAch('${a.id}')">Reject</button>`:''} ${!a.main_committee_approved&&a.status==='approved'?`<button class="btn btn--ghost btn--small" onclick="committeeApprove('${a.id}')">Committee ✓</button>`:''} <button class="btn btn--danger btn--small" onclick="delAch('${a.id}')">Delete</button></td></tr>`).join('')
+l.classList.add('hidden');t.classList.remove('hidden')}catch(e){console.error(e);l.classList.add('hidden');e.classList.remove('hidden')}}
+window.openCreate=()=>document.getElementById('modal').classList.add('modal-overlay--active')
+window.closeModal=()=>{document.getElementById('modal').classList.remove('modal-overlay--active');['a-class','a-org','a-title','a-desc','a-event','a-date','a-points'].forEach(id=>document.getElementById(id).value='');document.getElementById('a-type').value='academic';document.getElementById('a-points').value='10'}
+window.saveAch=async()=>{const c=document.getElementById('a-class').value.trim(),t=document.getElementById('a-title').value.trim()
+if(!c||!t){toast('Class and title required','error');return}
+const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Saving...'
+try{const{error}=await supabase.from('class_achievements').insert({class_name:c,class_organisation:document.getElementById('a-org').value.trim()||null,achievement_title:t,achievement_description:document.getElementById('a-desc').value.trim()||null,achievement_type:document.getElementById('a-type').value,points:parseInt(document.getElementById('a-points').value)||0,event_name:document.getElementById('a-event').value.trim()||null,event_date:document.getElementById('a-date').value||null})
+if(error)throw error;toast('Achievement added!');closeModal();await Promise.all([load(),loadStats()])}catch(e){toast(e.message,'error')}finally{btn.disabled=false;btn.textContent='Save'}}
+window.approveAch=async(id)=>{try{const{error}=await supabase.from('class_achievements').update({status:'approved'}).eq('id',id);if(error)throw error;toast('Approved!');await Promise.all([load(),loadStats()])}catch(e){toast(e.message,'error')}}
+window.rejectAch=async(id)=>{try{const{error}=await supabase.from('class_achievements').update({status:'rejected'}).eq('id',id);if(error)throw error;toast('Rejected');await Promise.all([load(),loadStats()])}catch(e){toast(e.message,'error')}}
+window.committeeApprove=async(id)=>{try{const{error}=await supabase.from('class_achievements').update({main_committee_approved:true,approved_by:cu.id,approved_at:new Date().toISOString()}).eq('id',id);if(error)throw error;toast('Main Committee approved!');await load()}catch(e){toast(e.message,'error')}}
+window.delAch=async(id)=>{if(!confirm('Delete this achievement?'))return;try{const{error}=await supabase.from('class_achievements').delete().eq('id',id);if(error)throw error;toast('Deleted');await Promise.all([load(),loadStats()])}catch(e){toast(e.message,'error')}}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+  <script src="/js/smooth-scroll.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/page-transition.js"></script>
+</body>
+</html>
